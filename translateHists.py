@@ -745,6 +745,10 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
   exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_POT_{0})".format(sigDef)) # Remove units of per POT
   exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_nTargets)".format(sigDef))
 
+  ## Pop out all error bands except GENIE from the MC xsection
+  for systName in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+    exec("mHist_xSection_mc_{0}.PopVertErrorBand(\"{1}\")".format(sigDef,systName))
+
   exec("writeHist(mHist_xSection_mc_{0},outFile)".format(sigDef))
 
 #############################################################################################################
