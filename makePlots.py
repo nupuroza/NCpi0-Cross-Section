@@ -2,6 +2,7 @@
 ### using the MINERvA Analysis Toolkit
 
 import ROOT
+import datetime as dt
 from plottingClasses import *
 from errorMaps_gLEE import *
 #from errorMaps_gLEE_GENIE_breakout import *
@@ -53,11 +54,10 @@ FLUX_SYSTS = [
 ### File Management #########################################################################################
 #############################################################################################################
 
-#histFileLocation = "2021-08-26_out.root"
-histFileLocation = "2021-09-06_out.root"
+histFileLocation = "{0}_out.root".format(dt.date.today())
 histFile = ROOT.TFile(histFileLocation)
 
-plotDir = "/uboone/data/users/noza/gLEE/xsection/2021-10-18_xsec-plots_test"
+plotDir = "/uboone/data/users/noza/gLEE/xsection/{0}_xsec-plots_test".format(dt.date.today())
 #plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-09-06_GENIE-breakout_xsec-plots"
 #plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-09-06_Detector-breakout_xsec-plots"
 #plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-08-05_xsec-plots_Zarko_MCC9Flux"

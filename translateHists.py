@@ -2,6 +2,7 @@
 ### and package them into MnvH1Ds using the MINERvA Analysis Toolkit
 
 import ROOT
+import datetime as dt
 from array import *
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
@@ -26,11 +27,9 @@ cvFile_2g1p = ROOT.TFile(cvFilePath_2g1p)
 cvFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/XS2g0p_MConly_FinalSelection_CV.SBNspec.root"
 cvFile_2g0p = ROOT.TFile(cvFilePath_2g0p)
 
-## Efficiency Denominators (from earlier stage of processing; no nonreweightable systematics)
-#effDenomFilePath_2g1p = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+## Efficiency Denominators
 effDenomFilePath_2g1p = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p = ROOT.TFile(effDenomFilePath_2g1p)
-#effDenomFilePath_2g0p = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFilePath_2g0p = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g0p = ROOT.TFile(effDenomFilePath_2g0p)
 
@@ -42,71 +41,77 @@ effNumFile = ROOT.TFile(effNumFilePath)
 g4FilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
 g4File = ROOT.TFile(g4FilePath)
 
-## Output file 
-outputFilePath = "2021-09-06_out_temp.root"
+## Output file
+outputFilePath = "{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
 
 #############################################################################################################
 ### Systematic Universes ####################################################################################
 #############################################################################################################
 
+## Number of Universes
+nMinMaxUniverses = 2
+## Easy way to make the program run faster
+nMultiverses = 10
+#nMultiverses = 1000
+
+
 ## List of cross section systematics
 XS_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
-  ["All_UBGenie","universe",1000],
-  ["AxFFCCQEshape_UBGenie","minmax",2],
-  ["DecayAngMEC_UBGenie","minmax",2],
-  ["NormCCCOH_UBGenie","minmax",2],
-  ["NormNCCOH_UBGenie","minmax",2],
-  ["RPA_CCQE_UBGenie","universe",2],
-  ["Theta_Delta2Npi_UBGenie","minmax",2],
-  ["VecFFCCQEshape_UBGenie","minmax",2],
+  ["All_UBGenie","universe",nMultiverses],
+  ["AxFFCCQEshape_UBGenie","minmax", nMinMaxUniverses],
+  ["DecayAngMEC_UBGenie","minmax",nMinMaxUniverses],
+  ["NormCCCOH_UBGenie","minmax",nMinMaxUniverses],
+  ["NormNCCOH_UBGenie","minmax",nMinMaxUniverses],
+  ["RPA_CCQE_UBGenie","universe",nMinMaxUniverses],
+  ["Theta_Delta2Npi_UBGenie","minmax",nMinMaxUniverses],
+  ["VecFFCCQEshape_UBGenie","minmax",nMinMaxUniverses],
 ]
 
 ## List of flux systematics
 FLUX_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
-  "expskin_FluxUnisim",
-  "horncurrent_FluxUnisim",
-  "kminus_PrimaryHadronNormalization",
-  "kplus_PrimaryHadronFeynmanScaling",
-  "kzero_PrimaryHadronSanfordWang",
-  "nucleoninexsec_FluxUnisim",
-  "nucleonqexsec_FluxUnisim",
-  "nucleontotxsec_FluxUnisim",
-  "piminus_PrimaryHadronSWCentralSplineVariation",
-  "pioninexsec_FluxUnisim",
-  "pionqexsec_FluxUnisim",
-  "piontotxsec_FluxUnisim",
-  "piplus_PrimaryHadronSWCentralSplineVariation"
+  ["expskin_FluxUnisim","universe",nMultiverses],
+  ["horncurrent_FluxUnisim","universe",nMultiverses],
+  ["kminus_PrimaryHadronNormalization","universe",nMultiverses],
+  ["kplus_PrimaryHadronFeynmanScaling","universe",nMultiverses],
+  ["kzero_PrimaryHadronSanfordWang","universe",nMultiverses],
+  ["nucleoninexsec_FluxUnisim","universe",nMultiverses],
+  ["nucleonqexsec_FluxUnisim","universe",nMultiverses],
+  ["nucleontotxsec_FluxUnisim","universe",nMultiverses],
+  ["piminus_PrimaryHadronSWCentralSplineVariation","universe",nMultiverses],
+  ["pioninexsec_FluxUnisim","universe",nMultiverses],
+  ["pionqexsec_FluxUnisim","universe",nMultiverses],
+  ["piontotxsec_FluxUnisim","universe",nMultiverses],
+  ["piplus_PrimaryHadronSWCentralSplineVariation","universe",nMultiverses]
 ]
-
-## Easy way to make the program run faster
-nFluxUniverses = 10
-#nFluxUniverses = 1000
 
 ## List of detector systematics
 DETECTOR_SYSTS = [
-  "AngleXZ",
-  "AngleYZ",
-  "LYAtt",
-  "LYRay",
-  "LY",
-  "Recom2",
-  "SCE",
-  "WireX",
-  "WireYZ",
+  ## [syst_name,universe_prefix,n_universes]
+  ["AngleXZ","minmax", nMinMaxUniverses],
+  ["AngleYZ","minmax", nMinMaxUniverses],
+  ["LYAtt","minmax", nMinMaxUniverses],
+  ["LYRay","minmax", nMinMaxUniverses],
+  ["LY","minmax", nMinMaxUniverses],
+  ["Recom2","minmax", nMinMaxUniverses],
+  ["SCE","minmax", nMinMaxUniverses],
+  ["WireX","minmax", nMinMaxUniverses],
+  ["WireYZ","minmax", nMinMaxUniverses]
 ]
 
 G4_SYSTS = [
-  "piminus",
-  "piplus",
-  "proton"
+  ## [syst_name,universe_prefix,n_universes]
+  ["piminus","universe",nMultiverses],
+  ["piplus","universe",nMultiverses],
+  ["proton","universe",nMultiverses]
 ]
  
 OTHER_SYSTS = [
-  "POT_variation",
-  "target_variation"
+  ## [syst_name,universe_prefix,n_universes]
+  ["POT_variation","minmax", nMinMaxUniverses],
+  ["target_variation","minmax", nMinMaxUniverses]
 ]
  
 #############################################################################################################
@@ -131,16 +136,9 @@ tHist_nTargets.SetBinContent(1,n_targets)
 mHist_nTargets = ROOT.PlotUtils.MnvH1D(tHist_nTargets)
 mHist_nTargets.SetName("nTargets")
 ## Populate error bands
-for systName,universePrefix,nUniverses in XS_SYSTS:
+for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
   mHist_nTargets.AddVertErrorBandAndFillWithCV(systName,nUniverses)
-for systName in FLUX_SYSTS:
-  mHist_nTargets.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)
-for systName in DETECTOR_SYSTS:
-  mHist_nTargets.AddVertErrorBandAndFillWithCV(systName,2)
-for systName in G4_SYSTS:
-  mHist_nTargets.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)
-for systName in OTHER_SYSTS:
-  mHist_nTargets.AddVertErrorBandAndFillWithCV(systName,2)
+
 
 ## Steven Gardiner told us to use a 1% variation  
 mHist_nTargets.GetVertErrorBand("target_variation").GetHist(0).SetBinContent(1,n_targets*0.99)
@@ -167,16 +165,8 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
   exec("mHist_POT_{0} = ROOT.PlotUtils.MnvH1D(tHist_POT_{0})".format(sigDef))
   exec("mHist_POT_{0}.SetName(\"POT_{0}\")".format(sigDef))
   ## Populate error bands
-  for systName,universePrefix,nUniverses in XS_SYSTS:
+  for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
     exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
-  for systName in FLUX_SYSTS:
-    exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
-  for systName in DETECTOR_SYSTS:
-    exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
-  for systName in G4_SYSTS:
-    exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
-  for systName in OTHER_SYSTS:
-    exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
 
   ## Steven Gardiner told us to use a 2% variation  
   exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(0).SetBinContent(1,POT_{0}*0.98)".format(sigDef))
@@ -216,8 +206,8 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
   # We'll need this below
   exec("nBins_flux = tHist_flux_{0}_CV.GetNbinsX()".format(nuSpec))
 
-  ## Loop over cross section systematics
-  for systName,universePrefix,nUniverses in XS_SYSTS:
+  ## Loop over cross section, detector, GEANT4, and other systematics
+  for systName,universePrefix,nUniverses in XS_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
   
     # Create the appropriate error band in the MnvH1D
     exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
@@ -225,14 +215,14 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
     ## Cross section variations don't affect the flux, so leave it at that
   
   ## Loop over flux systematics
-  for systName in FLUX_SYSTS:
+  for systName,universePrefix,nUniverses in FLUX_SYSTS:
 
     print "systName: {0}".format(systName)   
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(nuSpec))
+    exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
   
     # Loop over universes in this category of systematic
-    for i in range(nFluxUniverses):
+    for i in range(nUniverses):
       # Pull out the relevant TH1D
       exec("tHist_flux_{0}_{1}_{2} = fluxFile.Get(\"{0}_ms_{1}/hE{0}_{1}_ms_{2}\")".format(nuSpec,systName,i))
       # Loop over bins of flux
@@ -241,28 +231,7 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
         exec("binVal_{1}_{2} = tHist_flux_{0}_{1}_{2}.GetBinContent(j)".format(nuSpec,systName,i))
         # Populate corresponding hist in error band with bin content
         exec("mHist_flux_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(j,binVal_{1}_{2})".format(nuSpec,systName,i))
- 
-  ## Loop over detector systematics
-  for systName in DETECTOR_SYSTS:
-  
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(nuSpec))
-  
-    ## Detector variations don't affect the flux, so leave it at that
-  
-  ## Loop over detector systematics
-  for systName in G4_SYSTS:
-  
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(nuSpec))
-  
-    ## Detector variations don't affect the flux, so leave it at that
-  ## Loop over other systematics
-  for systName in OTHER_SYSTS:
-  
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(nuSpec))
-  
+    
   exec("writeHist(mHist_flux_{0},outFile)".format(nuSpec))
   
   ### Now integrate flux ###########################
@@ -282,12 +251,12 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
   exec("mHist_flux_{0}_integral.SetName(\"integratedFlux_{0}\")".format(nuSpec))
   
   ## Populate error bands
-  for systName,universePrefix,nUniverses in XS_SYSTS:
+  for systName,universePrefix,nUniverses in XS_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
     exec("mHist_flux_{0}_integral.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
-  #for systName in FLUX_SYSTS:
-  for systName in FLUX_SYSTS:
-    exec("mHist_flux_{0}_integral.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(nuSpec))
-    for i in range(nFluxUniverses):
+
+  for systName,universePrefix,nUniverses in FLUX_SYSTS:
+    exec("mHist_flux_{0}_integral.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
+    for i in range(nUniverses):
       # Calculate flux integral for this universe
       exec("flux_integral_{1}_{2} = tHist_flux_{0}_{1}_{2}.Integral()".format(nuSpec,systName,i))
       # Populate corresponding hist in error band with bin content
@@ -295,15 +264,6 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
 
   ## For some reason, applying the scale factor separately to each universe's integrated flux before filling the error bands went horribly wrong
   exec("mHist_flux_{0}_integral.Scale(scale_factor)".format(nuSpec))
-      
-  for systName in DETECTOR_SYSTS:
-    exec("mHist_flux_{0}_integral.AddVertErrorBandAndFillWithCV(systName,2)".format(nuSpec))
-  
-  for systName in G4_SYSTS:
-    exec("mHist_flux_{0}_integral.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(nuSpec))
-  
-  for systName in OTHER_SYSTS:
-    exec("mHist_flux_{0}_integral.AddVertErrorBandAndFillWithCV(systName,2)".format(nuSpec))
   
   exec("writeHist(mHist_flux_{0}_integral,outFile)".format(nuSpec))
 
@@ -351,16 +311,8 @@ for dataDef in ["data_selected","BNB_ext"]:
     exec("mHist_{0}_{1}.SetName(\"{0}_{1}\")".format(dataDef,sigDef))
 
     ## Populate error bands
-    for systName,universePrefix,nUniverses in XS_SYSTS:
+    for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
       exec("mHist_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(dataDef,sigDef))
-    for systName in FLUX_SYSTS:
-      exec("mHist_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(dataDef,sigDef))
-    for systName in DETECTOR_SYSTS:
-      exec("mHist_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,2)".format(dataDef,sigDef))
-    for systName in G4_SYSTS:
-      exec("mHist_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(dataDef,sigDef))
-    for systName in OTHER_SYSTS:
-      exec("mHist_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,2)".format(dataDef,sigDef))
 
     exec("writeHist(mHist_{0}_{1},outFile)".format(dataDef,sigDef))
 
@@ -382,8 +334,8 @@ for sigDef in ["2g1p","2g0p"]:
   # Rename new hist object
   exec("mHist_effDenom_{0}.SetName(\"effDenom_{0}\")".format(sigDef))
 
-  ## Loop over cross section systematics
-  for systName,universePrefix,nUniverses in XS_SYSTS:
+  ## Loop over cross section and flux systematics
+  for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
     exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
@@ -397,38 +349,14 @@ for sigDef in ["2g1p","2g0p"]:
       # Populate corresponding hist in error band with bin content
       exec("mHist_effDenom_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal)".format(sigDef))
 
-  ## Loop over flux systematics
-  for systName in FLUX_SYSTS:
+
+  ## Loop over detector, GEANT4, and other systematics
+  for systName,universePrefix,nUniverses in DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
-
-    # Loop over universes in this category of systematic
-    for i in range(nFluxUniverses):
-      # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-      exec("tHist_effDenom_{0}_{1}_{2} = effDenomFile_{0}.Get(\"Flux_XS_{1}_Dir/nu_uBooNE_AllNCPi0_universe_{3}_Signal\")".format(sigDef,systName,i,i+1))
-      # Pull out content of the one relevant bin
-      exec("binVal = tHist_effDenom_{0}_{1}_{2}.GetBinContent(1)".format(sigDef,systName,i))
-      # Populate corresponding hist in error band with bin content
-      exec("mHist_effDenom_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal)".format(sigDef))
-
-  ## Loop over detector systematics
-  for systName in DETECTOR_SYSTS:
-
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
+    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
     ## Detector variations don't actually affect the true event rate, so leave it at that
-
-  for systName in G4_SYSTS:
-
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
-
-  for systName in OTHER_SYSTS:
-
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
 
   exec("writeHist(mHist_effDenom_{0},outFile)".format(sigDef))
 
@@ -462,8 +390,8 @@ for sigDef in ["2g1p","2g0p"]:
   exec("tHist_effNum_{0}_fakeCV_XS_GENIE = effNumFile.Get(\"Flux_XS_CV_Dir/nu_uBooNE_{0}_Signal\")".format(sigDef))
   exec("binVal_fakeCV_XS_GENIE = tHist_effNum_{0}_fakeCV_XS_GENIE.GetBinContent(1)".format(sigDef)) 
 
-  ## Loop over cross section systematics
-  for systName,universePrefix,nUniverses in XS_SYSTS:
+  ## Loop over cross section and flux systematics
+  for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
     exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
@@ -482,31 +410,11 @@ for sigDef in ["2g1p","2g0p"]:
       # Populate corresponding hist in error band with bin content
       exec("mHist_effNum_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
 
-  ## Loop over flux systematics
-  for systName in FLUX_SYSTS:
-
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
-
-    # Loop over universes in this category of systematic
-    for i in range(nFluxUniverses):
-      # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-      exec("tHist_effNum_{0}_{1}_{2} = effNumFile.Get(\"Flux_XS_{1}_Dir/nu_uBooNE_{0}_universe_{3}_Signal\")".format(sigDef,systName,i,i+1))
-      # Pull out content of the one relevant bin
-      exec("binVal_variation = tHist_effNum_{0}_{1}_{2}.GetBinContent(1)".format(sigDef,systName,i))
-
-      # Calculate appropriate shift (applied fractionally for many universe evaluation)
-      fracShift = (binVal_variation-binVal_fakeCV_XS_GENIE)/binVal_fakeCV_XS_GENIE
-      absShift = fracShift*binVal_trueCV
-
-      # Populate corresponding hist in error band with bin content
-      exec("mHist_effNum_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
-
   ## Loop over detector systematics
-  for systName in DETECTOR_SYSTS:
+  for systName,universePrefix,nUniverses in DETECTOR_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
+    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
     # Pull out the TH1D corresponding to the CV specifically generated to go with the detector system variation
     exec("tHist_effNum_{0}_{1}_fakeCV = effNumFile.Get(\"{1}_CV_Dir/nu_uBooNE_{0}_Signal\")".format(sigDef,systName))
@@ -526,17 +434,17 @@ for sigDef in ["2g1p","2g0p"]:
     exec("mHist_effNum_{0}.GetVertErrorBand(systName).GetHist(1).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
 
   ## Loop over GEANT4 systematics
-  for systName in G4_SYSTS:
+  for systName,universePrefix,nUniverses in G4_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
+    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
     # Pull out the TH1D corresponding to the CV specifically generated to go with the GEANT4 variation
     exec("tHist_effNum_{0}_{1}_fakeCV = g4File.Get(\"GEANT4_CV_Dir/nu_uBooNE_{0}_Signal\")".format(sigDef,systName))
     exec("binVal_fakeCV_G4 = tHist_effNum_{0}_{1}_fakeCV.GetBinContent(1)".format(sigDef,systName))
 
     # Loop over universes in this category of systematic
-    for i in range(nFluxUniverses):
+    for i in range(nUniverses):
       # Pull out the TH1D corresponding to the GEANT4 variation
       exec("tHist_effNum_{0}_{1}_{2} = g4File.Get(\"GEANT4_reinteractions_{1}_Geant4_Dir/nu_uBooNE_{0}_universe_{3}_Signal\")".format(sigDef,systName,i,i+1))
 
@@ -551,10 +459,10 @@ for sigDef in ["2g1p","2g0p"]:
       exec("mHist_effNum_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
 
   ## Loop over other systematics
-  for systName in OTHER_SYSTS:
+  for systName,universePrefix,nUniverses in OTHER_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
+    exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
   exec("writeHist(mHist_effNum_{0},outFile)".format(sigDef))
 
@@ -591,8 +499,8 @@ for sigDef in ["2g1p","2g0p"]:
   ## TO-DO The below code is identical to the above chunk for the signal hists. These could instead 
   ## be implemented together with a loop over "Bkgd", "Signal"
 
-  ## Loop over cross section systematics
-  for systName,universePrefix,nUniverses in XS_SYSTS:
+  ## Loop over cross section and flux systematics
+  for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
     exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
@@ -611,31 +519,11 @@ for sigDef in ["2g1p","2g0p"]:
       # Populate corresponding hist in error band with bin content
       exec("mHist_background_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
 
-  ## Loop over flux systematics
-  for systName in FLUX_SYSTS:
-
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
-
-    # Loop over universes in this category of systematic
-    for i in range(nFluxUniverses):
-      # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-      exec("tHist_background_{0}_{1}_{2} = effNumFile.Get(\"Flux_XS_{1}_Dir/nu_uBooNE_{0}_universe_{3}_Bkgd\")".format(sigDef,systName,i,i+1))
-      # Pull out content of the one relevant bin
-      exec("binVal_variation = tHist_background_{0}_{1}_{2}.GetBinContent(1)".format(sigDef,systName,i))
-
-      # Calculate appropriate shift (applied fractionally for many universe evaluation)
-      fracShift = (binVal_variation-binVal_fakeCV_XS_GENIE)/binVal_fakeCV_XS_GENIE
-      absShift = fracShift*binVal_trueCV
-
-      # Populate corresponding hist in error band with bin content
-      exec("mHist_background_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
-
   ## Loop over detector systematics
-  for systName in DETECTOR_SYSTS:
+  for systName,universePrefix,nUniverses in DETECTOR_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
+    exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
     # Pull out the TH1D corresponding to the CV specifically generated to go with the detector system variation
     exec("tHist_background_{0}_{1}_fakeCV = effNumFile.Get(\"{1}_CV_Dir/nu_uBooNE_{0}_Bkgd\")".format(sigDef,systName))
@@ -655,17 +543,17 @@ for sigDef in ["2g1p","2g0p"]:
     exec("mHist_background_{0}.GetVertErrorBand(systName).GetHist(1).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
 
   ## Loop over GEANT4 systematics
-  for systName in G4_SYSTS:
+  for systName,universePrefix,nUniverses in G4_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
-    exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,nFluxUniverses)".format(sigDef))
+    exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
     # Pull out the TH1D corresponding to the CV specifically generated to go with the GEANT4 variation
     exec("tHist_background_{0}_{1}_fakeCV = g4File.Get(\"GEANT4_CV_Dir/nu_uBooNE_{0}_Bkgd\")".format(sigDef,systName))
     exec("binVal_fakeCV_G4 = tHist_background_{0}_{1}_fakeCV.GetBinContent(1)".format(sigDef,systName))
 
     # Loop over universes in this category of systematic
-    for i in range(nFluxUniverses):
+    for i in range(nUniverses):
       # Pull out the TH1D corresponding to the GEANT4 variation
       exec("tHist_background_{0}_{1}_{2} = g4File.Get(\"GEANT4_reinteractions_{1}_Geant4_Dir/nu_uBooNE_{0}_universe_{3}_Bkgd\")".format(sigDef,systName,i,i+1))
 
@@ -680,7 +568,7 @@ for sigDef in ["2g1p","2g0p"]:
       exec("mHist_background_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal_trueCV+absShift)".format(sigDef))
 
   ## Loop over other systematics
-  for systName in OTHER_SYSTS:
+  for systName,universePrefix,nUniverses in OTHER_SYSTS:
 
     # Create the appropriate error band in the MnvH1D
     exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
@@ -746,7 +634,7 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
   exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_nTargets)".format(sigDef))
 
   ## Pop out all error bands except GENIE from the MC xsection
-  for systName in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+  for systName,universePrefix,nUniverses in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
     exec("mHist_xSection_mc_{0}.PopVertErrorBand(\"{1}\")".format(sigDef,systName))
 
   exec("writeHist(mHist_xSection_mc_{0},outFile)".format(sigDef))
