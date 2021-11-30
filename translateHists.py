@@ -3,6 +3,7 @@
 
 import ROOT
 import datetime as dt
+import argparse
 from array import *
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
@@ -42,7 +43,15 @@ g4FilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory
 g4File = ROOT.TFile(g4FilePath)
 
 ## Output file
-outputFilePath = "{0}_out.root".format(dt.date.today())
+parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
+parser.add_argument('output_dir', help='Path to ouput directory', type=str)
+p = parser.parse_args()
+
+if p.output_dir < 0:
+  parser.print_help()
+  exit(1)
+
+outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
 
 #############################################################################################################

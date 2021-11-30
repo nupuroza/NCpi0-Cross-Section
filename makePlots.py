@@ -3,6 +3,7 @@
 
 import ROOT
 import datetime as dt
+import argparse
 from plottingClasses import *
 from errorMaps_gLEE import *
 #from errorMaps_gLEE_GENIE_breakout import *
@@ -53,15 +54,19 @@ FLUX_SYSTS = [
 #############################################################################################################
 ### File Management #########################################################################################
 #############################################################################################################
+parser = argparse.ArgumentParser(description='Script to make cross-section plots using the MINERvA Analysis Toolkit')
+parser.add_argument('inout_dir', help='Path to input/output directory', type=str)
+p = parser.parse_args()
 
-histFileLocation = "{0}_out.root".format(dt.date.today())
+if p.inout_dir < 0:
+  parser.print_help()
+  exit(1)
+
+histFileLocation = p.inout_dir+"/{0}_out.root".format(dt.date.today())
 histFile = ROOT.TFile(histFileLocation)
 
-plotDir = "/uboone/data/users/noza/gLEE/xsection/{0}_xsec-plots_test".format(dt.date.today())
-#plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-09-06_GENIE-breakout_xsec-plots"
-#plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-09-06_Detector-breakout_xsec-plots"
-#plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-08-05_xsec-plots_Zarko_MCC9Flux"
-#plotDir = "2021-07-07_xsec-plots"
+plotDir = p.inout_dir+"/{0}_xsec-plots_test".format(dt.date.today())
+
 if not os.path.isdir(plotDir):
   print "Making plot directory {0}".format(plotDir)
   os.system( "mkdir %s" % plotDir )
