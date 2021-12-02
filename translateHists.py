@@ -36,10 +36,10 @@ effDenomFile_2g0p = ROOT.TFile(effDenomFilePath_2g0p)
 
 ## Final stage; flux, XS, Det systematics included
 ## (histograms of 2g1p and 2g0p are included in this file with naming "nu_uBooNE_2g1p/2g0p_xxx")
-effNumFilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
+effNumFilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile = ROOT.TFile(effNumFilePath)
 
-g4FilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
+g4FilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
 g4File = ROOT.TFile(g4FilePath)
 
 ## Output file
