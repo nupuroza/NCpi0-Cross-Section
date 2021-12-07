@@ -29,10 +29,18 @@ cvFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_
 cvFile_2g0p = ROOT.TFile(cvFilePath_2g0p)
 
 ## Efficiency Denominators
-effDenomFilePath_2g1p = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
-effDenomFile_2g1p = ROOT.TFile(effDenomFilePath_2g1p)
-effDenomFilePath_2g0p = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
-effDenomFile_2g0p = ROOT.TFile(effDenomFilePath_2g0p)
+effDenomFilePath_2g1p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
+
+effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
+
+effDenomFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g1p/KE_20MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFile_2g1p_exclusive = ROOT.TFile(effDenomFilePath_2g1p_exclusive)
+
+effDenomFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g0p/KE_20MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
+
 
 ## Final stage; flux, XS, Det systematics included
 ## (histograms of 2g1p and 2g0p are included in this file with naming "nu_uBooNE_2g1p/2g0p_xxx")
@@ -190,10 +198,6 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
 ### Assemble Flux MnvH1D ####################################################################################
 #############################################################################################################
 
-## MCC8 (files from Zarko)
-#fluxFileDir = "/uboone/app/users/zarko/work/mcc9_flux"
-#fluxFilePath = "{0}/mcc8_volTPCActive_4999files.root".format(fluxFileDir)
-#fluxFilePath = "{0}/mcc9_volTPCActive_4997files.root".format(fluxFileDir)
 ## MCC9 (official files)
 fluxFileDir = "/pnfs/uboone/persistent/uboonebeam/bnb_gsimple/bnb_gsimple_fluxes_01.09.2019_463_hist"
 fluxFilePath = "{0}/MCC9_FluxHist_volTPCActive.root".format(fluxFileDir)
@@ -330,44 +334,45 @@ for dataDef in ["data_selected","BNB_ext"]:
 #############################################################################################################
 
 for sigDef in ["2g1p","2g0p"]:
+  
+  for sigDefexcl in ['inclusive', 'exclusive']:
+    #############################################################################################################
+    ### Construct Efficiency Denominator MnvH1D #################################################################
+    #############################################################################################################
 
-  #############################################################################################################
-  ### Construct Efficiency Denominator MnvH1D #################################################################
-  #############################################################################################################
+    ## CV
+    # Pull out the TH1D
+    exec("tHist_effDenom_{0}_{1}_CV = effDenomFile_{0}_{1}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef,sigDefexcl))
+    # Copy this into an MnvH1D (no systs yet)
+    exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
+    # Rename new hist object
+    exec("mHist_effDenom_{0}_{1}.SetName(\"effDenom_{0}_{1}\")".format(sigDef,sigDefexcl))
 
-  ## CV
-  # Pull out the TH1D
-  exec("tHist_effDenom_{0}_CV = effDenomFile_{0}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef))
-  # Copy this into an MnvH1D (no systs yet)
-  exec("mHist_effDenom_{0} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_CV)".format(sigDef))
-  # Rename new hist object
-  exec("mHist_effDenom_{0}.SetName(\"effDenom_{0}\")".format(sigDef))
+    ## Loop over cross section and flux systematics
+    for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS:
 
-  ## Loop over cross section and flux systematics
-  for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS:
+      # Create the appropriate error band in the MnvH1D
+      exec("mHist_effDenom_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef,sigDefexcl))
 
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
-
-    # Loop over universes in this category of systematic
-    for i in range(nUniverses):
-      # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-      exec("tHist_effDenom_{0}_{1}_{2} = effDenomFile_{0}.Get(\"Flux_XS_{1}_Dir/nu_uBooNE_AllNCPi0_{3}_{4}_Signal\")".format(sigDef,systName,i,universePrefix,i+1))
-      # Pull out content of the one relevant bin
-      exec("binVal = tHist_effDenom_{0}_{1}_{2}.GetBinContent(1)".format(sigDef,systName,i))
-      # Populate corresponding hist in error band with bin content
-      exec("mHist_effDenom_{0}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal)".format(sigDef))
+      # Loop over universes in this category of systematic
+      for i in range(nUniverses):
+        # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
+        exec("tHist_effDenom_{0}_{1}_{2}_{3} = effDenomFile_{0}_{1}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_AllNCPi0_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
+        # Pull out content of the one relevant bin
+        exec("binVal = tHist_effDenom_{0}_{1}_{2}_{3}.GetBinContent(1)".format(sigDef,sigDefexcl,systName,i))
+        # Populate corresponding hist in error band with bin content
+        exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(systName).GetHist(i).SetBinContent(1,binVal)".format(sigDef,sigDefexcl))
 
 
-  ## Loop over detector, GEANT4, and other systematics
-  for systName,universePrefix,nUniverses in DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+    ## Loop over detector, GEANT4, and other systematics
+    for systName,universePrefix,nUniverses in DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
 
-    # Create the appropriate error band in the MnvH1D
-    exec("mHist_effDenom_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
+      # Create the appropriate error band in the MnvH1D
+      exec("mHist_effDenom_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef,sigDefexcl))
 
-    ## Detector variations don't actually affect the true event rate, so leave it at that
+      ## Detector variations don't actually affect the true event rate, so leave it at that
 
-  exec("writeHist(mHist_effDenom_{0},outFile)".format(sigDef))
+    exec("writeHist(mHist_effDenom_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
   #############################################################################################################
   ### Construct Efficiency Numerator MnvH1D ###################################################################
@@ -404,7 +409,7 @@ for sigDef in ["2g1p","2g0p"]:
 
     # Create the appropriate error band in the MnvH1D
     exec("mHist_effNum_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
-
+    # Loop over universes in this category of systematic
     # Loop over universes in this category of systematic
     for i in range(nUniverses):
       # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
@@ -581,7 +586,7 @@ for sigDef in ["2g1p","2g0p"]:
 
     # Create the appropriate error band in the MnvH1D
     exec("mHist_background_{0}.AddVertErrorBandAndFillWithCV(systName,2)".format(sigDef))
-
+  
   exec("writeHist(mHist_background_{0},outFile)".format(sigDef))
 
 #############################################################################################################
@@ -597,25 +602,15 @@ for histCat in ["effNum","background"]:
   exec("writeHist(mHist_{0}_2gnp,outFile)".format(histCat))
 
 ## The 2gnp effDenom is just the 2g1p effDenom because the 2g0p sample has been scaled to have equivalent POT to 2g1p
-mHist_effDenom_2gnp = mHist_effDenom_2g1p.Clone("effDenom_2gnp")
+mHist_effDenom_2gnp_inclusive = mHist_effDenom_2g1p_inclusive.Clone("effDenom_2gnp_inclusive")
 
-writeHist(mHist_effDenom_2gnp,outFile)
+writeHist(mHist_effDenom_2gnp_inclusive,outFile)
 
 #############################################################################################################
 ### Loop over 2g1p, 2g0p, 2gnp ##############################################################################
 #############################################################################################################
 
 for sigDef in ["2g1p","2g0p","2gnp"]:
-
-  #############################################################################################################
-  ### Calculate Things ########################################################################################
-  #############################################################################################################
-
-  ## Efficiency
-  exec("mHist_eff_{0} = mHist_effNum_{0}.Clone(\"eff_{0}\")".format(sigDef))
-  exec("mHist_eff_{0}.Divide(mHist_effNum_{0},mHist_effDenom_{0})".format(sigDef))
-
-  exec("writeHist(mHist_eff_{0},outFile)".format(sigDef))
 
   ## Background-subtracted event rate
   exec("mHist_evtRate_{0} = mHist_data_selected_{0}.Clone(\"evtRate_{0}\")".format(sigDef))
@@ -624,29 +619,46 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
 
   exec("writeHist(mHist_evtRate_{0},outFile)".format(sigDef))
 
-  ## Cross section calculation
-  exec("mHist_xSection_{0} = mHist_evtRate_{0}.Clone(\"xSection_{0}\")".format(sigDef))
-  exec("mHist_xSection_{0}.Divide(mHist_xSection_{0},mHist_eff_{0})".format(sigDef))
-  exec("mHist_xSection_{0}.Divide(mHist_xSection_{0},mHist_flux_integral)".format(sigDef))
-  exec("mHist_xSection_{0}.Divide(mHist_xSection_{0},mHist_POT_{0})".format(sigDef)) # Remove units of per POT
-  exec("mHist_xSection_{0}.Divide(mHist_xSection_{0},mHist_nTargets)".format(sigDef))
+  for sigDefexcl in ["inclusive","exclusive"]:
+
+    #############################################################################################################
+    ### Calculate Things ########################################################################################
+    #############################################################################################################
+    
+    if sigDef == "2gnp" and sigDefexcl == "exclusive":
+      continue
+    
+    else:
+
+      ## Efficiency
+      exec("mHist_eff_{0}_{1} = mHist_effNum_{0}.Clone(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_eff_{0}_{1}.Divide(mHist_effNum_{0},mHist_effDenom_{0}_{1})".format(sigDef,sigDefexcl))
+
+      exec("writeHist(mHist_eff_{0}_{1},outFile)".format(sigDef,sigDefexcl))
+
+      ## Cross section calculation
+      exec("mHist_xSection_{0}_{1} = mHist_evtRate_{0}.Clone(\"xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_nTargets)".format(sigDef,sigDefexcl))
   
-  exec("writeHist(mHist_xSection_{0},outFile)".format(sigDef))
+      exec("writeHist(mHist_xSection_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
-  ## MC signal prediction
-  exec("mHist_xSection_mc_{0} = mHist_effNum_{0}.Clone(\"xSection_mc_{0}\")".format(sigDef))
-  ## We don't want to subtract off the BNB_ext and background prediction because 
-  ## the MC signal doesn't include backgrounds
-  exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_eff_{0})".format(sigDef))
-  exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_flux_integral)".format(sigDef))
-  exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_POT_{0})".format(sigDef)) # Remove units of per POT
-  exec("mHist_xSection_mc_{0}.Divide(mHist_xSection_mc_{0},mHist_nTargets)".format(sigDef))
+      ## MC signal prediction
+      exec("mHist_xSection_mc_{0}_{1} = mHist_effNum_{0}.Clone(\"xSection_mc_{0}_{1}\")".format(sigDef,sigDefexcl))
+      ## We don't want to subtract off the BNB_ext and background prediction because 
+      ## the MC signal doesn't include backgrounds
+      exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT
+      exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_nTargets)".format(sigDef,sigDefexcl))
 
-  ## Pop out all error bands except GENIE from the MC xsection
-  for systName,universePrefix,nUniverses in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
-    exec("mHist_xSection_mc_{0}.PopVertErrorBand(\"{1}\")".format(sigDef,systName))
+      ## Pop out all error bands except GENIE from the MC xsection
+      for systName,universePrefix,nUniverses in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+        exec("mHist_xSection_mc_{0}_{1}.PopVertErrorBand(\"{2}\")".format(sigDef,sigDefexcl,systName))
 
-  exec("writeHist(mHist_xSection_mc_{0},outFile)".format(sigDef))
+    exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
 #############################################################################################################
 ### Close output file; other business #######################################################################
