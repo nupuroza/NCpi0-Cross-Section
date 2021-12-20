@@ -53,12 +53,12 @@ FLUX_SYSTS = [
 ### File Management #########################################################################################
 #############################################################################################################
 
-histFileLocation = "2021-11-15_out_exclusive_20MeV.root"
-#histFileLocation = "2021-11-15_out_exclusive_50MeV.root"
+#histFileLocation = "2021-12-09_out_exclusive_20MeV.root"
+histFileLocation = "2021-12-09_out_exclusive_50MeV.root"
 histFile = ROOT.TFile(histFileLocation)
 
-plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-11-15_exclusive_20MeV_xsec-plots"
-#plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-11-15_exclusive_50MeV_xsec-plots"
+#plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-12-09_exclusive_20MeV_xsec-plots"
+plotDir = "/uboone/data/users/finer/gLEE/NCPi0/2021-12-09_exclusive_50MeV_xsec-plots"
 if not os.path.isdir(plotDir):
   print "Making plot directory {0}".format(plotDir)
   os.system( "mkdir %s" % plotDir )
