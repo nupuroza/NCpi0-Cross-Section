@@ -76,8 +76,52 @@ if not os.path.isdir(plotDir):
 #############################################################################################################
 
 for sigDef in ["2g0p","2g1p","2gnp"]:
-  for histCat in ["effDenom","effNum","eff","data_selected","BNB_ext","background","evtRate","xSection","xSection_mc","POT"]:
+  
+  for sigDefexcl in ["exclusive", "inclusive"]:
+    
+    if sigDef == "2gnp" and sigDefexcl == "exclusive":
+      continue
 
+    else:
+      for histCat in ["effDenom", "eff", "xSection", "xSection_mc"]:
+        exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
+      
+        with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
+          exec("local_{0}_{1}_{2} = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
+          ## Set horizontal axis label
+          exec("local_{0}_{1}_{2}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef,sigDefexcl))
+          exec("local_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
+          exec("local_{0}_{1}_{2}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
+          ## Set vertical axis label
+          if histCat == "eff":
+            exec("local_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef,sigDefexcl))
+          elif histCat == "xSection" or histCat == "xSection_mc":
+            exec("local_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef,sigDefexcl))
+          else:
+            exec("local_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
+          exec("local_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
+
+        if not histCat == "xSection_mc":
+          for flux_uni in FLUX_SYSTS:
+            exec("local_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
+            with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
+              exec("local_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
+
+        with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
+          exec("localDrawErrorSummary(plotter,{0}_{1}_{2})".format(histCat,sigDef,sigDefexcl))
+
+        ## Print out value and error for Mark to package into table
+        exec("local_hist = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
+        cv_val = local_hist.GetBinContent(1)
+        err_val = local_hist.GetBinError(1)
+        exec("local_hist_statError = {0}_{1}_{2}.GetCVHistoWithStatError()".format(histCat,sigDef,sigDefexcl))
+        exec("local_hist_systError = {0}_{1}_{2}.GetCVHistoWithError(False)".format(histCat,sigDef,sigDefexcl))
+        err_val_stat = local_hist_statError.GetBinError(1)
+        err_val_syst = local_hist_systError.GetBinError(1)
+        print "sigDef: {0}\thistCat: {1}_{2}\tcv_val: {3}\terr_val_stat: {4}\terr_val_syst: {5}\terr_val_tot: {6}".format(histCat,sigDef,sigDefexcl,cv_val,err_val_stat,err_val_syst,err_val)
+
+		
+  for histCat in ["effNum","data_selected","BNB_ext","background","evtRate","POT"]:
     exec("{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/{1}_{2}.png".format(plotDir,histCat,sigDef)):
@@ -87,19 +131,13 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
       exec("local_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef))
       exec("local_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))
       ## Set vertical axis label
-      if histCat == "eff":
-        exec("local_{0}_{1}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef))
-      elif histCat == "xSection" or histCat == "xSection_mc":
-        exec("local_{0}_{1}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef))
-      else:
-        exec("local_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
+      exec("local_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
       exec("local_{0}_{1}.Draw()".format(histCat,sigDef))
-
-    if not histCat == "xSection_mc":
-      for flux_uni in FLUX_SYSTS:
-        exec("local_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
-        with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
-          exec("local_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
+      
+    for flux_uni in FLUX_SYSTS:
+      exec("local_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
+      with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
+        exec("local_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
       exec("localDrawErrorSummary(plotter,{0}_{1})".format(histCat,sigDef))
@@ -114,7 +152,6 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     err_val_syst = local_hist_systError.GetBinError(1)
     print "sigDef: {0}\thistCat: {1}\tcv_val: {2}\terr_val_stat: {3}\terr_val_syst: {4}\terr_val_tot: {5}".format(histCat,sigDef,cv_val,err_val_stat,err_val_syst,err_val)
     
-
 #############################################################################################################
 ### Make simple flux plots ##################################################################################
 #############################################################################################################
@@ -154,9 +191,11 @@ for histCat in ["flux","integratedFlux","nTargets"]:
 
 for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
 
-  exec("local_xSection_2g1p_breakout = xSection_2g1p.GetVertErrorBand(\"{0}\")".format(syst_uni))
-  with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
-    exec("local_xSection_2g1p_breakout.DrawAll(\"\",True)".format(sigDef))
+  for sigDefexcl in ["exclusive", "inclusive"]:
+
+    exec("local_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
+    with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
+      exec("local_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
 
 #############################################################################################################
 ### Make pretty cross section plot ##########################################################################
