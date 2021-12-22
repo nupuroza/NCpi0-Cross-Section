@@ -55,18 +55,37 @@ FLUX_SYSTS = [
 ### File Management #########################################################################################
 #############################################################################################################
 parser = argparse.ArgumentParser(description='Script to make cross-section plots using the MINERvA Analysis Toolkit')
-parser.add_argument('inout_dir', help='Path to input/output directory', type=str)
+parser.add_argument('in_dir', help='Path to input directory', type=str)
+parser.add_argument('out_dir', help='Path to output directory. Defaults to input directory.', type=str,nargs='?')
+parser.add_argument('tag', help='String to append to end of ouptut directory name. e.g. "test"', type=str,nargs='?')
 p = parser.parse_args()
 
-if p.inout_dir < 0:
+## If in_dir is not provided, exit
+if p.in_dir < 0:
   parser.print_help()
   exit(1)
 
-histFileLocation = p.inout_dir+"/{0}_out.root".format(dt.date.today())
+histFileLocation = p.in_dir+"/{0}_out.root".format(dt.date.today())
+print "This is the input file I'm opening: {0}".format(histFileLocation)
 histFile = ROOT.TFile(histFileLocation)
 
-plotDir = p.inout_dir+"/{0}_xsec-plots_test".format(dt.date.today())
+## If tag is provided, prepend it with an underscore
+if p.tag >= 0:
+  tag = "_{0}".format(p.tag)
+else:
+  tag = ''
 
+## If out_dir is not provided, default to using in_dir
+if p.out_dir < 0:
+  plotDir = p.in_dir+"/{0}_xsec-plots{1}".format(dt.date.today(),tag)
+else:
+  ## Create p.out_dir if it doesn't exist
+  if not os.path.isdir(p.out_dir):
+    print "Making plot directory {0}".format(p.out_dir)
+    os.system( "mkdir %s" % p.out_dir )
+  plotDir = p.out_dir+"/{0}_xsec-plots{1}".format(dt.date.today(),tag)
+
+## Create output directory if it doesn't exist
 if not os.path.isdir(plotDir):
   print "Making plot directory {0}".format(plotDir)
   os.system( "mkdir %s" % plotDir )
@@ -82,6 +101,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue
 
+<<<<<<< Updated upstream
     else:
       for histCat in ["effDenom", "eff", "xSection", "xSection_mc"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
@@ -122,6 +142,9 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
 
 		
   for histCat in ["effNum","data_selected","BNB_ext","background","evtRate","POT"]:
+=======
+    print "I'm producing plots for histCat: {0}".format(histCat)
+>>>>>>> Stashed changes
     exec("{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/{1}_{2}.png".format(plotDir,histCat,sigDef)):

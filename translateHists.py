@@ -4,6 +4,7 @@
 import ROOT
 import datetime as dt
 import argparse
+import os
 from array import *
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
@@ -55,9 +56,15 @@ parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in 
 parser.add_argument('output_dir', help='Path to ouput directory', type=str)
 p = parser.parse_args()
 
+## If output_dir is not provided, exit
 if p.output_dir < 0:
   parser.print_help()
   exit(1)
+
+## Create output directory if it doesn't exist
+if not os.path.isdir(p.output_dir):
+  print "Making output directory {0}".format(p.output_dir)
+  os.system( "mkdir %s" % p.output_dir )
 
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
