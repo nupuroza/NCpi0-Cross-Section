@@ -641,6 +641,12 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       exec("mHist_eff_{0}_{1} = mHist_effNum_{0}.Clone(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("mHist_eff_{0}_{1}.Divide(mHist_effNum_{0},mHist_effDenom_{0}_{1})".format(sigDef,sigDefexcl))
 
+      ## Pop out GENIE error bands from efficiency for diagnostic test
+      for systName,universePrefix,nUniverses in XS_SYSTS:
+        exec("mHist_eff_{0}_{1}.PopVertErrorBand(\"{2}\")".format(sigDef,sigDefexcl,systName))
+      ## Recreate the popped error bands, but fill with CV
+      exec("mHist_eff_{0}_{1}.AddMissingErrorBandsAndFillWithCV(mHist_effNum_{0})".format(sigDef,sigDefexcl))
+
       exec("writeHist(mHist_eff_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
       ## Cross section calculation
