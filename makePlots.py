@@ -102,7 +102,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
       continue
 
     else:
-      for histCat in ["effDenom", "eff", "xSection", "xSection_mc"]:
+      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
       
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
@@ -139,7 +139,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
         err_val_syst = local_hist_systError.GetBinError(1)
         print "sigDef: {0}\thistCat: {1}_{2}\tcv_val: {3}\terr_val_stat: {4}\terr_val_syst: {5}\terr_val_tot: {6}".format(histCat,sigDef,sigDefexcl,cv_val,err_val_stat,err_val_syst,err_val)
 		
-  for histCat in ["effNum","data_selected","BNB_ext","background","evtRate","POT"]:
+  for histCat in ["data_selected","BNB_ext","POT"]:
     print "I'm producing plots for histCat: {0}".format(histCat)
     exec("{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
 
