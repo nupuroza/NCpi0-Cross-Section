@@ -65,6 +65,8 @@ if p.in_dir < 0:
   parser.print_help()
   exit(1)
 
+## To-do: change in_dir to in_file. We can't assume that the correct date will be _today's_ date.
+## We can still have out_dir default to the the in_dir, by striking the file name off of in_file
 histFileLocation = p.in_dir+"/{0}_out.root".format(dt.date.today())
 print "This is the input file I'm opening: {0}".format(histFileLocation)
 histFile = ROOT.TFile(histFileLocation)
@@ -106,37 +108,37 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
       
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
-          exec("local_{0}_{1}_{2} = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2} = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
           ## Set horizontal axis label
-          exec("local_{0}_{1}_{2}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef,sigDefexcl))
-          exec("local_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
-          exec("local_{0}_{1}_{2}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           ## Set vertical axis label
           if histCat == "eff":
-            exec("local_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef,sigDefexcl))
           elif histCat == "xSection" or histCat == "xSection_mc":
-            exec("local_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef,sigDefexcl))
           else:
-            exec("local_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
-          exec("local_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
         if not histCat == "xSection_mc":
           for flux_uni in FLUX_SYSTS:
-            exec("local_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
+            exec("veb_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
             with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
-              exec("local_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
+              exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
           exec("localDrawErrorSummary(plotter,{0}_{1}_{2})".format(histCat,sigDef,sigDefexcl))
 
         ## Print out value and error for Mark to package into table
-        exec("local_hist = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
-        cv_val = local_hist.GetBinContent(1)
-        err_val = local_hist.GetBinError(1)
-        exec("local_hist_statError = {0}_{1}_{2}.GetCVHistoWithStatError()".format(histCat,sigDef,sigDefexcl))
-        exec("local_hist_systError = {0}_{1}_{2}.GetCVHistoWithError(False)".format(histCat,sigDef,sigDefexcl))
-        err_val_stat = local_hist_statError.GetBinError(1)
-        err_val_syst = local_hist_systError.GetBinError(1)
+        exec("tHist = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
+        cv_val = tHist.GetBinContent(1)
+        err_val = tHist.GetBinError(1)
+        exec("tHist_statError = {0}_{1}_{2}.GetCVHistoWithStatError()".format(histCat,sigDef,sigDefexcl))
+        exec("tHist_systError = {0}_{1}_{2}.GetCVHistoWithError(False)".format(histCat,sigDef,sigDefexcl))
+        err_val_stat = tHist_statError.GetBinError(1)
+        err_val_syst = tHist_systError.GetBinError(1)
         print "sigDef: {0}\thistCat: {1}_{2}\tcv_val: {3}\terr_val_stat: {4}\terr_val_syst: {5}\terr_val_tot: {6}".format(histCat,sigDef,sigDefexcl,cv_val,err_val_stat,err_val_syst,err_val)
 		
   for histCat in ["data_selected","BNB_ext","POT"]:
@@ -144,31 +146,31 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     exec("{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/{1}_{2}.png".format(plotDir,histCat,sigDef)):
-      exec("local_{0}_{1} = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
+      exec("tHist_{0}_{1} = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
       ## Set horizontal axis label
-      exec("local_{0}_{1}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef))
-      exec("local_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef))
-      exec("local_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))
       ## Set vertical axis label
-      exec("local_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
-      exec("local_{0}_{1}.Draw()".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.Draw()".format(histCat,sigDef))
       
     for flux_uni in FLUX_SYSTS:
-      exec("local_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
+      exec("veb_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
       with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
-        exec("local_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
+        exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
       exec("localDrawErrorSummary(plotter,{0}_{1})".format(histCat,sigDef))
 
     ## Print out value and error for Mark to package into table
-    exec("local_hist = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
-    cv_val = local_hist.GetBinContent(1)
-    err_val = local_hist.GetBinError(1)
-    exec("local_hist_statError = {0}_{1}.GetCVHistoWithStatError()".format(histCat,sigDef))
-    exec("local_hist_systError = {0}_{1}.GetCVHistoWithError(False)".format(histCat,sigDef))
-    err_val_stat = local_hist_statError.GetBinError(1)
-    err_val_syst = local_hist_systError.GetBinError(1)
+    exec("tHist = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
+    cv_val = tHist.GetBinContent(1)
+    err_val = tHist.GetBinError(1)
+    exec("tHist_statError = {0}_{1}.GetCVHistoWithStatError()".format(histCat,sigDef))
+    exec("tHist_systError = {0}_{1}.GetCVHistoWithError(False)".format(histCat,sigDef))
+    err_val_stat = tHist_statError.GetBinError(1)
+    err_val_syst = tHist_systError.GetBinError(1)
     print "sigDef: {0}\thistCat: {1}\tcv_val: {2}\terr_val_stat: {3}\terr_val_syst: {4}\terr_val_tot: {5}".format(histCat,sigDef,cv_val,err_val_stat,err_val_syst,err_val)
     
 #############################################################################################################
@@ -184,22 +186,22 @@ nTargets = histFile.Get("nTargets")
 for histCat in ["flux","integratedFlux","nTargets"]:
 
   with makeEnv_TCanvas("{0}/{1}.png".format(plotDir,histCat)) as can:
-    exec("local_{0} = {0}.GetCVHistoWithError()".format(histCat))
+    exec("tHist_{0} = {0}.GetCVHistoWithError()".format(histCat))
     ## Set horizontal axis label
     if histCat == "flux":
-      exec("local_{0}.GetXaxis().SetTitle(\"E_{{#nu}} (GeV))\")".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}} (GeV))\")".format(histCat))
     else:
-      exec("local_{0}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat))
-    exec("local_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
-    exec("local_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat))
+    exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
+    exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     ## Set vertical axis label
-    exec("local_{0}.GetYaxis().SetTitle(\"#nu/POT/cm^{{2}}\")".format(histCat))
-    exec("local_{0}.Draw()".format(histCat))
+    exec("tHist_{0}.GetYaxis().SetTitle(\"#nu/POT/cm^{{2}}\")".format(histCat))
+    exec("tHist_{0}.Draw()".format(histCat))
 
   for flux_uni in FLUX_SYSTS:
-    exec("local_{0} = {0}.GetVertErrorBand(\"{1}\")".format(histCat,flux_uni))
+    exec("veb_{0} = {0}.GetVertErrorBand(\"{1}\")".format(histCat,flux_uni))
     with makeEnv_TCanvas("{0}/breakout_{1}_{2}.png".format(plotDir,flux_uni,histCat)):
-      exec("local_{0}.DrawAll(\"\",True)".format(histCat))
+      exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
 
   with makeEnv_TCanvas("{0}/errorSummary_{1}.png".format(plotDir,histCat)):
     exec("localDrawErrorSummary(plotter,{0})".format(histCat))
@@ -212,7 +214,7 @@ for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
 
   for sigDefexcl in ["exclusive", "inclusive"]:
 
-    exec("local_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
+    exec("veb_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
     with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
-      exec("local_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
+      exec("veb_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
 
