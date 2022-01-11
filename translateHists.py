@@ -36,10 +36,10 @@ effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
 
-effDenomFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g1p/KE_20MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g1p/KE_50MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p_exclusive = ROOT.TFile(effDenomFilePath_2g1p_exclusive)
 
-effDenomFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g0p/KE_20MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g0p/KE_50MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
 
 ## Efficiency numerators; backgrounds
