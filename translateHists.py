@@ -56,7 +56,7 @@ effNumFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_sta
 effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
 
 ## g4 variations
-g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/SingleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
+g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/MultipleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
 g4File_inclusive = ROOT.TFile(g4FilePath_inclusive)
 # 2g0p and 2g1p g4 hists come from the same file for the inclusive analysis
 g4File_2g0p_inclusive = g4File_inclusive 
@@ -141,15 +141,13 @@ DETECTOR_SYSTS = [
   ["WireX","minmax", nMinMaxUniverses],
   ["WireYZ","minmax", nMinMaxUniverses]
 ]
-'''
+
 G4_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
   ["piminus","universe",nMultiverses],
   ["piplus","universe",nMultiverses],
   ["proton","universe",nMultiverses]
 ]
-'''
-G4_SYSTS = []
  
 OTHER_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
