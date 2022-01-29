@@ -114,8 +114,10 @@ if not os.path.isdir(plotDir):
 
 for sigDef in ["2g0p","2g1p","2gnp"]:
   
-  for sigDefexcl in ["exclusive", "inclusive"]:
-    
+  ## OMIT EXCL:
+  ## for sigDefexcl in ["exclusive", "inclusive"]:
+  for sigDefexcl in ["inclusive"]:
+  
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue
 
@@ -126,16 +128,22 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
           exec("tHist_{0}_{1}_{2} = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
           ## Set horizontal axis label
-          exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           ## Set vertical axis label
           if histCat == "eff":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           elif histCat == "xSection" or histCat == "xSection_mc":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           else:
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
         if not histCat == "xSection_mc":
@@ -164,8 +172,8 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     with makeEnv_TCanvas("{0}/{1}_{2}.png".format(plotDir,histCat,sigDef)):
       exec("tHist_{0}_{1} = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
       ## Set horizontal axis label
-      exec("tHist_{0}_{1}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat,sigDef))
-      exec("tHist_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+      exec("tHist_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
       exec("tHist_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))
       ## Set vertical axis label
       exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
@@ -207,7 +215,7 @@ for histCat in ["flux","integratedFlux","nTargets"]:
     if histCat == "flux":
       exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}} (GeV))\")".format(histCat))
     else:
-      exec("tHist_{0}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum)\")".format(histCat))
     exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
     exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     ## Set vertical axis label
@@ -228,7 +236,9 @@ for histCat in ["flux","integratedFlux","nTargets"]:
 
 for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
 
-  for sigDefexcl in ["exclusive", "inclusive"]:
+  ## OMIT EXCL:
+  ## for sigDefexcl in ["exclusive", "inclusive"]:
+  for sigDefexcl in ["inclusive"]:
 
     exec("veb_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
     with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
