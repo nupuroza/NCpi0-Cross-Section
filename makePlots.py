@@ -134,6 +134,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef,sigDefexcl))
           elif histCat == "xSection" or histCat == "xSection_mc":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.Scale(10**38)".format(histCat,sigDef,sigDefexcl))
           else:
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
