@@ -29,6 +29,22 @@ for group in error_bands:
     plotter.error_summary_group_map[group].push_back(error)
 plotter.SetLegendNColumns(2)
 
+## Define localDrawErrorSummary with x-axis arg
+## TO-DO: Fix in plottingClasses.py and remove
+def localDrawErrorSummary( plotter , hist , xaxis_label ):
+
+  # Not working at the moment; meant to block out the 1-2 GeV Enu bin  
+  box = ROOT.TBox(1,0,2,0.16)
+  box.SetFillColor(ROOT.kGray)
+  box.SetFillStyle(3001)
+  box.Draw()
+
+  hist.GetXaxis().SetTitle(xaxis_label)
+  hist.GetXaxis().SetTitleSize(0.05)
+
+  plotter.DrawErrorSummary(hist,"TL",True,True,0.00001,False,"",True,"",True)
+
+
 #############################################################################################################
 ### Systematic Universes ####################################################################################
 #############################################################################################################
@@ -146,7 +162,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
               exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
-          exec("localDrawErrorSummary(plotter,{0}_{1}_{2})".format(histCat,sigDef,sigDefexcl))
+          exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"\")".format(histCat,sigDef,sigDefexcl))
 
         ## Print out value and error for Mark to package into table
         exec("tHist = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
@@ -178,7 +194,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
         exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
-      exec("localDrawErrorSummary(plotter,{0}_{1})".format(histCat,sigDef))
+      exec("localDrawErrorSummary(plotter,{0}_{1},\"\")".format(histCat,sigDef))
 
     ## Print out value and error for Mark to package into table
     exec("tHist = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
@@ -210,9 +226,14 @@ for histCat in ["flux","integratedFlux","nTargets"]:
     else:
       exec("tHist_{0}.GetXaxis().SetTitle(\"cos(#theta_{{#pi^{{0}}}})\")".format(histCat))
     exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
-    exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     ## Set vertical axis label
-    exec("tHist_{0}.GetYaxis().SetTitle(\"#nu/POT/cm^{{2}}\")".format(histCat))
+    if histCat == "nTargets":
+      exec("tHist_{0}.GetYaxis().SetTitle(\"Number of Targets [10^{{28}} atoms]\")".format(histCat))
+      exec("tHist_{0}.Scale(10**-28)".format(histCat))
+    else:
+      exec("tHist_{0}.GetYaxis().SetTitle(\"#Phi [10^{{-9}} x #nu/POT/cm^{{2}}]\")".format(histCat))
+      exec("tHist_{0}.Scale(10**9)".format(histCat))
+    exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     exec("tHist_{0}.Draw()".format(histCat))
 
   for flux_uni in FLUX_SYSTS:
@@ -221,7 +242,7 @@ for histCat in ["flux","integratedFlux","nTargets"]:
       exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
 
   with makeEnv_TCanvas("{0}/errorSummary_{1}.png".format(plotDir,histCat)):
-    exec("localDrawErrorSummary(plotter,{0})".format(histCat))
+    exec("localDrawErrorSummary(plotter,{0},\"\")".format(histCat))
 
 #############################################################################################################
 ### Make downstream breakout plots ##########################################################################
