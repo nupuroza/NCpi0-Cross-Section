@@ -669,8 +669,6 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
     
     else:
 
-      print "DEBUG! I'm on sigDef: {0};\tsigDefexcl: {1}".format(sigDef,sigDefexcl)
-
       exec("effNum_CV = mHist_effNum_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
       effNum_bins = effNum_CV.GetNbinsX()
       exec("effDenom_CV = mHist_effDenom_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
@@ -680,8 +678,6 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       ## Efficiency
       exec("mHist_eff_{0}_{1} = mHist_effNum_{0}_{1}.Clone(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("mHist_eff_{0}_{1}.Divide(mHist_effNum_{0}_{1},mHist_effDenom_{0}_{1})".format(sigDef,sigDefexcl))
-
-      print "DEBUG2! I'm on sigDef: {0};\tsigDefexcl: {1}".format(sigDef,sigDefexcl)
 
       exec("writeHist(mHist_eff_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
