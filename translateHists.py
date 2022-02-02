@@ -5,6 +5,7 @@ import ROOT
 import datetime as dt
 import argparse
 import os
+## TO-DO: We don't need this anymore once the referenceHist updates have all been made
 from array import *
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
@@ -84,6 +85,18 @@ if not os.path.isdir(p.output_dir):
 
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
+
+#############################################################################################################
+### Create Reference Hist ###################################################################################
+#############################################################################################################
+
+## Create reference Hist that will be a template for whatever input binning is being used
+histToBeCloned = cvFile_2g1p.Get("nu_uBooNE_2g1p_Data")
+referenceHist = histToBeCloned.Clone("referenceHist")
+nBins_analysis = referenceHist.GetNbinsX()
+for i in range(nBins_analysis):
+  referenceHist.SetBinContent(i,-999.)
+  referenceHist.SetBinError(i,0.)
 
 #############################################################################################################
 ### Systematic Universes ####################################################################################
@@ -170,6 +183,7 @@ n_targets = density*fid_vol*avo/molar_mass
 print "Number of targets: {0}".format(n_targets)
 
 ## Put scalar into TH1D
+## TO-DO: update this to implement the idea we had for the flux below
 tHist_nTargets = ROOT.TH1D('h_nTargets','h_nTargets',1,array('d',[-1,1]))
 tHist_nTargets.SetBinContent(1,n_targets)
 ## Create MnvH1D from TH1D
@@ -199,6 +213,7 @@ POT_2gnp = 5.8447*10**20
 
 for sigDef in ["2g0p","2g1p","2gnp"]:
   ## Put scalar into TH1D
+  ## TO-DO: update this to implement the idea we had for the flux below
   exec("tHist_POT_{0} = ROOT.TH1D('h_POT_{0}','h_POT_{0}',1,array('d',[-1,1]))".format(sigDef))
   exec("tHist_POT_{0}.SetBinContent(1,POT_{0})".format(sigDef))
   ## Create MnvH1D from TH1D
@@ -279,7 +294,11 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
 
   ## Put scalar integrated flux into TH1D
   # Note that this hist has the binninng of the analysis, not the binning of the flux
+  ## TO-DO: This has a one-bin assumption hard-coded. Easy solution is to hard-code in a particular multi-bin assumption
+  ## Better solution is to clone one of the input histograms, and replace all of its bins contents with the integrated flux
+  ## e.g. tHist_flux_<...> = referenceHist.Clone("tHist_flux_<...>") (replaces line below)
   exec("tHist_flux_{0}_integral = ROOT.TH1D('h_flux_integral','h_flux_integral',1,array('d',[-1,1]))".format(nuSpec))
+  ## loop over bins, fill in integrated flux in each bin (replaces line below)
   exec("tHist_flux_{0}_integral.SetBinContent(1,flux_integral_CV)".format(nuSpec))
   
   ## Create MnvH1D from TH1D
@@ -646,9 +665,19 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
     
     else:
 
+      print "DEBUG! I'm on sigDef: {0};\tsigDefexcl: {1}".format(sigDef,sigDefexcl)
+
+      exec("effNum_CV = mHist_effNum_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
+      effNum_bins = effNum_CV.GetNbinsX()
+      exec("effDenom_CV = mHist_effDenom_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
+      effDenom_bins = effDenom_CV.GetNbinsX()
+      print "N bins num: {0};\tN bins denom: {1}".format(effNum_bins,effDenom_bins)
+ 
       ## Efficiency
       exec("mHist_eff_{0}_{1} = mHist_effNum_{0}_{1}.Clone(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("mHist_eff_{0}_{1}.Divide(mHist_effNum_{0}_{1},mHist_effDenom_{0}_{1})".format(sigDef,sigDefexcl))
+
+      print "DEBUG2! I'm on sigDef: {0};\tsigDefexcl: {1}".format(sigDef,sigDefexcl)
 
       exec("writeHist(mHist_eff_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
