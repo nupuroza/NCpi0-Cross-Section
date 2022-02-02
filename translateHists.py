@@ -71,6 +71,7 @@ g4File_2g1p_exclusive = ROOT.TFile(g4FilePath_2g1p_exclusive)
 ## Output file
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
 parser.add_argument('output_dir', help='Path to ouput directory', type=str)
+parser.add_argument('test',help='run in test mode using smaller number of syst universes (faster)',type=bool,default=False,nargs='?')
 p = parser.parse_args()
 
 ## If output_dir is not provided, exit
@@ -85,6 +86,7 @@ if not os.path.isdir(p.output_dir):
 
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
+
 
 #############################################################################################################
 ### Create Reference Hist ###################################################################################
@@ -102,12 +104,14 @@ for i in range(nBins_analysis):
 ### Systematic Universes ####################################################################################
 #############################################################################################################
 
+## If running in test mode use a smaller number of flux universes
+if p.test:
+  nMultiverses = 10
+else:
+  nMultiverses = 1000
+
 ## Number of Universes
 nMinMaxUniverses = 2
-## Easy way to make the program run faster
-nMultiverses = 10
-#nMultiverses = 1000
-
 
 ## List of cross section systematics
 XS_SYSTS = [
