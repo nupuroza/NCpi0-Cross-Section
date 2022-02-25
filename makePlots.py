@@ -73,7 +73,7 @@ parser = argparse.ArgumentParser(description='Script to make cross-section plots
 parser.add_argument('in_dir', help='Path to input directory', type=str,nargs='?')
 parser.add_argument('in_date', help='Creation date of input file (yyyy-mm-dd). Defaults to a file dated today if it exists', type=str,nargs='?')
 parser.add_argument('out_dir', help='Path to output directory. Defaults to input directory', type=str,nargs='?')
-parser.add_argument('tag', help='String to append to end of output directory name. e.g. "test"', type=str,nargs='?')
+parser.add_argument('tag', help='String to append to end of output directory name. "test" tag generates breakout plots for debugging', type=str,nargs='?')
 p = parser.parse_args()
 
 ## If in_dir is not provided, exit
@@ -163,11 +163,12 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
           exec("tHist_{0}_{1}_{2}.Scale(1.0,\"width\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
-        if not histCat == "xSection_mc":
-          for flux_uni in FLUX_SYSTS:
-            exec("veb_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
-            with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
-              exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
+        if p.tag == "test":
+          if not histCat == "xSection_mc":
+            for flux_uni in FLUX_SYSTS:
+              exec("veb_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
+              with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
+                exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
           exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
@@ -196,11 +197,12 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
       exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events/GeV\")".format(histCat,sigDef))
       exec("tHist_{0}_{1}.Scale(1.0,\"width\")".format(histCat,sigDef))
       exec("tHist_{0}_{1}.Draw()".format(histCat,sigDef))
-      
-    for flux_uni in FLUX_SYSTS:
-      exec("veb_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
-      with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
-        exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
+    
+    if p.tag == "test":  
+      for flux_uni in FLUX_SYSTS:
+        exec("veb_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
+        with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
+          exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
       exec("localDrawErrorSummary(plotter,{0}_{1},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef))
@@ -229,27 +231,29 @@ for histCat in ["flux","integratedFlux","nTargets"]:
 
   with makeEnv_TCanvas("{0}/{1}.png".format(plotDir,histCat)) as can:
     exec("tHist_{0} = {0}.GetCVHistoWithError()".format(histCat))
-    ## Set horizontal axis label
+    ## Set axes labels
     if histCat == "flux":
-      exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}}/GeV\")".format(histCat))
-    else:
-      exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum)\")".format(histCat))
-    exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
-    ## Set vertical axis label
-    if histCat == "nTargets":
-      exec("tHist_{0}.GetYaxis().SetTitle(\"Number of Targets[10^{{28}} atoms]/GeV\")".format(histCat))
-      exec("tHist_{0}.Scale(10**-28)".format(histCat))
-    else:
-      exec("tHist_{0}.GetYaxis().SetTitle(\"#Phi[10^{{-9}} x #nu/POT/cm^{{2}}]/GeV\")".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}}(GeV)\")".format(histCat))
+      exec("tHist_{0}.GetYaxis().SetTitle(\"#nu/10^{{-6}} POT/cm^{{2}}/GeV\")".format(histCat))
+      exec("tHist_{0}.Scale(10**-6)".format(histCat))
+    elif histCat == "integratedFlux":
+      exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat))
+      exec("tHist_{0}.GetYaxis().SetTitle(\"#nu/10^{{9}} POT/cm^{{2}}/GeV\")".format(histCat))
       exec("tHist_{0}.Scale(10**9)".format(histCat))
+    if histCat == "nTargets":
+      exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat))
+      exec("tHist_{0}.GetYaxis().SetTitle(\"Number of Targets[10^{{28}} atoms]/GeV\")".format(histCat))
+      exec("tHist_{0}.Scale(10**-28)".format(histCat)) 
+    exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
     exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     exec("tHist_{0}.Scale(1.0,\"width\")".format(histCat))
     exec("tHist_{0}.Draw()".format(histCat))
 
-  for flux_uni in FLUX_SYSTS:
-    exec("veb_{0} = {0}.GetVertErrorBand(\"{1}\")".format(histCat,flux_uni))
-    with makeEnv_TCanvas("{0}/breakout_{1}_{2}.png".format(plotDir,flux_uni,histCat)):
-      exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
+  if p.tag == "test":
+    for flux_uni in FLUX_SYSTS:
+      exec("veb_{0} = {0}.GetVertErrorBand(\"{1}\")".format(histCat,flux_uni))
+      with makeEnv_TCanvas("{0}/breakout_{1}_{2}.png".format(plotDir,flux_uni,histCat)):
+        exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
 
   with makeEnv_TCanvas("{0}/errorSummary_{1}.png".format(plotDir,histCat)):
     exec("localDrawErrorSummary(plotter,{0},\"Reconstructed #pi^{{0}} momentum\")".format(histCat))
@@ -257,14 +261,13 @@ for histCat in ["flux","integratedFlux","nTargets"]:
 #############################################################################################################
 ### Make downstream breakout plots ##########################################################################
 #############################################################################################################
+if p.tag == "test":
+  for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
 
-for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
-
-  ## OMIT EXCL:
-  ## for sigDefexcl in ["exclusive", "inclusive"]:
-  for sigDefexcl in ["inclusive"]:
-
-    exec("veb_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
-    with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
-      exec("veb_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
+    ## OMIT EXCL:
+    ## for sigDefexcl in ["exclusive", "inclusive"]:
+    for sigDefexcl in ["inclusive"]:
+      exec("veb_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
+      with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
+        exec("veb_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
 
