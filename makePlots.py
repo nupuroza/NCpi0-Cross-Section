@@ -148,18 +148,19 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
           exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           ## Set vertical axis label
           if histCat == "eff":
-            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency/GeV\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           elif histCat == "xSection" or histCat == "xSection_mc":
-            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}} [10^{{-38}} cm^{{2}}/Atom]\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}}[10^{{-38}} cm^{{2}}/Atom]/GeV\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.Scale(10**38)".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           else:
-            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
+            exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events/GeV\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
+          exec("tHist_{0}_{1}_{2}.Scale(1.0,\"width\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
         if not histCat == "xSection_mc":
@@ -192,7 +193,8 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
       exec("tHist_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
       exec("tHist_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))
       ## Set vertical axis label
-      exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events/GeV\")".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.Scale(1.0,\"width\")".format(histCat,sigDef))
       exec("tHist_{0}_{1}.Draw()".format(histCat,sigDef))
       
     for flux_uni in FLUX_SYSTS:
@@ -229,18 +231,19 @@ for histCat in ["flux","integratedFlux","nTargets"]:
     exec("tHist_{0} = {0}.GetCVHistoWithError()".format(histCat))
     ## Set horizontal axis label
     if histCat == "flux":
-      exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}} (GeV))\")".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}}/GeV\")".format(histCat))
     else:
       exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum)\")".format(histCat))
     exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
     ## Set vertical axis label
     if histCat == "nTargets":
-      exec("tHist_{0}.GetYaxis().SetTitle(\"Number of Targets [10^{{28}} atoms]\")".format(histCat))
+      exec("tHist_{0}.GetYaxis().SetTitle(\"Number of Targets[10^{{28}} atoms]/GeV\")".format(histCat))
       exec("tHist_{0}.Scale(10**-28)".format(histCat))
     else:
-      exec("tHist_{0}.GetYaxis().SetTitle(\"#Phi [10^{{-9}} x #nu/POT/cm^{{2}}]\")".format(histCat))
+      exec("tHist_{0}.GetYaxis().SetTitle(\"#Phi[10^{{-9}} x #nu/POT/cm^{{2}}]/GeV\")".format(histCat))
       exec("tHist_{0}.Scale(10**9)".format(histCat))
     exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
+    exec("tHist_{0}.Scale(1.0,\"width\")".format(histCat))
     exec("tHist_{0}.Draw()".format(histCat))
 
   for flux_uni in FLUX_SYSTS:
