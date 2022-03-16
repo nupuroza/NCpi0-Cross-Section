@@ -29,6 +29,7 @@ cvFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_
 cvFile_2g0p = ROOT.TFile(cvFilePath_2g0p)
 
 ## Efficiency Denominators
+## TO-DO: Change to "true" momemtum binning
 effDenomFilePath_2g1p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/MultipleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
@@ -43,6 +44,7 @@ effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
 ## effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
 
 ## Efficiency numerators; backgrounds
+## TO-DO: Change to "true" momemtum binning
 ## Final stage; flux, XS, Det systematics included
 effNumFilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/MultipleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
@@ -577,9 +579,6 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       continue
     
     else:
-
-      #effDenom_bins = effDenom_CV.GetNbinsX()
-      #print "DEBUG: N bins num: {0};\tN bins denom: {1}".format(effNum_bins,effDenom_bins)
  
       ## Efficiency
       exec("mHist_eff_{0}_{1} = mHist_effNum_{0}_{1}.Clone(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
@@ -616,7 +615,36 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       for systName,universePrefix,nUniverses in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
         exec("mHist_xSection_mc_{0}_{1}.PopVertErrorBand(\"{2}\")".format(sigDef,sigDefexcl,systName))
 
-    exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
+      exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
+
+      #############################################################################################################
+      ### Extract Covariance Matrix for Unfolding #################################################################
+      #############################################################################################################
+      
+      exec("tMat_cov_evtRate_{0}_{1} = mHist_evtRate_{0}_{1}.GetTotalErrorMatrix()".format(sigDef,sigDefexcl))
+      exec("tHist2D_cov_evtRate_{0}_{1} = ROOT.TH2D(tMat_cov_evtRate_{0}_{1})".format(sigDef,sigDefexcl))   
+      exec("tHist2D_cov_evtRate_{0}_{1}.SetName(\"tHist2D_cov_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))   
+      exec("writeHist(tHist2D_cov_evtRate_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
+
+
+#############################################################################################################
+### Response Matrix #########################################################################################
+#############################################################################################################
+
+## TO-DO: Add path to response matrix
+responseIdentity = tHist2D_cov_evtRate_2gnp_inclusive.Clone("responseIdentity")
+for i in range(1,nBins_analysis+1):
+  for j in range(1,nBins_analysis+1):
+    if i == j:
+      responseIdentity.SetBinContent(i,1.)
+    else:
+      responseIdentity.SetBinContent(i,0.)
+
+for sigDef in ["2g1p","2g0p","2gnp"]:
+  exec("tHist2D_response_{0} = responseIdentity.Clone(\"tHist2D_response_{0}}\")".format(sigDef))
+  exec("tHist2D_response_{0}.SetName(\"tHist2D_response_{0}\")".format(sigDef))
+  exec("writeHist(tHist2D_response_{0}, outFile)".format(sigDef))
+
 
 #############################################################################################################
 ### Close output file; other business #######################################################################
