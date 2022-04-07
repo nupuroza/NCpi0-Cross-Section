@@ -127,13 +127,13 @@ void M2H1(TMatrixD* mat, TH1F* histo)
 
 void unfold_final()
 {
-    TFile* f = new TFile("ANGLE_FDS_CLOSE.root", "READ");
+    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-03-17_out.root", "READ");
     
     // Ingredients - true_signal, data_signal, response, covariance  
-    TH1F *true_sig = (TH1F*)f->Get("prior_true_signal");  
-    TH1F *mes_sig = (TH1F*)f->Get("data_signal");
-    TH2F* resp = (TH2F*)f->Get("respmat");
-    TH2F* cov = (TH2F*)f->Get("covmat");
+    TH1F *true_sig = (TH1F*)f->Get("tHist_effNum_2gnp_inclusive");  
+    TH1F *mes_sig = (TH1F*)f->Get("tHist_evtRate_2gnp_inclusive");
+    TH2F* resp = (TH2F*)f->Get("tHist2D_response_2gnp");
+    TH2F* cov = (TH2F*)f->Get("tHist2D_cov_evtRate_2gnp_inclusive");
 
     Int_t n = true_sig->GetNbinsX();
     Double_t Nuedges[n+1];
@@ -161,7 +161,7 @@ void unfold_final()
     TH2F* unf_cov = new TH2F("unf_cov","Unfolded covariance", n, Nuedges, n, Nuedges);
 
     //**TODO** argc, argv later 
-    TFile* file = new TFile("ANG_FDS_reg_on_id.root", "RECREATE"); 
+    TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-03-17_unfolded.root", "RECREATE"); 
 
     //Wiener-SVD
 

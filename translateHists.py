@@ -5,6 +5,7 @@ import ROOT
 import datetime as dt
 import argparse
 import os
+from array import *
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
@@ -99,9 +100,13 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 histToBeCloned = cvFile_2g1p.Get("nu_uBooNE_2g1p_Data")
 referenceHist = histToBeCloned.Clone("referenceHist")
 nBins_analysis = referenceHist.GetNbinsX()
+bin_lowEdges = []
 for i in range(1,nBins_analysis+1):
   referenceHist.SetBinContent(i,-999.)
   referenceHist.SetBinError(i,0.)
+  bin_lowEdges.append(referenceHist.GetBinLowEdge(i))
+  binWidth = referenceHist.GetBinWidth(i)
+bin_lowEdges.append(bin_lowEdges[-1] + binWidth)
 
 #############################################################################################################
 ### Systematic Universes ####################################################################################
@@ -593,6 +598,15 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
 
       exec("writeHist(mHist_evtRate_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
+      ## Write efficiency numerator and background-subtracted event rate as TH1D
+      exec("tHist_effNum_{0}_{1} = mHist_effNum_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
+      exec("tHist_effNum_{0}_{1}.SetName(\"tHist_effNum_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("writeHist(tHist_effNum_{0}_{1},outFile)".format(sigDef,sigDefexcl))
+
+      exec("tHist_evtRate_{0}_{1} = mHist_evtRate_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
+      exec("tHist_evtRate_{0}_{1}.SetName(\"tHist_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("writeHist(tHist_evtRate_{0}_{1},outFile)".format(sigDef,sigDefexcl))
+
       ## Cross section calculation
       exec("mHist_xSection_{0}_{1} = mHist_evtRate_{0}_{1}.Clone(\"xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
@@ -622,7 +636,13 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       #############################################################################################################
       
       exec("tMat_cov_evtRate_{0}_{1} = mHist_evtRate_{0}_{1}.GetTotalErrorMatrix()".format(sigDef,sigDefexcl))
-      exec("tHist2D_cov_evtRate_{0}_{1} = ROOT.TH2D(tMat_cov_evtRate_{0}_{1})".format(sigDef,sigDefexcl))   
+      exec("tHist2D_cov_evtRate_{0}_{1} = ROOT.TH2D(\"tHist2D_cov_evtRate_{0}_{1}\", \"\", nBins_analysis, array(\"d\",bin_lowEdges), nBins_analysis, array(\"d\",bin_lowEdges))".format(sigDef,sigDefexcl))   
+      
+      for i in range(1,nBins_analysis+1): 
+        for j in range(1,nBins_analysis+1):
+          exec("cov = ROOT.TH2D(tMat_cov_evtRate_{0}_{1}).GetBinContent(i+1,j+1)".format(sigDef,sigDefexcl))
+          exec("tHist2D_cov_evtRate_{0}_{1}.SetBinContent(i,j,cov)".format(sigDef,sigDefexcl))
+
       exec("tHist2D_cov_evtRate_{0}_{1}.SetName(\"tHist2D_cov_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))   
       exec("writeHist(tHist2D_cov_evtRate_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
 
@@ -636,12 +656,12 @@ responseIdentity = tHist2D_cov_evtRate_2gnp_inclusive.Clone("responseIdentity")
 for i in range(1,nBins_analysis+1):
   for j in range(1,nBins_analysis+1):
     if i == j:
-      responseIdentity.SetBinContent(i,1.)
+      responseIdentity.SetBinContent(i,j,1.)
     else:
-      responseIdentity.SetBinContent(i,0.)
+      responseIdentity.SetBinContent(i,j,0.)
 
 for sigDef in ["2g1p","2g0p","2gnp"]:
-  exec("tHist2D_response_{0} = responseIdentity.Clone(\"tHist2D_response_{0}}\")".format(sigDef))
+  exec("tHist2D_response_{0} = responseIdentity.Clone(\"tHist2D_response_{0}\")".format(sigDef))
   exec("tHist2D_response_{0}.SetName(\"tHist2D_response_{0}\")".format(sigDef))
   exec("writeHist(tHist2D_response_{0}, outFile)".format(sigDef))
 
