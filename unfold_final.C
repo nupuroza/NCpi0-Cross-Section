@@ -12,8 +12,6 @@
 #include "TVectorD.h"
 #include "TH1D.h"
 #include "TH2D.h"
-#include "TH1F.h"
-#include "TH2F.h"
 #include "TCanvas.h"
 #include "TMath.h"
 #include "TPaveText.h"
@@ -54,7 +52,7 @@ void H2V(const TH1D* histo, TVectorD& vec)
     }
 }
 
-void H2M(const TH2F* histo, TMatrixD& mat, bool rowcolumn)
+void H2M(const TH2D* histo, TMatrixD& mat, bool rowcolumn)
 {
     // Fill 2D histogram into matrix                                                                                                                                               
     // If TH2D(i, j) = Matrix(i, j), rowcolumn = kTRUE, else rowcolumn = kFALSE                                                                                                    
@@ -68,7 +66,7 @@ void H2M(const TH2F* histo, TMatrixD& mat, bool rowcolumn)
     }
 }
 
-void H2M1(const TH1F* histo, TMatrixD& mat, bool rowcolumn)
+void H2M1(const TH1D* histo, TMatrixD& mat, bool rowcolumn)
 {
   // Fill 2D histogram into matrix                                                                                                                                                                        
   // If TH2D(i, j) = Matrix(i, j), rowcolumn = kTRUE, else rowcolumn = kFALSE                                                                                                                             
@@ -81,7 +79,7 @@ void H2M1(const TH1F* histo, TMatrixD& mat, bool rowcolumn)
 
 
 
-void M2H(const TMatrixD& mat, TH2F* histo)
+void M2H(const TMatrixD& mat, TH2D* histo)
 {
     // Fill matrix to histogram                                                                                                                                                    
   for(Int_t i=0; i<mat.GetNrows(); i++)
@@ -93,7 +91,7 @@ void M2H(const TMatrixD& mat, TH2F* histo)
     }
 }
 
-void M2H1_spec(TMatrixD& mat, TH1F* histo)
+void M2H1_spec(TMatrixD& mat, TH1D* histo)
 {
   // Fill matrix to histogram                                                                                                                                                                               
   for(Int_t i=0; i<mat.GetNrows(); i++)
@@ -104,7 +102,7 @@ void M2H1_spec(TMatrixD& mat, TH1F* histo)
 
 
 
-void M2H_spec(TMatrixD* mat, TH2F* histo)
+void M2H_spec(TMatrixD* mat, TH2D* histo)
 {
   // Fill matrix to histogram                                                                                                                                                                             
   for(Int_t i=0; i<mat->GetNrows(); i++)
@@ -116,7 +114,7 @@ void M2H_spec(TMatrixD* mat, TH2F* histo)
     }
 }
 
-void M2H1(TMatrixD* mat, TH1F* histo)
+void M2H1(TMatrixD* mat, TH1D* histo)
 {
   // Fill matrix to histogram                                                                                                                                                                             
   for(Int_t i=0; i<mat->GetNrows(); i++)
@@ -127,13 +125,13 @@ void M2H1(TMatrixD* mat, TH1F* histo)
 
 void unfold_final()
 {
-    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-03-17_out.root", "READ");
+    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-04-14_out.root", "READ");
     
     // Ingredients - true_signal, data_signal, response, covariance  
-    TH1F *true_sig = (TH1F*)f->Get("tHist_effNum_2gnp_inclusive");  
-    TH1F *mes_sig = (TH1F*)f->Get("tHist_evtRate_2gnp_inclusive");
-    TH2F* resp = (TH2F*)f->Get("tHist2D_response_2gnp");
-    TH2F* cov = (TH2F*)f->Get("tHist2D_cov_evtRate_2gnp_inclusive");
+    TH1D *true_sig = (TH1D*)f->Get("tHist_effNum_2gnp_inclusive");  
+    TH1D *mes_sig = (TH1D*)f->Get("tHist_evtRate_2gnp_inclusive");
+    TH2D* resp = (TH2D*)f->Get("tHist2D_response_2gnp");
+    TH2D* cov = (TH2D*)f->Get("tHist2D_cov_evtRate_2gnp_inclusive");
 
     Int_t n = true_sig->GetNbinsX();
     Double_t Nuedges[n+1];
@@ -156,12 +154,12 @@ void unfold_final()
     H2M(cov, covariance, kTRUE);
 
     // construct to record additinal smearing matrix and wiener filter (diagomal matrix) elements. 
-    TH2F* smear = new TH2F("smear","Additional Smearing Matirx",n,Nuedges,n,Nuedges);
-    TH1F* unf_signal = new TH1F("unf_signal","unfolded spectrum",n,Nuedges);
-    TH2F* unf_cov = new TH2F("unf_cov","Unfolded covariance", n, Nuedges, n, Nuedges);
+    TH2D* smear = new TH2D("smear","Additional Smearing Matirx",n,Nuedges,n,Nuedges);
+    TH1D* unf_signal = new TH1D("unf_signal","unfolded spectrum",n,Nuedges);
+    TH2D* unf_cov = new TH2D("unf_cov","Unfolded covariance", n, Nuedges, n, Nuedges);
 
     //**TODO** argc, argv later 
-    TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-03-17_unfolded.root", "RECREATE"); 
+    TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-04-14_unfolded.root", "RECREATE"); 
 
     //Wiener-SVD
 
@@ -196,7 +194,7 @@ void unfold_final()
 
     for (int b=1;b<9;b++) unf_signal->SetBinError(b,sqrt((*unfold_cov)(b-1,b-1)));
 
-    TH1F* diff = new TH1F("diff","Fractional difference of unfolded signal and true signal model",n, Nuedges);
+    TH1D* diff = new TH1D("diff","Fractional difference of unfolded signal and true signal model",n, Nuedges);
     for(Int_t i=1; i<=n; i++)
       {
         Double_t s2s = 0;
@@ -208,8 +206,8 @@ void unfold_final()
       }
    
     // intrinsic bias (Ac-I)*s_bar formula
-    TH1F* bias = new TH1F("bias","intrinsic bias w.r.t. model",n, Nuedges);
-    TH1F* bias2 = new TH1F("bias2","intrinsic bias2 w.r.t. unfolded result",n, Nuedges);
+    TH1D* bias = new TH1D("bias","intrinsic bias w.r.t. model",n, Nuedges);
+    TH1D* bias2 = new TH1D("bias2","intrinsic bias2 w.r.t. unfolded result",n, Nuedges);
     TMatrixD unit(n,n);
     unit.UnitMatrix();
     
@@ -218,7 +216,7 @@ void unfold_final()
     
     TMatrixD Smeared_true_sig = A_C_ * signal;
     
-    TH1F* smeared_true_sig = new TH1F("smeared_true_sig", "smeared true signal", n, Nuedges);
+    TH1D* smeared_true_sig = new TH1D("smeared_true_sig", "smeared true signal", n, Nuedges);
     M2H1_spec(Smeared_true_sig , smeared_true_sig);
     
     for(int i=0; i<n; i++)
@@ -233,8 +231,8 @@ void unfold_final()
     M2H1_spec(intrinsicbias2, bias2);
 
     // diagonal uncertainty
-    TH1F* fracError = new TH1F("fracError", "Fractional uncertainty", n, Nuedges);
-    TH1F* absError = new TH1F("absError", "absolute uncertainty", n, Nuedges);
+    TH1D* fracError = new TH1D("fracError", "Fractional uncertainty", n, Nuedges);
+    TH1D* absError = new TH1D("absError", "absolute uncertainty", n, Nuedges);
     for(int i=1; i<=n; i++)
       {
         fracError->SetBinContent(i, TMath::Sqrt(unfold_cov_(i-1, i-1))/unfold_sig_(i-1, 0));
@@ -242,8 +240,8 @@ void unfold_final()
       }
    
     /// MSE
-    TH1F* MSE = new TH1F("MSE", "Mean Square Error: variance+bias^2", n, Nuedges);
-    TH1F* MSE2 = new TH1F("MSE2", "Mean Square Error: variance", n, Nuedges);
+    TH1D* MSE = new TH1D("MSE", "Mean Square Error: variance+bias^2", n, Nuedges);
+    TH1D* MSE2 = new TH1D("MSE2", "Mean Square Error: variance", n, Nuedges);
     for(int i=0; i<n; i++)
       {
         MSE->SetBinContent(i+1, TMath::Power(intrinsicbias2(i,0)*unfold_sig_(i,0),2)+unfold_cov_(i,i));

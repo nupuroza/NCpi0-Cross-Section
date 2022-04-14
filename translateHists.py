@@ -31,10 +31,10 @@ cvFile_2g0p = ROOT.TFile(cvFilePath_2g0p)
 
 ## Efficiency Denominators
 ## TO-DO: Change to "true" momemtum binning
-effDenomFilePath_2g1p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/MultipleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g1p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/earlier_stage/Inclusive/MultipleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
-effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/MultipleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/earlier_stage/Inclusive/MultipleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
 
 ## OMIT EXCL:
@@ -47,7 +47,7 @@ effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
 ## Efficiency numerators; backgrounds
 ## TO-DO: Change to "true" momemtum binning
 ## Final stage; flux, XS, Det systematics included
-effNumFilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/MultipleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
+effNumFilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/final_stage/Inclusive/MultipleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
 # 2g0p and 2g1p effNum hists come from the same file for the inclusive analysis
 effNumFile_2g0p_inclusive = effNumFile_inclusive 
@@ -60,7 +60,7 @@ effNumFile_2g1p_inclusive = effNumFile_inclusive
 ## effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
 
 ## g4 variations
-g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/MultipleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
+g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/final_stage/Inclusive/MultipleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
 g4File_inclusive = ROOT.TFile(g4FilePath_inclusive)
 # 2g0p and 2g1p g4 hists come from the same file for the inclusive analysis
 g4File_2g0p_inclusive = g4File_inclusive 
