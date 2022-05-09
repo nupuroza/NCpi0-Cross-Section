@@ -144,24 +144,22 @@ for sigDef in ["2gnp"]:
       
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
           exec("tHist_{0}_{1}_{2} = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
-          ## Set horizontal axis label
-          exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+          ## Set axis label sizes
           exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           ## Set vertical axis label
           if histCat == "eff":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency/GeV\")".format(histCat,sigDef,sigDefexcl))
-            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
-            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           elif histCat == "xSection" or histCat == "xSection_mc" or histCat == "unfolded_xSection":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}}[10^{{-38}} cm^{{2}}/Atom]/GeV\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.Scale(10**38)".format(histCat,sigDef,sigDefexcl))
-            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
-            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
           else:
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events/GeV\")".format(histCat,sigDef,sigDefexcl))
+          ## Set horizontal axis label
+          if histCat == "background" or histCat == "evtRate" or histCat == "xSection":
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
-            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
+          else: 
+            exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"#pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Scale(1.0,\"width\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
@@ -172,8 +170,12 @@ for sigDef in ["2gnp"]:
               with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
                 exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
 
-        with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
-          exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+        if histCat == "background" or histCat == "evtRate" or histCat == "xSection":
+          with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
+            exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+        else:
+          with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
+            exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"#pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
 
         ## Print out value and error for Mark to package into table
         exec("tHist = {0}_{1}_{2}.GetCVHistoWithError()".format(histCat,sigDef,sigDefexcl))
@@ -191,12 +193,16 @@ for sigDef in ["2gnp"]:
 
     with makeEnv_TCanvas("{0}/{1}_{2}.png".format(plotDir,histCat,sigDef)):
       exec("tHist_{0}_{1} = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
-      ## Set horizontal axis label
-      exec("tHist_{0}_{1}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+      ## Set axis label sizes
       exec("tHist_{0}_{1}.GetXaxis().SetTitleSize(0.05)".format(histCat,sigDef,sigDefexcl))
-      exec("tHist_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))
+      exec("tHist_{0}_{1}.GetYaxis().SetTitleSize(0.05)".format(histCat,sigDef))    
       ## Set vertical axis label
       exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events/GeV\")".format(histCat,sigDef))
+      ## Set horizontal axis label
+      if histCat == "POT":
+        exec("tHist_{0}_{1}.GetXaxis().SetTitle(\"#pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
+      else:
+        exec("tHist_{0}_{1}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
       exec("tHist_{0}_{1}.Scale(1.0,\"width\")".format(histCat,sigDef))
       exec("tHist_{0}_{1}.Draw()".format(histCat,sigDef))
     
@@ -205,9 +211,13 @@ for sigDef in ["2gnp"]:
         exec("veb_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
         with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
           exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
-
-    with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
-      exec("localDrawErrorSummary(plotter,{0}_{1},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef))
+    
+    if histCat == "POT":
+      with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
+        exec("localDrawErrorSummary(plotter,{0}_{1},\"#pi^{{0}} momentum\")".format(histCat,sigDef))
+    else: 
+      with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
+        exec("localDrawErrorSummary(plotter,{0}_{1},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef))
 
     ## Print out value and error for Mark to package into table
     exec("tHist = {0}_{1}.GetCVHistoWithError()".format(histCat,sigDef))
@@ -234,20 +244,20 @@ for histCat in ["flux","integratedFlux","nTargets"]:
   with makeEnv_TCanvas("{0}/{1}.png".format(plotDir,histCat)) as can:
     exec("tHist_{0} = {0}.GetCVHistoWithError()".format(histCat))
     ## Set axes labels
+    exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
+    exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     if histCat == "flux":
       exec("tHist_{0}.GetXaxis().SetTitle(\"E_{{#nu}}(GeV)\")".format(histCat))
       exec("tHist_{0}.GetYaxis().SetTitle(\"#nu/10^{{-6}} POT/cm^{{2}}/GeV\")".format(histCat))
       exec("tHist_{0}.Scale(10**-6)".format(histCat))
     elif histCat == "integratedFlux":
-      exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"#pi^{{0}} momentum\")".format(histCat))
       exec("tHist_{0}.GetYaxis().SetTitle(\"#nu/10^{{9}} POT/cm^{{2}}/GeV\")".format(histCat))
       exec("tHist_{0}.Scale(10**9)".format(histCat))
     if histCat == "nTargets":
-      exec("tHist_{0}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat))
+      exec("tHist_{0}.GetXaxis().SetTitle(\"#pi^{{0}} momentum\")".format(histCat))
       exec("tHist_{0}.GetYaxis().SetTitle(\"Number of Targets[10^{{28}} atoms]/GeV\")".format(histCat))
       exec("tHist_{0}.Scale(10**-28)".format(histCat)) 
-    exec("tHist_{0}.GetXaxis().SetTitleSize(0.05)".format(histCat))
-    exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     exec("tHist_{0}.Scale(1.0,\"width\")".format(histCat))
     exec("tHist_{0}.Draw()".format(histCat))
 
@@ -258,7 +268,19 @@ for histCat in ["flux","integratedFlux","nTargets"]:
         exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
 
   with makeEnv_TCanvas("{0}/errorSummary_{1}.png".format(plotDir,histCat)):
-    exec("localDrawErrorSummary(plotter,{0},\"Reconstructed #pi^{{0}} momentum\")".format(histCat))
+    exec("localDrawErrorSummary(plotter,{0},\"#pi^{{0}} momentum\")".format(histCat))
+
+plotter = ROOT.PlotUtils.MnvPlotter()
+plotter.SetROOT6Palette(54)
+ROOT.gStyle.SetNumberContours(200)
+
+with makeEnv_TCanvas('{0}/cov_evtRate_2gnp_inclusive_unfolded.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('unfolded_cov_evtRate_2gnp_inclusive')
+  tmp.Draw("colz")
+  tmp.GetXaxis().SetTitle("#pi^{0} momentum")
+  tmp.GetYaxis().SetTitle("#pi^{0} momentum")
+  canvas.canvas.SetLogz()
+
 
 #############################################################################################################
 ### Make downstream breakout plots ##########################################################################
