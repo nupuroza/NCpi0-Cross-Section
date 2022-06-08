@@ -25,47 +25,54 @@ def writeHist(hist,outFile):
 #############################################################################################################
 
 ## CV
-cvFilePath_2g1p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/XS2g1p_MConly_FinalSelection_CV.SBNspec.root"
-cvFile_2g1p = ROOT.TFile(cvFilePath_2g1p)
-cvFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/XS2g0p_MConly_FinalSelection_CV.SBNspec.root"
-cvFile_2g0p = ROOT.TFile(cvFilePath_2g0p)
+cvFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_Apr2022_FVfix/Inclusive/XS2g1p_Apr2022_CV.SBNspec.root"
+cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
+
+cvFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_Apr2022_FVfix/Inclusive/XS2g0p_Apr2022_CV.SBNspec.root"
+cvFile_2g0p_inclusive = ROOT.TFile(cvFilePath_2g0p_inclusive)
+
+cvFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_Apr2022_FVfix/Exclusive/2g1p_50KE/XS2g1p_Apr2022_Exclusive_50KE_CV.SBNspec.root"
+cvFile_2g1p_exclusive = ROOT.TFile(cvFilePath_2g1p_exclusive)
+
+cvFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_Apr2022_FVfix/Exclusive/2g0p_50KE/XS2g0p_Apr2022_Exclusive_50KE_CV.SBNspec.root"
+cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
 
 ## Efficiency Denominators
-effDenomFilePath_2g1p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/SingleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g1p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Inclusive/SingleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
-effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Inclusive/SingleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Inclusive/SingleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
 
-effDenomFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g1p/KE_50MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Exclusive/SingleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p_exclusive = ROOT.TFile(effDenomFilePath_2g1p_exclusive)
 
-effDenomFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/earlier_stage/Exclusive/2g0p/KE_50MeV/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Exclusive/SingleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
 
 ## Efficiency numerators; backgrounds
 ## Final stage; flux, XS, Det systematics included
-effNumFilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/SingleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
+effNumFilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Inclusive/SingleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
 # 2g0p and 2g1p effNum hists come from the same file for the inclusive analysis
 effNumFile_2g0p_inclusive = effNumFile_inclusive 
 effNumFile_2g1p_inclusive = effNumFile_inclusive 
 
-effNumFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Exclusive/NCPi0NoVisProton/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
+effNumFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0NoVisProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile_2g0p_exclusive = ROOT.TFile(effNumFilePath_2g0p_exclusive)
-effNumFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Exclusive/NCPi0OneProton/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
+effNumFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0OneProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
 
 ## g4 variations
-g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Inclusive/SingleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
+g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Inclusive/SingleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 g4File_inclusive = ROOT.TFile(g4FilePath_inclusive)
 # 2g0p and 2g1p g4 hists come from the same file for the inclusive analysis
 g4File_2g0p_inclusive = g4File_inclusive 
 g4File_2g1p_inclusive = g4File_inclusive 
 
-g4FilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Exclusive/NCPi0NoVisProton/KE_50MeV/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
+g4FilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0NoVisProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 g4File_2g0p_exclusive = ROOT.TFile(g4FilePath_2g0p_exclusive)
-g4FilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/Exclusive/NCPi0OneProton/KE_50MeV/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
+g4FilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0OneProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 g4File_2g1p_exclusive = ROOT.TFile(g4FilePath_2g1p_exclusive)
 
 ## Output file
@@ -93,7 +100,7 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-histToBeCloned = cvFile_2g1p.Get("nu_uBooNE_2g1p_Data")
+histToBeCloned = cvFile_2g1p_inclusive.Get("nu_uBooNE_2g1p_Data")
 referenceHist = histToBeCloned.Clone("referenceHist")
 nBins_analysis = referenceHist.GetNbinsX()
 for i in range(nBins_analysis):
@@ -351,30 +358,32 @@ print "--integrated flux-- CV: {0}\terr: {1}".format(integrated_flux_cv,integrat
 ### Assemble MnvH1Ds for Data and BNB EXT Background (which is also data) ###################################
 #############################################################################################################
 
-## Pull out CV hists
-for sigDef in ["2g1p","2g0p"]:
-  exec("tHist_data_selected_{0} = cvFile_{0}.Get(\"nu_uBooNE_{0}_Data\")".format(sigDef))
-  exec("tHist_BNB_ext_{0} = cvFile_{0}.Get(\"nu_uBooNE_{0}_BNBext\")".format(sigDef))
+for sigDefexcl in ['inclusive', 'exclusive']:
 
-for dataDef in ["data_selected","BNB_ext"]:
-
-  ## Add together 2g1p and 2g0p hists
-  exec("tHist_{0}_2gnp = tHist_{0}_2g0p.Clone(\"tHist_{0}_2gnp\")".format(dataDef))
-  exec("tHist_{0}_2gnp.Scale(POT_scaling)".format(dataDef))
-  exec("tHist_{0}_2gnp.Add(tHist_{0}_2g1p)".format(dataDef))
-
-  for sigDef in ["2g0p","2g1p","2gnp"]:
-
-    ## Create MnvH1D from TH1D
-    exec("mHist_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_{0}_{1})".format(dataDef,sigDef))
-    exec("mHist_{0}_{1}.SetName(\"{0}_{1}\")".format(dataDef,sigDef))
-
-    ## Populate error bands
-    for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
-      exec("mHist_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(dataDef,sigDef))
-
-    exec("writeHist(mHist_{0}_{1},outFile)".format(dataDef,sigDef))
-
+  ## Pull out CV hists
+  for sigDef in ["2g1p","2g0p"]:
+    exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_Data\")".format(sigDef,sigDefexcl))
+    exec("tHist_BNB_ext_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_BNBext\")".format(sigDef,sigDefexcl))
+  
+  for dataDef in ["data_selected","BNB_ext"]:
+  
+    ## Add together 2g1p and 2g0p hists
+    exec("tHist_{0}_2gnp_{1} = tHist_{0}_2g0p_{1}.Clone(\"tHist_{0}_2gnp\")".format(dataDef,sigDefexcl))
+    exec("tHist_{0}_2gnp_{1}.Scale(POT_scaling)".format(dataDef,sigDefexcl))
+    exec("tHist_{0}_2gnp_{1}.Add(tHist_{0}_2g1p_{1})".format(dataDef,sigDefexcl))
+  
+    for sigDef in ["2g0p","2g1p","2gnp"]:
+  
+      ## Create MnvH1D from TH1D
+      exec("mHist_{0}_{1}_{2} = ROOT.PlotUtils.MnvH1D(tHist_{0}_{1}_{2})".format(dataDef,sigDef,sigDefexcl))
+      exec("mHist_{0}_{1}_{2}.SetName(\"{0}_{1}_{2}\")".format(dataDef,sigDef,sigDefexcl))
+  
+      ## Populate error bands
+      for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+        exec("mHist_{0}_{1}_{2}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(dataDef,sigDef,sigDefexcl))
+  
+      exec("writeHist(mHist_{0}_{1}_{2},outFile)".format(dataDef,sigDef,sigDefexcl))
+  
 #############################################################################################################
 ### Assemble xsec component MnvHnDs for 2g1p, 2g0p ##########################################################
 #############################################################################################################
@@ -389,8 +398,11 @@ for sigDef in ["2g1p","2g0p"]:
     ## CV
     # Pull out the TH1D
     exec("tHist_effDenom_{0}_{1}_CV = effDenomFile_{0}_{1}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef,sigDefexcl))
-    # Copy this into an MnvH1D (no systs yet)
-    exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
+    # Create MnvH1D to hold effDenom using referenceHist (to allow for different binning conventions)
+    exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(referenceHist)".format(sigDef,sigDefexcl))
+    # Copy correct CV into this MnvH1D (no systs yet)
+    exec("mHist_effDenom_{0}_{1}.SetBinContent(1,tHist_effDenom_{0}_{1}_CV.GetBinContent(1))".format(sigDef,sigDefexcl))
+    exec("mHist_effDenom_{0}_{1}.SetBinError(1,tHist_effDenom_{0}_{1}_CV.GetBinError(1))".format(sigDef,sigDefexcl))
     # Rename new hist object
     exec("mHist_effDenom_{0}_{1}.SetName(\"effDenom_{0}_{1}\")".format(sigDef,sigDefexcl))
 
@@ -428,19 +440,19 @@ for sigDef in ["2g1p","2g0p"]:
     #########################
 
     ## Pull out CV hists, which are separate for coherent and non-coherent
-    exec("tHist_NCPi0Coh_{0} = cvFile_{0}.Get(\"nu_uBooNE_{0}_NCPi0Coh\")".format(sigDef))
-    exec("tHist_NCPi0NotCoh_{0} = cvFile_{0}.Get(\"nu_uBooNE_{0}_NCPi0NotCoh\")".format(sigDef))
+    exec("tHist_NCPi0Coh_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_NCPi0Coh\")".format(sigDef,sigDefexcl))
+    exec("tHist_NCPi0NotCoh_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_NCPi0NotCoh\")".format(sigDef,sigDefexcl))
     
     ## Add together coherent and non-coherent
-    exec("tHist_effNum_{0}_CV = tHist_NCPi0Coh_{0}.Clone(\"tHist_effNum_{0}_CV\")".format(sigDef))
-    exec("tHist_effNum_{0}_CV.Add(tHist_NCPi0NotCoh_{0})".format(sigDef))
+    exec("tHist_effNum_{0}_{1}_CV = tHist_NCPi0Coh_{0}_{1}.Clone(\"tHist_effNum_{0}_{1}_CV\")".format(sigDef,sigDefexcl))
+    exec("tHist_effNum_{0}_{1}_CV.Add(tHist_NCPi0NotCoh_{0}_{1})".format(sigDef,sigDefexcl))
 
     ## Pull out the value and save as a scalar
     ## This is the actual CV in this bin for the analysis
-    exec("binVal_trueCV = tHist_effNum_{0}_CV.GetBinContent(1)".format(sigDef))
+    exec("binVal_trueCV = tHist_effNum_{0}_{1}_CV.GetBinContent(1)".format(sigDef,sigDefexcl))
 
     # Copy this into an MnvH1D (no systs yet)
-    exec("mHist_effNum_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effNum_{0}_CV)".format(sigDef,sigDefexcl))
+    exec("mHist_effNum_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effNum_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
     exec("mHist_effNum_{0}_{1}.SetName(\"effNum_{0}_{1}\")".format(sigDef,sigDefexcl))
 
@@ -534,19 +546,19 @@ for sigDef in ["2g1p","2g0p"]:
     #########################
 
     ## Pull out CV hists, which are separate for various background components 
-    for bkgDef in ["NCDelta","CC1Pi0","BNBOther","Nue","Dirt","OTPCExtra"]:
-      exec("tHist_{0}_{1} = cvFile_{1}.Get(\"nu_uBooNE_{1}_{0}\")".format(bkgDef,sigDef))
+    for bkgDef in ["NCDelta","CC1Pi0","BNBOther","Nue","Dirt","OTPCExtra","NCPi0CohNotSignal","NCPi0NotCohNotSignal"]:
+      exec("tHist_{0}_{1}_{2} = cvFile_{1}_{2}.Get(\"nu_uBooNE_{1}_{0}\")".format(bkgDef,sigDef,sigDefexcl))
     
     ## Add together various background components
-    exec("tHist_background_{0}_CV = tHist_NCDelta_{0}.Clone(\"tHist_background_{0}_CV\")".format(sigDef))
-    for bkgDef in ["CC1Pi0","BNBOther","Nue","Dirt","OTPCExtra"]:
-      exec("tHist_background_{1}_CV.Add(tHist_{0}_{1})".format(bkgDef,sigDef))
+    exec("tHist_background_{0}_{1}_CV = tHist_NCDelta_{0}_{1}.Clone(\"tHist_background_{0}_{1}_CV\")".format(sigDef,sigDefexcl))
+    for bkgDef in ["CC1Pi0","BNBOther","Nue","Dirt","OTPCExtra","NCPi0CohNotSignal","NCPi0NotCohNotSignal"]:
+      exec("tHist_background_{1}_{2}_CV.Add(tHist_{0}_{1}_{2})".format(bkgDef,sigDef,sigDefexcl))
 
     ## Pull out the value and save as a scalar
-    exec("binVal_trueCV = tHist_background_{0}_CV.GetBinContent(1)".format(sigDef,systName,i))
+    exec("binVal_trueCV = tHist_background_{0}_{1}_CV.GetBinContent(1)".format(sigDef,sigDefexcl))
 
     # Copy this into an MnvH1D (no systs yet)
-    exec("mHist_background_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_background_{0}_CV)".format(sigDef,sigDefexcl))
+    exec("mHist_background_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_background_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
     exec("mHist_background_{0}_{1}.SetName(\"background_{0}_{1}\")".format(sigDef,sigDefexcl))
 
@@ -682,8 +694,8 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       exec("writeHist(mHist_eff_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
       ## Background-subtracted event rate
-      exec("mHist_evtRate_{0}_{1} = mHist_data_selected_{0}.Clone(\"evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
-      exec("mHist_evtRate_{0}_{1}.Add(mHist_BNB_ext_{0},-1.)".format(sigDef,sigDefexcl))
+      exec("mHist_evtRate_{0}_{1} = mHist_data_selected_{0}_{1}.Clone(\"evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_evtRate_{0}_{1}.Add(mHist_BNB_ext_{0}_{1},-1.)".format(sigDef,sigDefexcl))
       exec("mHist_evtRate_{0}_{1}.Add(mHist_background_{0}_{1},-1.)".format(sigDef,sigDefexcl))
 
       exec("writeHist(mHist_evtRate_{0}_{1},outFile)".format(sigDef,sigDefexcl))
