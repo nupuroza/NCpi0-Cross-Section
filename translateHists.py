@@ -78,7 +78,7 @@ g4File_2g1p_exclusive = ROOT.TFile(g4FilePath_2g1p_exclusive)
 ## Output file
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
 parser.add_argument('output_dir', help='Path to ouput directory', type=str)
-parser.add_argument('test',help='run in test mode using smaller number of syst universes (faster)',type=bool,default=False,nargs='?')
+parser.add_argument('test',help='Run in test mode using smaller number of syst universes (faster)',type=str,nargs='?')
 p = parser.parse_args()
 
 ## If output_dir is not provided, exit
@@ -111,13 +111,13 @@ for i in range(nBins_analysis):
 ### Systematic Universes ####################################################################################
 #############################################################################################################
 
+## Number of Universes
 ## If running in test mode use a smaller number of flux universes
-if p.test:
+if p.test>0:
   nMultiverses = 10
 else:
   nMultiverses = 1000
 
-## Number of Universes
 nMinMaxUniverses = 2
 
 ## List of cross section systematics
