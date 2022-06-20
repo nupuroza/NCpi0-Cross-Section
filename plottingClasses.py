@@ -40,18 +40,17 @@ class makeEnv_TCanvas_nuMigrationMatrix(makeEnv_TCanvas):
 
     makeEnv_TCanvas.__exit__(self,*exc)
 
-def localDrawErrorSummary( plotter , hist ):
-
-  # Not working at the moment; meant to block out the 1-2 GeV Enu bin  
+def localDrawErrorSummary( plotter , hist , x-label ):
+  
   box = ROOT.TBox(1,0,2,0.16)
   box.SetFillColor(ROOT.kGray)
   box.SetFillStyle(3001)
   box.Draw()
 
-  #plotter.axis_maximum = 0.16
-  plotter.DrawErrorSummary(hist,"TL",True,True,0.00001,False,"",True,"",True)
-  #plotter.DrawErrorSummary(hist,"TR",True,True,0.00001,False,"GENIE_InteractionModel",True,"",True)
-  #plotter.DrawErrorSummary(hist,"TR",True,True,0.00001,False,"MuonEnergyScale",True,"",True)
+  hist.GetXaxis().SetTitle(xaxis_label)
+  hist.GetXaxis().SetTitleSize(0.05)
+
+  plotter.DrawErrorSummary(hist,"TL",True,True,0.00001,False,"",True,"",True)  
 
 def localDrawCorrelationMatrix( hist ):
 

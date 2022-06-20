@@ -400,8 +400,9 @@ for sigDef in ["2g1p","2g0p"]:
     # Create MnvH1D to hold effDenom using referenceHist (to allow for different binning conventions)
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(referenceHist)".format(sigDef,sigDefexcl))
     # Copy correct CV into this MnvH1D (no systs yet)
-    exec("mHist_effDenom_{0}_{1}.SetBinContent(1,tHist_effDenom_{0}_{1}_CV.GetBinContent(1))".format(sigDef,sigDefexcl))
-    exec("mHist_effDenom_{0}_{1}.SetBinError(1,tHist_effDenom_{0}_{1}_CV.GetBinError(1))".format(sigDef,sigDefexcl))
+    for i in range(1,nBins_analysis+1):
+      exec("mHist_effDenom_{0}_{1}.SetBinContent(i,tHist_effDenom_{0}_{1}_CV.GetBinContent(i))".format(sigDef,sigDefexcl))
+      exec("mHist_effDenom_{0}_{1}.SetBinError(i,tHist_effDenom_{0}_{1}_CV.GetBinError(i))".format(sigDef,sigDefexcl))
     # Rename new hist object
     exec("mHist_effDenom_{0}_{1}.SetName(\"effDenom_{0}_{1}\")".format(sigDef,sigDefexcl))
 
@@ -780,12 +781,6 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
     
     else:
 
-      exec("effNum_CV = mHist_effNum_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
-      effNum_bins = effNum_CV.GetNbinsX()
-      exec("effDenom_CV = mHist_effDenom_{0}_{1}.GetCVHistoWithError()".format(sigDef,sigDefexcl))
-      effDenom_bins = effDenom_CV.GetNbinsX()
-      print "N bins num: {0};\tN bins denom: {1}".format(effNum_bins,effDenom_bins)
- 
       ## Efficiency
       exec("mHist_eff_{0}_{1} = mHist_effNum_{0}_{1}.Clone(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("mHist_eff_{0}_{1}.Divide(mHist_effNum_{0}_{1},mHist_effDenom_{0}_{1})".format(sigDef,sigDefexcl))
