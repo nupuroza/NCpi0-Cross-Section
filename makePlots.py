@@ -88,13 +88,13 @@ else:
 
 ## If out_dir is not provided, default to using in_dir
 if p.out_dir < 0:
-  plotDir = p.in_dir+"/{0}_xsec-plots{1}".format(dt.date.today(),tag)
+  plotDir = p.in_dir+"/{0}_xsec-plots".format(dt.date.today())
 else:
   ## Create p.out_dir if it doesn't exist
   if not os.path.isdir(p.out_dir):
     print "Making plot directory {0}".format(p.out_dir)
     os.system( "mkdir %s" % p.out_dir )
-  plotDir = p.out_dir+"/{0}_xsec-plots{1}".format(dt.date.today(),tag)
+  plotDir = p.out_dir+"/{0}_xsec-plots".format(dt.date.today())
 
 ## Create output directory if it doesn't exist
 if not os.path.isdir(plotDir):
@@ -218,7 +218,7 @@ for histCat in ["flux","integratedFlux","nTargets"]:
     exec("tHist_{0}.Draw()".format(histCat))
 
   with makeEnv_TCanvas("{0}/errorSummary_{1}.png".format(plotDir,histCat)):
-    if histCat = "flux":
+    if histCat == "flux":
       exec("localDrawErrorSummary(plotter,{0},\"#nu/10^{{-6}} POT/cm^{{2}}/GeV\")".format(histCat))
     else:  
       exec("localDrawErrorSummary(plotter,{0},\"#pi^{{0}} momentum\")".format(histCat))
