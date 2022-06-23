@@ -5,18 +5,10 @@ import ROOT
 import datetime as dt
 import argparse
 import os
+from plottingClasses import writeHist
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
-
-#############################################################################################################
-### Custom classes ##########################################################################################
-#############################################################################################################
-
-def writeHist(hist,outFile):
-  outFile.cd()
-  print 'Writing {0} to output file'.format(hist.GetName())
-  hist.Write()
 
 #############################################################################################################
 ### File Management #########################################################################################
@@ -36,8 +28,8 @@ cvFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7
 cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
 
 ## Efficiency Denominators
-#effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux_XS.root"
-#effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
+effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux_XS.root"
+effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
 #effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Inclusive/SingleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
 #effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
@@ -65,7 +57,7 @@ effNumFile_2g1p_inclusive = effNumFile_inclusive
 ## effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
 
 ## g4 variations
-g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Inclusive/SingleBin/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
+g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/final_stage/Inclusive/MultipleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root" 
 g4File_inclusive = ROOT.TFile(g4FilePath_inclusive)
 # 2g0p and 2g1p g4 hists come from the same file for the inclusive analysis
 g4File_2g0p_inclusive = g4File_inclusive 
@@ -102,7 +94,7 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-histToBeCloned = cvFile_2g1p_inclusive.Get("nu_uBooNE_2g1p_Data")
+histToBeCloned = cvFile_2g1p_inclusive.Get("nu_uBooNE_2g1p_data")
 referenceHist = histToBeCloned.Clone("referenceHist")
 nBins_analysis = referenceHist.GetNbinsX()
 for i in range(1,nBins_analysis+1):
@@ -154,6 +146,8 @@ FLUX_SYSTS = [
 ]
 
 ## List of detector systematics
+DETECTOR_SYSTS = []
+'''
 DETECTOR_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
   ["AngleXZ","minmax", nMinMaxUniverses],
@@ -166,7 +160,7 @@ DETECTOR_SYSTS = [
   ["WireX","minmax", nMinMaxUniverses],
   ["WireYZ","minmax", nMinMaxUniverses]
 ]
-
+'''
 G4_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
   ["piminus","universe",nMultiverses],
@@ -355,22 +349,23 @@ writeHist(mHist_flux_integral,outFile)
 ### Assemble MnvH1Ds for Data and BNB EXT Background (which is also data) ###################################
 #############################################################################################################
 
-for sigDefexcl in ['inclusive', 'exclusive']:
-
+#for sigDefexcl in ['inclusive', 'exclusive']:
+for sigDefexcl in ['inclusive']:
   ## Pull out CV hists
-  for sigDef in ["2g1p","2g0p"]:
-    exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_Data\")".format(sigDef,sigDefexcl))
+  #for sigDef in ["2g1p","2g0p"]:
+  for sigDef in ["2g1p"]:
+    exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
     exec("tHist_BNB_ext_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_BNBext\")".format(sigDef,sigDefexcl))
   
   for dataDef in ["data_selected","BNB_ext"]:
   
     ## Add together 2g1p and 2g0p hists
-    exec("tHist_{0}_2gnp_{1} = tHist_{0}_2g0p_{1}.Clone(\"tHist_{0}_2gnp\")".format(dataDef,sigDefexcl))
-    exec("tHist_{0}_2gnp_{1}.Scale(POT_scaling)".format(dataDef,sigDefexcl))
-    exec("tHist_{0}_2gnp_{1}.Add(tHist_{0}_2g1p_{1})".format(dataDef,sigDefexcl))
+    #exec("tHist_{0}_2gnp_{1} = tHist_{0}_2g0p_{1}.Clone(\"tHist_{0}_2gnp\")".format(dataDef,sigDefexcl))
+    #exec("tHist_{0}_2gnp_{1}.Scale(POT_scaling)".format(dataDef,sigDefexcl))
+    #exec("tHist_{0}_2gnp_{1}.Add(tHist_{0}_2g1p_{1})".format(dataDef,sigDefexcl))
   
-    for sigDef in ["2g0p","2g1p","2gnp"]:
-  
+    #for sigDef in ["2g0p","2g1p","2gnp"]:
+    for sigDef in ["2g1p"]:
       ## Create MnvH1D from TH1D
       exec("mHist_{0}_{1}_{2} = ROOT.PlotUtils.MnvH1D(tHist_{0}_{1}_{2})".format(dataDef,sigDef,sigDefexcl))
       exec("mHist_{0}_{1}_{2}.SetName(\"{0}_{1}_{2}\")".format(dataDef,sigDef,sigDefexcl))
