@@ -18,14 +18,14 @@ ROOT.TH1.AddDirectory(False)
 cvFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NCPi0_2g1p_NextGen_data_spectra.root"
 cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
 
-cvFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g0p_Momentum_FinalSelection_CV.SBNspec.root"
-cvFile_2g0p_inclusive = ROOT.TFile(cvFilePath_2g0p_inclusive)
+#cvFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g0p_Momentum_FinalSelection_CV.SBNspec.root"
+#cvFile_2g0p_inclusive = ROOT.TFile(cvFilePath_2g0p_inclusive)
 
-cvFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g1p_Momentum_FinalSelection_CV.SBNspec.root"
-cvFile_2g1p_exclusive = ROOT.TFile(cvFilePath_2g1p_exclusive)
+#cvFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g1p_Momentum_FinalSelection_CV.SBNspec.root"
+#cvFile_2g1p_exclusive = ROOT.TFile(cvFilePath_2g1p_exclusive)
 
-cvFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g0p_Momentum_FinalSelection_CV.SBNspec.root"
-cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
+#cvFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g0p_Momentum_FinalSelection_CV.SBNspec.root"
+#cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
 
 ## Efficiency Denominators
 effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux_XS.root"
@@ -346,7 +346,7 @@ mHist_flux_integral.Add(mHist_flux_nuebar_integral)
 writeHist(mHist_flux_integral,outFile)
 
 #############################################################################################################
-### Assemble MnvH1Ds for Data and BNB EXT Background (which is also data) ###################################
+### Assemble MnvH1D for Data ################################################################################
 #############################################################################################################
 
 #for sigDefexcl in ['inclusive', 'exclusive']:
@@ -355,26 +355,23 @@ for sigDefexcl in ['inclusive']:
   #for sigDef in ["2g1p","2g0p"]:
   for sigDef in ["2g1p"]:
     exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
-    exec("tHist_BNB_ext_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_BNBext\")".format(sigDef,sigDefexcl))
+
+  ## Add together 2g1p and 2g0p hists
+  #exec("tHist_data_selected_2gnp_{1} = tHist_data_selected_2g0p_{0}.Clone(\"tHist_data_selected_2gnp\")".format(sigDefexcl))
+  #exec("tHist_data_selected_2gnp_{0}.Scale(POT_scaling)".format(sigDefexcl))
+  #exec("tHist_data_selected_2gnp_{0}.Add(tHist_data_selected_2g1p_{0})".format(sigDefexcl))
   
-  for dataDef in ["data_selected","BNB_ext"]:
+  #for sigDef in ["2g0p","2g1p","2gnp"]:
+  for sigDef in ["2g1p"]:
+    ## Create MnvH1D from TH1D
+    exec("mHist_data_selected_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_data_selected_{0}_{1})".format(sigDef,sigDefexcl))
+    exec("mHist_data_selected_{0}_{1}.SetName(\"data_selected_{0}_{1}\")".format(sigDef,sigDefexcl))
   
-    ## Add together 2g1p and 2g0p hists
-    #exec("tHist_{0}_2gnp_{1} = tHist_{0}_2g0p_{1}.Clone(\"tHist_{0}_2gnp\")".format(dataDef,sigDefexcl))
-    #exec("tHist_{0}_2gnp_{1}.Scale(POT_scaling)".format(dataDef,sigDefexcl))
-    #exec("tHist_{0}_2gnp_{1}.Add(tHist_{0}_2g1p_{1})".format(dataDef,sigDefexcl))
+    ## Populate error bands
+    for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+      exec("mHist_data_selected_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef,sigDefexcl))
   
-    #for sigDef in ["2g0p","2g1p","2gnp"]:
-    for sigDef in ["2g1p"]:
-      ## Create MnvH1D from TH1D
-      exec("mHist_{0}_{1}_{2} = ROOT.PlotUtils.MnvH1D(tHist_{0}_{1}_{2})".format(dataDef,sigDef,sigDefexcl))
-      exec("mHist_{0}_{1}_{2}.SetName(\"{0}_{1}_{2}\")".format(dataDef,sigDef,sigDefexcl))
-  
-      ## Populate error bands
-      for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
-        exec("mHist_{0}_{1}_{2}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(dataDef,sigDef,sigDefexcl))
-  
-      exec("writeHist(mHist_{0}_{1}_{2},outFile)".format(dataDef,sigDef,sigDefexcl))
+    exec("writeHist(mHist_data_selected_{0}_{1},outFile)".format(sigDef,sigDefexcl))
   
 #############################################################################################################
 ### Assemble xsec component MnvHnDs for 2g1p, 2g0p ##########################################################
@@ -697,7 +694,6 @@ for sigDef in ["2g1p"]:
 
       ## Background-subtracted event rate
       exec("mHist_evtRate_{0}_{1} = mHist_data_selected_{0}_{1}.Clone(\"evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
-      exec("mHist_evtRate_{0}_{1}.Add(mHist_BNB_ext_{0}_{1},-1.)".format(sigDef,sigDefexcl))
       exec("mHist_evtRate_{0}_{1}.Add(mHist_background_{0}_{1},-1.)".format(sigDef,sigDefexcl))
 
       exec("writeHist(mHist_evtRate_{0}_{1},outFile)".format(sigDef,sigDefexcl))
@@ -713,7 +709,7 @@ for sigDef in ["2g1p"]:
 
       ## MC signal prediction
       exec("mHist_xSection_mc_{0}_{1} = mHist_effNum_{0}_{1}.Clone(\"xSection_mc_{0}_{1}\")".format(sigDef,sigDefexcl))
-      ## We don't want to subtract off the BNB_ext and background prediction because 
+      ## We don't want to subtract off the background prediction because 
       ## the MC signal doesn't include backgrounds
       exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
       exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
