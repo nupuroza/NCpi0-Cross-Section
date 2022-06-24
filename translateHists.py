@@ -14,45 +14,22 @@ ROOT.TH1.AddDirectory(False)
 ### File Management #########################################################################################
 #############################################################################################################
 
-## CV
-cvFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NCPi0_2g1p_NextGen_data_spectra.root"
-cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
+## Load input file with CV, efficiency denominator, efficiency numerator and background
+inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v2.root"
+inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-#cvFilePath_2g0p_inclusive = 
-#cvFile_2g0p_inclusive = ROOT.TFile(cvFilePath_2g0p_inclusive)
+#inFilePath_2g0p_inclusive = 
+#inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
-#cvFilePath_2g1p_exclusive = 
-#cvFile_2g1p_exclusive = ROOT.TFile(cvFilePath_2g1p_exclusive)
+#inFilePath_2g1p_exclusive = 
+#inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
-#cvFilePath_2g0p_exclusive = 
-#cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
+#inFilePath_2g0p_exclusive = 
+#inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
-## Efficiency Denominators
-effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux.root"
-effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
-
-#effDenomFilePath_2g0p_inclusive = 
-#effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
-
-#effDenomFilePath_2g1p_exclusive = 
-#effDenomFile_2g1p_exclusive = ROOT.TFile(effDenomFilePath_2g1p_exclusive)
- 
-#effDenomFilePath_2g0p_exclusive = 
-#effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
-
-## Efficiency numerators; backgrounds
-## Final stage; flux, XS, Det systematics included
-effNumFilePath_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Numer_NextGen_SBNfit_variation_spectra_Flux.root"
-effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
-# 2g0p and 2g1p effNum hists come from the same file for the inclusive analysis
-effNumFile_2g0p_inclusive = effNumFile_inclusive 
-effNumFile_2g1p_inclusive = effNumFile_inclusive 
-
-#effNumFilePath_2g0p_exclusive = 
-#effNumFile_2g0p_exclusive = ROOT.TFile(effNumFilePath_2g0p_exclusive)
-
-#effNumFilePath_2g1p_exclusive = 
-#effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
+# File with detector systematics
+#detectorFilePath_2g1p_inclusive = 
+#detectorFile_2g1p_inclusive = ROOT.TFile(detectorFilePath_2g1p_inclusive)
 
 ## Output file
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
@@ -79,7 +56,7 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-histToBeCloned = cvFile_2g1p_inclusive.Get("nu_uBooNE_2g1p_data")
+histToBeCloned = inFile_2g1p_inclusive.Get("nu_uBooNE_2g1p_data")
 referenceHist = histToBeCloned.Clone("referenceHist")
 nBins_analysis = referenceHist.GetNbinsX()
 for i in range(1,nBins_analysis+1):
@@ -339,7 +316,7 @@ for sigDefexcl in ['inclusive']:
   ## Pull out CV hists
   #for sigDef in ["2g1p","2g0p"]:
   for sigDef in ["2g1p"]:
-    exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
+    exec("tHist_data_selected_{0}_{1} = inFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
 
   ## Add together 2g1p and 2g0p hists
   #exec("tHist_data_selected_2gnp_{1} = tHist_data_selected_2g0p_{0}.Clone(\"tHist_data_selected_2gnp\")".format(sigDefexcl))
@@ -372,7 +349,7 @@ for sigDef in ["2g1p"]:
 
     ## CV
     # Pull out the TH1D
-    exec("tHist_effDenom_{0}_{1}_CV = effDenomFile_{0}_{1}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef,sigDefexcl))
+    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef,sigDefexcl))
     # Copy this into an MnvH1D (no systs yet)
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
@@ -387,7 +364,7 @@ for sigDef in ["2g1p"]:
       # Loop over universes in this category of systematic
       for i in range(nUniverses):
         # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-        exec("tHist_effDenom_{0}_{1}_{2}_{3} = effDenomFile_{0}_{1}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_AllNCPi0_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
+        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_AllNCPi0_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
         # Pull out content of relevant bin
         for j in range(1,nBins_analysis+1):
           exec("binVal = tHist_effDenom_{0}_{1}_{2}_{3}.GetBinContent(j)".format(sigDef,sigDefexcl,systName,i)) 
@@ -413,7 +390,7 @@ for sigDef in ["2g1p"]:
     #########################
     for histCat, label, nBins in [("effNum","Signal",nBins_true),("background",'Bkgd',nBins_reco)]:
 
-      exec("tHist_{0}_{1}_{2}_CV = effNumFile_{1}_{2}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_{1}_{3}\")".format(histCat,sigDef,sigDefexcl,label))
+      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_{1}_{3}\")".format(histCat,sigDef,sigDefexcl,label))
   
       ## Pull out the value and save as a scalar
       ## This is the actual CV in this bin for the analysis
@@ -435,7 +412,7 @@ for sigDef in ["2g1p"]:
         # Loop over universes in this category of systematic
         for i in range(nUniverses):
           # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-          exec("tHist__{0}_{1}_{2}_{3} = effNumFile_{1}_{4}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_{1}_{5}_{6}_{7}\")".format(histCat,sigDef,systName,i,sigDefexcl,universePrefix,i+1,label))
+          exec("tHist__{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_{1}_{5}_{6}_{7}\")".format(histCat,sigDef,systName,i,sigDefexcl,universePrefix,i+1,label))
           # Pull out content of relevant bin
           for j in range(1,nBins+1):
             exec("binVal = tHist_{0}_{1}_{2}_{3}.GetBinContent(j)".format(histCat,sigDef,systName,i))
@@ -449,9 +426,9 @@ for sigDef in ["2g1p"]:
         exec("mHist_{0}_{1}_{2}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(histCat,sigDef,sigDefexcl))
   
         # Pull out the TH1D corresponding to the CV specifically generated to go with the detector system variation
-        exec("tHist_{0}_{1}_{2}_fakeCV = effNumFile_{1}_{3}.Get(\"{2}_CV_Dir/nu_uBooNE_{1}_{4}\")".format(histCat,sigDef,systName,sigDefexcl,label))
+        exec("tHist_{0}_{1}_{2}_fakeCV = inFile_{1}_{3}.Get(\"{2}_CV_Dir/nu_uBooNE_{1}_{4}\")".format(histCat,sigDef,systName,sigDefexcl,label))
         # Pull out the TH1D corresponding to the detector system variation
-        exec("tHist_{0}_{1}_{2}_variation = effNumFile_{1}_{3}.Get(\"{2}_{2}_Dir/nu_uBooNE_{1}_{4}_1_{5}\")".format(histCat,sigDef,systName,sigDefexcl,unifersePrefix,label))
+        exec("tHist_{0}_{1}_{2}_variation = inFile_{1}_{3}.Get(\"{2}_{2}_Dir/nu_uBooNE_{1}_{4}_1_{5}\")".format(histCat,sigDef,systName,sigDefexcl,unifersePrefix,label))
   
         # Pull out content of relevant bin from each distribution
         for i in range(1,nBins+1):
