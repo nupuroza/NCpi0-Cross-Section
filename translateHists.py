@@ -386,12 +386,8 @@ for sigDef in ["2g1p"]:
     ## CV
     # Pull out the TH1D
     exec("tHist_effDenom_{0}_{1}_CV = effDenomFile_{0}_{1}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef,sigDefexcl))
-    # Create MnvH1D to hold effDenom using referenceHist (to allow for different binning conventions)
-    exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(referenceHist)".format(sigDef,sigDefexcl))
-    # Copy correct CV into this MnvH1D (no systs yet)
-    for i in range(1,nBins_analysis+1):
-      exec("mHist_effDenom_{0}_{1}.SetBinContent(i,tHist_effDenom_{0}_{1}_CV.GetBinContent(i))".format(sigDef,sigDefexcl))
-      exec("mHist_effDenom_{0}_{1}.SetBinError(i,tHist_effDenom_{0}_{1}_CV.GetBinError(i))".format(sigDef,sigDefexcl))
+    # Copy this into an MnvH1D (no systs yet)
+    exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
     exec("mHist_effDenom_{0}_{1}.SetName(\"effDenom_{0}_{1}\")".format(sigDef,sigDefexcl))
 
