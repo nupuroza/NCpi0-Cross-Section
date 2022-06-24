@@ -60,14 +60,14 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-histToBeCloned_true = inFile_2g1p_inclusive.Get("Sel2g1p_numerator_truth_Bkgd")
+histToBeCloned_true = inFile_2g1p_inclusive.Get("Sys_CV_Dir/Sel2g1p_numerator_truth_Bkgd")
 referenceHist_true = histToBeCloned_true.Clone("referenceHist_true")
 nBins_true = referenceHist_true.GetNbinsX()
 for i in range(1,nBins_true+1):
   referenceHist_true.SetBinContent(i,-999.)
   referenceHist_true.SetBinError(i,0.)
 
-histToBeCloned_reco = inFile_2g1p_inclusive.Get("Sel2g1p_numerator_reco_Bkgd")
+histToBeCloned_reco = inFile_2g1p_inclusive.Get("Sys_CV_Dir/Sel2g1p_numerator_reco_Bkgd")
 referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
 nBins_reco = referenceHist_reco.GetNbinsX()
 
@@ -133,9 +133,9 @@ DETECTOR_SYSTS = [
 '''
 G4_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
-  ["piminus","universe",nMultiverses],
-  ["piplus","universe",nMultiverses],
-  ["proton","universe",nMultiverses]
+  ["reinteractions_piminus_Geant4","universe",nMultiverses],
+  ["reinteractions_piplus_Geant4","universe",nMultiverses],
+  ["reinteractions_proton_Geant4","universe",nMultiverses]
 ]
  
 OTHER_SYSTS = [
@@ -420,7 +420,7 @@ for sigDef in ["2g1p"]:
         # Loop over universes in this category of systematic
         for i in range(nUniverses):
           # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-          exec("tHist__{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"Sys_{2}_Dir/Sel{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label))
+          exec("tHist_{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"Sys_{2}_Dir/Sel{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label))
           # Pull out content of relevant bin
           for j in range(1,nBins+1):
             exec("binVal = tHist_{0}_{1}_{2}_{3}.GetBinContent(j)".format(histCat,sigDef,systName,i))
@@ -564,13 +564,13 @@ response_2g0p_exclusive = ROOT.TFile(responsePath_2g0p_exclusive)
 #for sigDef in ["2g1p","2g0p","2gnp"]:
 for sigDef in ["2g1p"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDef in ["2g1p","2g0p","2gnp"]:
+  for sigDefexcl in ["inclusive"]:
 
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue 
 
     else:
-      exec("tHist2D_response_{0}_{1} = response_{0}_{1}.Clone(\"tHist2D_response_{0}_{1}}\")".format(sigDef,sigDefexcl))
+      exec("tHist2D_response_{0}_{1} = response_{0}_{1}.Clone(\"tHist2D_response_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("tHist2D_response_{0}_{1}.SetName(\"tHist2D_response_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("writeHist(tHist2D_response_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
 
