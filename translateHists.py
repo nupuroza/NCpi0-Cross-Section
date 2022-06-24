@@ -14,7 +14,11 @@ ROOT.TH1.AddDirectory(False)
 ### File Management #########################################################################################
 #############################################################################################################
 
-## Load input file with CV, efficiency denominator, efficiency numerator and background
+## CV
+cvFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NCPi0_2g1p_NextGen_data_spectra.root"
+cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
+
+## Load input file with efficiency denominator, efficiency numerator and background
 inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v2.root"
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
@@ -56,12 +60,16 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-histToBeCloned = inFile_2g1p_inclusive.Get("nu_uBooNE_2g1p_data")
-referenceHist = histToBeCloned.Clone("referenceHist")
-nBins_analysis = referenceHist.GetNbinsX()
-for i in range(1,nBins_analysis+1):
-  referenceHist.SetBinContent(i,-999.)
-  referenceHist.SetBinError(i,0.)
+histToBeCloned_true = inFile_2g1p_inclusive.Get("Sel2g1p_numerator_truth_Bkgd")
+referenceHist_true = histToBeCloned_true.Clone("referenceHist_true")
+nBins_true = referenceHist_true.GetNbinsX()
+for i in range(1,nBins_true+1):
+  referenceHist_true.SetBinContent(i,-999.)
+  referenceHist_true.SetBinError(i,0.)
+
+histToBeCloned_reco = inFile_2g1p_inclusive.Get("Sel2g1p_numerator_reco_Bkgd")
+referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
+nBins_reco = referenceHist_reco.GetNbinsX()
 
 #############################################################################################################
 ### Systematic Universes ####################################################################################
@@ -152,8 +160,8 @@ n_targets = density*fid_vol*avo/molar_mass
 print "Number of targets: {0}".format(n_targets)
 
 ## Put scalar into TH1D
-tHist_nTargets = referenceHist.Clone("tHist_nTargets")
-for i in range(1,nBins_analysis+1):
+tHist_nTargets = referenceHist_true.Clone("tHist_nTargets")
+for i in range(1,nBins_true+1):
   tHist_nTargets.SetBinContent(i,n_targets)
 
 ## Create MnvH1D from TH1D
@@ -165,7 +173,7 @@ for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS
 
 
 ## Steven Gardiner told us to use a 1% variation
-for i in range(1,nBins_analysis+1):
+for i in range(1,nBins_true+1):
   mHist_nTargets.GetVertErrorBand("target_variation").GetHist(0).SetBinContent(i,n_targets*0.99)
   mHist_nTargets.GetVertErrorBand("target_variation").GetHist(1).SetBinContent(i,n_targets*1.01)
 
@@ -184,8 +192,8 @@ POT_2gnp = 5.8447*10**20
 
 for sigDef in ["2g0p","2g1p","2gnp"]:
   ## Put scalar into TH1D
-  exec("tHist_POT_{0} = referenceHist.Clone(\"tHist_POT_{0}\")".format(sigDef))
-  for i in range(1,nBins_analysis+1):
+  exec("tHist_POT_{0} = referenceHist_true.Clone(\"tHist_POT_{0}\")".format(sigDef))
+  for i in range(1,nBins_true+1):
     exec("tHist_POT_{0}.SetBinContent(i,POT_{0})".format(sigDef))
   ## Create MnvH1D from TH1D
   exec("mHist_POT_{0} = ROOT.PlotUtils.MnvH1D(tHist_POT_{0})".format(sigDef))
@@ -195,7 +203,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
   ## Steven Gardiner told us to use a 2% variation
-  for i in range(1,nBins_analysis+1):
+  for i in range(1,nBins_true+1):
     exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(0).SetBinContent(i,POT_{0}*0.98)".format(sigDef))
     exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(1).SetBinContent(i,POT_{0}*1.02)".format(sigDef))
 
@@ -266,8 +274,8 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
 
   ## Put scalar integrated flux into TH1D
   # Note that this hist has the binninng of the analysis, not the binning of the flux
-  exec("tHist_flux_{0}_integral = referenceHist.Clone(\"tHist_flux_{0}_integral\")".format(nuSpec))
-  for i in range(1,nBins_analysis+1):
+  exec("tHist_flux_{0}_integral = referenceHist_true.Clone(\"tHist_flux_{0}_integral\")".format(nuSpec))
+  for i in range(1,nBins_true+1):
     exec("tHist_flux_{0}_integral.SetBinContent(i,flux_integral_CV)".format(nuSpec))
   
   ## Create MnvH1D from TH1D
@@ -284,7 +292,7 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
       # Calculate flux integral for this universe
       exec("flux_integral_{1}_{2} = tHist_flux_{0}_{1}_{2}.Integral()".format(nuSpec,systName,i))
       # Populate corresponding hist in error band with bin content
-      for j in range(1,nBins_analysis+1):
+      for j in range(1,nBins_true+1):
         exec("mHist_flux_{0}_integral.GetVertErrorBand(systName).GetHist(i).SetBinContent(j,flux_integral_{1}_{2})".format(nuSpec,systName,i))
 
   ## For some reason, applying the scale factor separately to each universe's integrated flux before filling the error bands went horribly wrong
@@ -316,7 +324,7 @@ for sigDefexcl in ['inclusive']:
   ## Pull out CV hists
   #for sigDef in ["2g1p","2g0p"]:
   for sigDef in ["2g1p"]:
-    exec("tHist_data_selected_{0}_{1} = inFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
+    exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
 
   ## Add together 2g1p and 2g0p hists
   #exec("tHist_data_selected_2gnp_{1} = tHist_data_selected_2g0p_{0}.Clone(\"tHist_data_selected_2gnp\")".format(sigDefexcl))
@@ -366,7 +374,7 @@ for sigDef in ["2g1p"]:
         # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
         exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_AllNCPi0_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
         # Pull out content of relevant bin
-        for j in range(1,nBins_analysis+1):
+        for j in range(1,nBins_true+1):
           exec("binVal = tHist_effDenom_{0}_{1}_{2}_{3}.GetBinContent(j)".format(sigDef,sigDefexcl,systName,i)) 
           # Populate corresponding hist in error band with bin content
           exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(systName).GetHist(i).SetBinContent(j,binVal)".format(sigDef,sigDefexcl))
