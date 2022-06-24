@@ -357,7 +357,7 @@ for sigDef in ["2g1p"]:
 
     ## CV
     # Pull out the TH1D
-    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_AllNCPi0_Signal\")".format(sigDef,sigDefexcl))
+    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"Sys_CV_Dir/Sel{0}_denominator_truth_Signal\")".format(sigDef,sigDefexcl))
     # Copy this into an MnvH1D (no systs yet)
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
@@ -372,7 +372,7 @@ for sigDef in ["2g1p"]:
       # Loop over universes in this category of systematic
       for i in range(nUniverses):
         # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_AllNCPi0_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
+        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"Sys_{2}_Dir/Sel{0}_denominator_truth_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
         # Pull out content of relevant bin
         for j in range(1,nBins_true+1):
           exec("binVal = tHist_effDenom_{0}_{1}_{2}_{3}.GetBinContent(j)".format(sigDef,sigDefexcl,systName,i)) 
@@ -396,9 +396,9 @@ for sigDef in ["2g1p"]:
 
     ### This is the actual CV
     #########################
-    for histCat, label, nBins in [("effNum","Signal",nBins_true),("background",'Bkgd',nBins_reco)]:
+    for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background",'Bkgd',"reco",nBins_reco)]:
 
-      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"Flux_XS_CV_Dir/nu_uBooNE_{1}_{3}\")".format(histCat,sigDef,sigDefexcl,label))
+      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"Sys_CV_Dir/Sel{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label))
   
       ## Pull out the value and save as a scalar
       ## This is the actual CV in this bin for the analysis
@@ -420,7 +420,7 @@ for sigDef in ["2g1p"]:
         # Loop over universes in this category of systematic
         for i in range(nUniverses):
           # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-          exec("tHist__{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"Flux_XS_{2}_Dir/nu_uBooNE_{1}_{5}_{6}_{7}\")".format(histCat,sigDef,systName,i,sigDefexcl,universePrefix,i+1,label))
+          exec("tHist__{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"Sys_{2}_Dir/Sel{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label))
           # Pull out content of relevant bin
           for j in range(1,nBins+1):
             exec("binVal = tHist_{0}_{1}_{2}_{3}.GetBinContent(j)".format(histCat,sigDef,systName,i))
