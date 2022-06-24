@@ -28,7 +28,7 @@ cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
 #cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
 
 ## Efficiency Denominators
-effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux_XS.root"
+effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux.root"
 effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
 #effDenomFilePath_2g0p_inclusive = 
@@ -42,7 +42,7 @@ effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
 ## Efficiency numerators; backgrounds
 ## Final stage; flux, XS, Det systematics included
-effNumFilePath_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_2g1p_NextGen_SBNfit_variation_spectra_Flux_XS.root"
+effNumFilePath_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Numer_NextGen_SBNfit_variation_spectra_Flux.root"
 effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
 # 2g0p and 2g1p effNum hists come from the same file for the inclusive analysis
 effNumFile_2g0p_inclusive = effNumFile_inclusive 
@@ -53,19 +53,6 @@ effNumFile_2g1p_inclusive = effNumFile_inclusive
 
 #effNumFilePath_2g1p_exclusive = 
 #effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
-
-## g4 variations
-g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/final_stage/Inclusive/MultipleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root" 
-g4File_inclusive = ROOT.TFile(g4FilePath_inclusive)
-# 2g0p and 2g1p g4 hists come from the same file for the inclusive analysis
-g4File_2g0p_inclusive = g4File_inclusive 
-g4File_2g1p_inclusive = g4File_inclusive 
-
-#g4FilePath_2g0p_exclusive = 
-#g4File_2g0p_exclusive = ROOT.TFile(g4FilePath_2g0p_exclusive)
-
-#g4FilePath_2g1p_exclusive = 
-#g4File_2g1p_exclusive = ROOT.TFile(g4FilePath_2g1p_exclusive)
 
 ## Output file
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
@@ -425,13 +412,7 @@ for sigDef in ["2g1p"]:
     ### This is the actual CV
     #########################
 
-    ## Pull out CV hists, which are separate for coherent and non-coherent
-    exec("tHist_NCPi0Coh_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_NCPi0Coh\")".format(sigDef,sigDefexcl))
-    exec("tHist_NCPi0NotCoh_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_NCPi0NotCoh\")".format(sigDef,sigDefexcl))
-    
-    ## Add together coherent and non-coherent
     exec("tHist_effNum_{0}_{1}_CV = tHist_NCPi0Coh_{0}_{1}.Clone(\"tHist_effNum_{0}_{1}_CV\")".format(sigDef,sigDefexcl))
-    exec("tHist_effNum_{0}_{1}_CV.Add(tHist_NCPi0NotCoh_{0}_{1})".format(sigDef,sigDefexcl))
 
     ## Pull out the value and save as a scalar
     ## This is the actual CV in this bin for the analysis
