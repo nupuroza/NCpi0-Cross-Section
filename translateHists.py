@@ -18,31 +18,29 @@ ROOT.TH1.AddDirectory(False)
 cvFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NCPi0_2g1p_NextGen_data_spectra.root"
 cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
 
-#cvFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g0p_Momentum_FinalSelection_CV.SBNspec.root"
+#cvFilePath_2g0p_inclusive = 
 #cvFile_2g0p_inclusive = ROOT.TFile(cvFilePath_2g0p_inclusive)
 
-#cvFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g1p_Momentum_FinalSelection_CV.SBNspec.root"
+#cvFilePath_2g1p_exclusive = 
 #cvFile_2g1p_exclusive = ROOT.TFile(cvFilePath_2g1p_exclusive)
 
-#cvFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/MomemtumVersions/XS2g0p_Momentum_FinalSelection_CV.SBNspec.root"
+#cvFilePath_2g0p_exclusive = 
 #cvFile_2g0p_exclusive = ROOT.TFile(cvFilePath_2g0p_exclusive)
 
 ## Efficiency Denominators
 effDenomFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Denom_NextGen_SBNfit_variation_spectra_Flux_XS.root"
 effDenomFile_2g1p_inclusive = ROOT.TFile(effDenomFilePath_2g1p_inclusive)
 
-#effDenomFilePath_2g0p_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Inclusive/SingleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
+#effDenomFilePath_2g0p_inclusive = 
 #effDenomFile_2g0p_inclusive = ROOT.TFile(effDenomFilePath_2g0p_inclusive)
 
-## OMIT EXCL:
-## effDenomFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Exclusive/SingleBin/2g1p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
-## effDenomFile_2g1p_exclusive = ROOT.TFile(effDenomFilePath_2g1p_exclusive)
-## 
-## effDenomFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/earlier_stage/Exclusive/SingleBin/2g0p/variation_spectra/SBNfit_variation_spectra_Flux_XS.root"
-## effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
+#effDenomFilePath_2g1p_exclusive = 
+#effDenomFile_2g1p_exclusive = ROOT.TFile(effDenomFilePath_2g1p_exclusive)
+ 
+#effDenomFilePath_2g0p_exclusive = 
+#effDenomFile_2g0p_exclusive = ROOT.TFile(effDenomFilePath_2g0p_exclusive)
 
 ## Efficiency numerators; backgrounds
-## TO-DO: Change to "true" momemtum binning
 ## Final stage; flux, XS, Det systematics included
 effNumFilePath_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_2g1p_NextGen_SBNfit_variation_spectra_Flux_XS.root"
 effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
@@ -50,11 +48,11 @@ effNumFile_inclusive = ROOT.TFile(effNumFilePath_inclusive)
 effNumFile_2g0p_inclusive = effNumFile_inclusive 
 effNumFile_2g1p_inclusive = effNumFile_inclusive 
 
-## OMIT EXCL:
-## effNumFilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0NoVisProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
-## effNumFile_2g0p_exclusive = ROOT.TFile(effNumFilePath_2g0p_exclusive)
-## effNumFilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0OneProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
-## effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
+#effNumFilePath_2g0p_exclusive = 
+#effNumFile_2g0p_exclusive = ROOT.TFile(effNumFilePath_2g0p_exclusive)
+
+#effNumFilePath_2g1p_exclusive = 
+#effNumFile_2g1p_exclusive = ROOT.TFile(effNumFilePath_2g1p_exclusive)
 
 ## g4 variations
 g4FilePath_inclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V0/final_stage/Inclusive/MultipleBin/variation_spectra/SBNfit_variation_spectra_GEANT4.root" 
@@ -63,11 +61,11 @@ g4File_inclusive = ROOT.TFile(g4FilePath_inclusive)
 g4File_2g0p_inclusive = g4File_inclusive 
 g4File_2g1p_inclusive = g4File_inclusive 
 
-## OMIT EXCL:
-## g4FilePath_2g0p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0NoVisProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
-## g4File_2g0p_exclusive = ROOT.TFile(g4FilePath_2g0p_exclusive)
-## g4FilePath_2g1p_exclusive = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/V1/final_stage/Exclusive/SingleBin/NCPi0OneProtonInFV/KE_50MeV/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
-## g4File_2g1p_exclusive = ROOT.TFile(g4FilePath_2g1p_exclusive)
+#g4FilePath_2g0p_exclusive = 
+#g4File_2g0p_exclusive = ROOT.TFile(g4FilePath_2g0p_exclusive)
+
+#g4FilePath_2g1p_exclusive = 
+#g4File_2g1p_exclusive = ROOT.TFile(g4FilePath_2g1p_exclusive)
 
 ## Output file
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
@@ -379,7 +377,7 @@ for sigDefexcl in ['inclusive']:
 
 #for sigDef in ["2g1p","2g0p"]:
 for sigDef in ["2g1p"]:  
-  ## OMIT EXCL: for sigDefexcl in ['inclusive', 'exclusive']:
+  #for sigDefexcl in ['inclusive', 'exclusive']:
   for sigDefexcl in ['inclusive']:
     #############################################################################################################
     ### Construct Efficiency Denominator MnvH1D #################################################################
@@ -674,7 +672,7 @@ writeHist(mHist_effDenom_2gnp_inclusive,outFile)
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
 for sigDef in ["2g1p"]:
-  ## OMIT EXCL: for sigDefexcl in ["inclusive","exclusive"]:
+  #for sigDefexcl in ["inclusive","exclusive"]:
   for sigDefexcl in ["inclusive"]:
 
     #############################################################################################################
@@ -754,7 +752,7 @@ response_2g0p_exclusive = ROOT.TFile(responsePath_2g0p_exclusive)
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
 for sigDef in ["2g1p"]:
-  ## OMIT EXCL: for sigDefexcl in ["inclusive","exclusive"]:
+  #for sigDefexcl in ["inclusive","exclusive"]:
   for sigDef in ["2g1p","2g0p","2gnp"]:
 
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
