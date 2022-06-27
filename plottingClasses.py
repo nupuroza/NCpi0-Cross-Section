@@ -40,7 +40,7 @@ class makeEnv_TCanvas_nuMigrationMatrix(makeEnv_TCanvas):
 
     makeEnv_TCanvas.__exit__(self,*exc)
 
-def localDrawErrorSummary( plotter , hist , x_label ):
+def localDrawErrorSummary( plotter , hist , xaxis_label ):
   
   box = ROOT.TBox(1,0,2,0.16)
   box.SetFillColor(ROOT.kGray)
