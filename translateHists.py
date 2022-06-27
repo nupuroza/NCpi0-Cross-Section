@@ -570,7 +570,7 @@ for sigDef in ["2g1p"]:
       continue 
 
     else:
-      exec("tHist2D_response_{0}_{1} = response_{0}_{1}.Clone(\"tHist2D_response_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("tHist2D_response_{0}_{1} = response_{0}_{1}.Get(\"Response\")".format(sigDef,sigDefexcl))
       exec("tHist2D_response_{0}_{1}.SetName(\"tHist2D_response_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("writeHist(tHist2D_response_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
 
