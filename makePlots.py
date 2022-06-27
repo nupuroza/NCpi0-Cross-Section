@@ -106,7 +106,7 @@ if not os.path.isdir(plotDir):
 #############################################################################################################
 
 #for sigDef in ["2g0p","2g1p","2gnp"]:
-for sigDef in ["2g1p"]  
+for sigDef in ["2g1p"]:  
   ## for sigDefexcl in ["exclusive", "inclusive"]:
   for sigDefexcl in ["inclusive"]:
   
