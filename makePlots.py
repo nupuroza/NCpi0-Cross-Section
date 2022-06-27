@@ -114,7 +114,7 @@ for sigDef in ["2g1p"]:
       continue
 
     else:
-      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected","BNB_ext"]:
+      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
