@@ -62,6 +62,7 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 ## Create reference Hist that will be a template for whatever input binning is being used
 histToBeCloned_true = inFile_2g1p_inclusive.Get("Sys_CV_Dir/Sel2g1p_numerator_truth_Bkgd")
 referenceHist_true = histToBeCloned_true.Clone("referenceHist_true")
+referenceHist_true.SetTitle("")
 nBins_true = referenceHist_true.GetNbinsX()
 for i in range(1,nBins_true+1):
   referenceHist_true.SetBinContent(i,-999.)
@@ -362,6 +363,7 @@ for sigDef in ["2g1p"]:
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
     exec("mHist_effDenom_{0}_{1}.SetName(\"effDenom_{0}_{1}\")".format(sigDef,sigDefexcl))
+    exec("mHist_effDenom_{0}_{1}.SetTitle(\"\")".format(sigDef,sigDefexcl))
 
     ## Loop over cross section and flux systematics
     for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS:
@@ -396,7 +398,7 @@ for sigDef in ["2g1p"]:
 
     ### This is the actual CV
     #########################
-    for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background",'Bkgd',"reco",nBins_reco)]:
+    for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background","Bkgd","reco",nBins_reco)]:
 
       exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"Sys_CV_Dir/Sel{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label))
   
@@ -410,6 +412,7 @@ for sigDef in ["2g1p"]:
       exec("mHist_{0}_{1}_{2} = ROOT.PlotUtils.MnvH1D(tHist_{0}_{1}_{2}_CV)".format(histCat,sigDef,sigDefexcl))
       # Rename new hist object
       exec("mHist_{0}_{1}_{2}.SetName(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
+      exec("mHist_{0}_{1}_{2}.SetTitle(\"\")".format(histCat,sigDef,sigDefexcl))
   
       ## Loop over cross section and flux systematics
       for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + G4_SYSTS:
