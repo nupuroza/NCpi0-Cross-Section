@@ -540,7 +540,7 @@ for sigDef in ["2g1p"]:
       
       exec("tMat_cov_evtRate_{0}_{1} = mHist_evtRate_{0}_{1}.GetTotalErrorMatrix()".format(sigDef,sigDefexcl))
       exec("tHist2D_cov_evtRate_{0}_{1} = ROOT.TH2D(tMat_cov_evtRate_{0}_{1})".format(sigDef,sigDefexcl))   
-      exec("tHist2D_cov_evtRate_{0}_{1}.SetName(\"tHist2D_cov_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))   
+      exec("tHist2D_cov_evtRate_{0}_{1}.SetName(\"cov_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))   
       exec("writeHist(tHist2D_cov_evtRate_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
 
 
@@ -574,7 +574,7 @@ for sigDef in ["2g1p"]:
 
     else:
       exec("tHist2D_response_{0}_{1} = response_{0}_{1}.Get(\"Response\")".format(sigDef,sigDefexcl))
-      exec("tHist2D_response_{0}_{1}.SetName(\"tHist2D_response_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("tHist2D_response_{0}_{1}.SetName(\"response_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("writeHist(tHist2D_response_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
 
 

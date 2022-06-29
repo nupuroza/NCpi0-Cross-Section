@@ -222,3 +222,25 @@ for histCat in ["flux","integratedFlux","nTargets"]:
     else:  
       exec("localDrawErrorSummary(plotter,{0},\"#pi^{{0}} momentum\")".format(histCat))
 
+#############################################################################################################
+### Plot response and event rate covariance #################################################################
+#############################################################################################################
+plotter = ROOT.PlotUtils.MnvPlotter()
+plotter.SetROOT6Palette(54)
+ROOT.gStyle.SetNumberContours(200)
+
+with makeEnv_TCanvas('{0}/cov_evtRate_2g1p_inclusive.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('cov_evtRate_2g1p_inclusive')
+  tmp.Draw("colz")
+  tmp.GetXaxis().SetTitle("Reconstructed bins")
+  tmp.GetYaxis().SetTitle("Reconstructed bins")
+  canvas.canvas.SetLogz()
+
+with makeEnv_TCanvas('{0}/response_2g1p_inclusive.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('response_2g1p_inclusive')
+  tmp.Draw("colz")
+  tmp.GetXaxis().SetTitle("True #pi^{0} momentum")
+  tmp.GetYaxis().SetTitle("Reconstructed #pi^{0} momentum")
+  canvas.canvas.SetLogz()
+
+
