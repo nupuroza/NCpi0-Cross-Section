@@ -5,6 +5,8 @@
 //from gardiner
 #include <iomanip>
 #include <sstream>
+//from MAT
+#include <PlotUtils/MnvH1D.h>
 
 #include "TRandom3.h"
 #include "TFile.h"
@@ -125,13 +127,15 @@ void M2H1(TMatrixD* mat, TH1D* histo)
 
 void unfold_final()
 {
-    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-04-25_out.root", "READ");
+    TFile* f = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2022-06-28_revampTest/2022-06-28_out.root", "READ");
     
     // Ingredients - true_signal, data_signal, response, covariance  
-    TH1D *true_sig = (TH1D*)f->Get("tHist_effNum_2gnp_inclusive");  
-    TH1D *mes_sig = (TH1D*)f->Get("tHist_evtRate_2gnp_inclusive");
+    PlotUtils::MnvH1D *mHist_true_sig = (PlotUtils::MnvH1D*)f->Get("tHist_effNum_2gnp_inclusive");  
+    TH1D *true_sig = (TH1D*)mHist_true_sig->GetCVHistoWithStatError();  
+    PlotUtils::MnvH1D *mHist_mes_sig = (PlotUtils::MnvH1D*)f->Get("tHist_evtRate_2gnp_inclusive");
+    TH1D *mes_sig = (TH1D*)mHist_mes_sig->GetCVHistoWithStatError();
     TH2D* resp = (TH2D*)f->Get("tHist2D_response_2gnp");
-    TH2D* cov = (TH2D*)f->Get("tHist2D_cov_evtRate_2gnp_inclusive");
+    TMatrix* cov = (TMatrix*)mHist_mes_sig->GetTotalErrorMatrix();
 
     Int_t n = true_sig->GetNbinsX();
     Double_t Nuedges[n+1];
