@@ -7,11 +7,18 @@
 
 // Simple container for the output of Unfolder::unfold()
 struct UnfoldedMeasurement {
-  UnfoldedMeasurement( TMatrixD* unfolded_signal, TMatrixD* cov_matrix )
-    : unfolded_signal_( unfolded_signal ), cov_matrix_( cov_matrix ) {}
+  UnfoldedMeasurement( TMatrixD* unfolded_signal, TMatrixD* cov_matrix,
+    TMatrixD* unfolding_matrix, TMatrixD* err_prop_matrix,
+    TMatrixD* add_smear_matrix ) : unfolded_signal_( unfolded_signal ),
+    cov_matrix_( cov_matrix ), unfolding_matrix_( unfolding_matrix ),
+    err_prop_matrix_( err_prop_matrix ), add_smear_matrix_( add_smear_matrix )
+    {}
 
   std::unique_ptr< TMatrixD > unfolded_signal_;
   std::unique_ptr< TMatrixD > cov_matrix_;
+  std::unique_ptr< TMatrixD > unfolding_matrix_;
+  std::unique_ptr< TMatrixD > err_prop_matrix_;
+  std::unique_ptr< TMatrixD > add_smear_matrix_;
 };
 
 // Abstract base class for objects that implement an algorithm for unfolding
@@ -23,16 +30,10 @@ class Unfolder {
 
     Unfolder() {}
 
-    // Function that actually implements a specific unfolding algorithm.
-    // If the TMatrix* provided as the last argument is not a nullptr,
-    // it will be filled with the elements of the "measurement error
-    // propagation matrix," i.e., the matrix which can be used to
-    // transform the reco-space covariance matrix into the one describing
-    // the unfolded result.
+    // Function that actually implements a specific unfolding algorithm
     virtual UnfoldedMeasurement unfold( const TMatrixD& data_signal,
       const TMatrixD& data_covmat, const TMatrixD& smearcept,
-      const TMatrixD& prior_true_signal, TMatrixD* err_prop = nullptr )
-      const = 0;
+      const TMatrixD& prior_true_signal ) const = 0;
 
   protected:
 
