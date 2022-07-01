@@ -26,12 +26,15 @@ void TH2DtoTMatrix(const TH2D* histo, TMatrixD& mat, bool rowcolumn)
 
 // Fill 1D histogram into matrix 
 // If TH1D(i, j) = Matrix(i, j), rowcolumn = kTRUE, else rowcolumn = kFALSE
-void TH1DtoTMatrix(const TH1D* histo, TMatrixD& mat)
+TMatrixD TH1DtoTMatrix(const TH1D& histo)
 {
-  for(Int_t i=0; i<histo->GetNbinsX(); i++)
+  Int_t nBins = histo->GetNbinsX();
+  TMatrixD output_matrix(nBins,1);
+  for(Int_t i=0; i<nBins; i++)
     {
-      mat(i, 0) = histo->GetBinContent(i+1);
+      output_matrix(i, 0) = histo->GetBinContent(i+1);
     }
+  return output_matrix;
 }
 
 //Fill matrix to 2D histogram
@@ -47,12 +50,19 @@ void TMatrixtoTH2D(const TMatrixD& mat, TH2D* histo)
 }
 
 //Fill matrix to 1D histogram
-void TMatrixtoTH1D(const TMatrixD& mat, TH1D* histo)
+TH1D TMatrixtoTH1D(const TMatrixD& mat, TH1D& histo)
 {
-  for(Int_t i=0; i<mat->GetNrows(); i++)
+  Int_t nBins = histo->GetNbinsX();
+  Double_t binEdges[nBins+1];
+  for(int i=0; i<nBins+1; i++){
+      binEdges[i] = histo->GetBinLowEdge(i+1);
+  }
+  TH1D output_hist("","",nBins,binEdges);
+  for(Int_t i=0; i<mat.GetNrows(); i++)
     {
-      histo->SetBinContent(i+1, mat->operator()(i, 0));
+      output_hist->SetBinContent(i+1, mat.operator()(i, 0));
     }
+  return output_hist;
 }
 
 
@@ -64,14 +74,14 @@ void MAT_test()
     
     // Pull out measured signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_data_signal = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
-    TH1D Data_signal = mHist_data_signal->GetCVHistoWithStatError();
+    TH1D *Data_signal = new TH1D(mHist_data_signal->GetCVHistoWithStatError());
     // Extract covariance 
     TMatrixD data_covmat = mHist_data_signal->GetTotalErrorMatrix();
     // Pull out response matrix from input file
     TH2D* Response = (TH2D*)f->Get("response_2g1p_inclusive");
     // Pull out predicted signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)f->Get("effNum_2g1p_inclusive");  
-    TH1D Prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
+    TH1D *Prior_true_signal = new TH1D(mHist_prior_true_signal->GetCVHistoWithStatError());
 
     // Store truth #bins/binning
     Int_t n = Prior_true_signal->GetNbinsX();

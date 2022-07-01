@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <sstream>
 //from MAT
-#include <PlotUtils/MnvH1D.h>
+#include "PlotUtils/MnvH1D.h"
 
 #include "TRandom3.h"
 #include "TFile.h"
@@ -30,7 +30,7 @@
 #include "SliceHistogram.hh"
 */
 #include "WienerSVDUnfolder.hh"
-#include "DAgostiniUnfolder.hh"
+//#include "DAgostiniUnfolder.hh"
 
 using namespace std;
 
@@ -131,11 +131,13 @@ void unfold_final()
     
     // Ingredients - true_signal, data_signal, response, covariance  
     PlotUtils::MnvH1D *mHist_true_sig = (PlotUtils::MnvH1D*)f->Get("tHist_effNum_2gnp_inclusive");  
-    TH1D *true_sig = (TH1D*)mHist_true_sig->GetCVHistoWithStatError();  
+    TH1D true_sig_ref = mHist_true_sig->GetCVHistoWithStatError();  
+    TH1D *true_sig = new TH1D(true_sig_ref);
     PlotUtils::MnvH1D *mHist_mes_sig = (PlotUtils::MnvH1D*)f->Get("tHist_evtRate_2gnp_inclusive");
-    TH1D *mes_sig = (TH1D*)mHist_mes_sig->GetCVHistoWithStatError();
+    TH1D mes_sig_ref = mHist_mes_sig->GetCVHistoWithStatError();
+    TH1D *mes_sig = new TH1D(mes_sig_ref);
     TH2D* resp = (TH2D*)f->Get("tHist2D_response_2gnp");
-    TMatrix* cov = (TMatrix*)mHist_mes_sig->GetTotalErrorMatrix();
+    TMatrixD cov = mHist_mes_sig->GetTotalErrorMatrix();
 
     Int_t n = true_sig->GetNbinsX();
     Double_t Nuedges[n+1];
@@ -155,7 +157,7 @@ void unfold_final()
     H2M1(true_sig, signal, kTRUE);
     H2M1(mes_sig, measure, kTRUE);
     H2M(resp, response, kTRUE);
-    H2M(cov, covariance, kTRUE);
+    //H2M(cov, covariance, kTRUE);
 
     // construct to record additinal smearing matrix and wiener filter (diagomal matrix) elements. 
     TH2D* smear = new TH2D("smear","Additional Smearing Matirx",n,Nuedges,n,Nuedges);
@@ -266,6 +268,6 @@ void unfold_final()
     smeared_true_sig->Write();
     file->Close();
 
-    return 1;
+    return;
 }
 

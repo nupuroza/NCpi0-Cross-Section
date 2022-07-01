@@ -34,6 +34,15 @@ class Unfolder {
     virtual UnfoldedMeasurement unfold( const TMatrixD& data_signal,
       const TMatrixD& data_covmat, const TMatrixD& smearcept,
       const TMatrixD& prior_true_signal ) const = 0;
+    //virtual MnvH1D unfold( const MnvH1D& data_signal,
+    //  const TMatrixD& smearcept, const TMatrixD& prior_true_signal, 
+    //  TMatrixD* err_prop = nullptr )
+    //  const{
+    //    //code goes here
+    //    // pull out inputs from MnvH1D and make call to other constructor of unfold
+    //    // take the output of the base unfold function call, repackage output into MnvH1D, etc.
+    //    // or apply the right transformations to the original
+    //  };
 
   protected:
 
