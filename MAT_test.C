@@ -99,6 +99,12 @@ void MAT_test()
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
     TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, kTRUE);
 
+    // DEBUG
+    Int_t data_rows = tMat_data_signal.GetNrows();
+    Int_t data_cols = tMat_data_signal.GetNcols();
+
+    std::cout << "data_rows: " << data_rows << "\t" << "data_cols: " << data_cols << std::endl;
+
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
     std::unique_ptr< Unfolder > unfolder (
