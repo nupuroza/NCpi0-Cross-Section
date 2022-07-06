@@ -90,34 +90,19 @@ void MAT_test()
     
     // Pull out measured signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_data_signal = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
-    TH1D *Data_signal = new TH1D(mHist_data_signal->GetCVHistoWithStatError());
+    TH1D *tHist_data_signal = new TH1D(mHist_data_signal->GetCVHistoWithStatError());
     // Extract covariance 
-    TMatrixD data_covmat = mHist_data_signal->GetTotalErrorMatrix();
+    TMatrixD tMat_data_covmat = mHist_data_signal->GetTotalErrorMatrix();
     // Pull out response matrix from input file
-    TH2D* Response = (TH2D*)f->Get("response_2g1p_inclusive");
+    TH2D* tHist2D_response = (TH2D*)f->Get("response_2g1p_inclusive");
     // Pull out predicted signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)f->Get("effNum_2g1p_inclusive");  
-    TH1D *Prior_true_signal = new TH1D(mHist_prior_true_signal->GetCVHistoWithStatError());
+    TH1D *tHist_prior_true_signal = new TH1D(mHist_prior_true_signal->GetCVHistoWithStatError());
 
-    // Store truth #bins/binning
-    Int_t n = Prior_true_signal->GetNbinsX();
-    Double_t Nuedges[n+1];
-    for(int i=0; i<n+1; i++){
-        Nuedges[i] = Prior_true_signal->GetBinLowEdge(i+1);
-    }
-    // Store reco #bins
-    Int_t m = Data_signal->GetNbinsX();
-
-    // Construct matrices for input
-    TMatrixD data_signal(m,1);
-    TMatrixD prior_true_signal(n,1);
-    TMatrixD response(m, n);
-   
     // Convert inputs into TMatrixD
-    TH1DtoTMatrix(Data_signal, data_signal);
-    TH1DtoTMatrix(Prior_true_signal, prior_true_signal);
-    TH2DtoTMatrix(Response, response, kFALSE);
-
+    TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal);
+    TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
+    TMatrix tMat_response = TH2DtoTMatrixD(tHist2D_response, kTRUE);
 
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
@@ -128,25 +113,21 @@ void MAT_test()
 					  );
 
     // Run unfolder
-    auto result = unfolder->unfold( data_signal, data_covmat, response, prior_true_signal );
+    auto result = unfolder->unfold( tMat_data_signal, tMat_data_covmat, tMat_response, tMat_prior_true_signal );
 
     //Pull out unfolded signal and covariance from results
-    auto unfolded_signal = result.unfolded_signal_.get();
-    auto unfolded_covariance = result.cov_matrix_.get();
-
-    // Construct matrices for output
-    TMatrixD Unfolded_signal(n,1);
-    TMatrixD Unfolded_covariance(n, n);
+    auto tMat_unfolded_signal = result.unfolded_signal_.get();
+    auto tMat_unfolded_covariance = result.cov_matrix_.get();
 
     // Convert outputs into TH1D/TH2D  
-    TMatrixtoTH1D(unfolded_signal, Unfolded_signal);
-    TMatrixtoTH2D(unfolded_covariance, Unfolded_covariance);
+    TH1D tHist_unfolded_signal = TMatrixDtoTH1D(tMat_unfolded_signal, tHist_prior_true_signal);
+    // TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(tMat_unfolded_covariance);
  
     // Write unfolder output to file
     TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-30_unfolded.root", "RECREATE"); 
 
-    Unfolded_signal->Write();
-    Unfolded_covariance->Write();
+    tHist_unfolded_signal->Write();
+    // tHist2D_unfolded_covariance->Write();
     file->Close();
 
     return;
