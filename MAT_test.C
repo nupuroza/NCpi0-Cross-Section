@@ -4,67 +4,83 @@
 #include "TH2D.h"
 #include "PlotUtils/MnvH1D.h"
 
-
 #include "WienerSVDUnfolder.hh"
 #include "DAgostiniUnfolder.hh"
 
-// Define functions to convert histograms between TH1D/TH2D & TMatrix
-
-// Fill 2D histogram into matrix 
-/// If TH2D(i, j) = Matrix(i, j), rowcolumn = kTRUE, else rowcolumn = kFALSE              
-void TH2DtoTMatrix(const TH2D* histo, TMatrixD& mat, bool rowcolumn)
+// Create TMatrixD from TH2D
+// If TH2D(i, j) = Matrix(i, j), invert_matrix = kFALSE, else invert_matrix = kTRUE
+// Used to allow for an input TH2D that has an opposite vertical/horizontal axis convention              
+TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix)
 {
-    for(Int_t i=0; i<histo->GetNbinsX(); i++)
+  Int_t nBinsX = input_hist.GetNbinsX();
+  Int_t nBinsY = input_hist.GetNbinsY();
+  TMatrixD output_matrix(nBinsX,nBinsY);
+  for(Int_t i=0; i<nBinsX; i++)
+  {
+    for(Int_t j=0; j<nBinsY; j++)
     {
-        for(Int_t j=0; j<histo->GetNbinsY(); j++)
-        {
-            if(rowcolumn) mat(i, j) = histo->GetBinContent(i+1, j+1);
-            else mat(j, i) = histo->GetBinContent(i+1, j+1);
-        }
+      if(invert_matrix) output_matrix(j, i) = input_hist.GetBinContent(i+1, j+1);
+      else          output_matrix(i, j) = input_hist.GetBinContent(i+1, j+1);
     }
+  }
+  return output_matrix;
 }
 
-// Fill 1D histogram into matrix 
-// If TH1D(i, j) = Matrix(i, j), rowcolumn = kTRUE, else rowcolumn = kFALSE
-TMatrixD TH1DtoTMatrix(const TH1D& histo)
+// Create TMatrixD from TH1D
+TMatrixD TH1DtoTMatrixD(const TH1D& input_hist)
 {
-  Int_t nBins = histo->GetNbinsX();
+  Int_t nBins = input_hist.GetNbinsX();
   TMatrixD output_matrix(nBins,1);
   for(Int_t i=0; i<nBins; i++)
     {
-      output_matrix(i, 0) = histo->GetBinContent(i+1);
+      output_matrix(i, 0) = input_hist.GetBinContent(i+1);
     }
   return output_matrix;
 }
 
-//Fill matrix to 2D histogram
-void TMatrixtoTH2D(const TMatrixD& mat, TH2D* histo)
+// Create TH2D from TMatrixD
+// reference_hist should have the desired binning, but will not
+// itself be filled
+TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH2D& reference_hist)
 {
-  for(Int_t i=0; i<mat.GetNrows(); i++)
-    {
-      for(Int_t j=0; j<mat.GetNcols(); j++)
-        {
-	  histo->SetBinContent(i+1, j+1, mat(i, j));
-        }
-    }
-}
-
-//Fill matrix to 1D histogram
-TH1D TMatrixtoTH1D(const TMatrixD& mat, TH1D& histo)
-{
-  Int_t nBins = histo->GetNbinsX();
-  Double_t binEdges[nBins+1];
-  for(int i=0; i<nBins+1; i++){
-      binEdges[i] = histo->GetBinLowEdge(i+1);
+  Int_t nBinsX = reference_hist.GetNbinsX();
+  Int_t nBinsY = reference_hist.GetNbinsY();
+  Double_t binEdgesX[nBinsX+1];
+  for(int i=0; i<nBinsX+1; i++){
+      binEdgesX[i] = reference_hist.GetXaxis()->GetBinLowEdge(i+1);
   }
-  TH1D output_hist("","",nBins,binEdges);
-  for(Int_t i=0; i<mat.GetNrows(); i++)
+  Double_t binEdgesY[nBinsY+1];
+  for(int i=0; i<nBinsY+1; i++){
+      binEdgesY[i] = reference_hist.GetYaxis()->GetBinLowEdge(i+1);
+  }
+  TH2D output_hist("","",nBinsX,binEdgesX,nBinsY,binEdgesY);
+  for(Int_t i=0; i<input_mat.GetNrows(); i++)
     {
-      output_hist->SetBinContent(i+1, mat.operator()(i, 0));
+      for(Int_t j=0; j<input_mat.GetNcols(); j++)
+      {
+	      output_hist.SetBinContent(i+1, j+1, input_mat(i, j));
+      }
     }
   return output_hist;
 }
 
+// Create TH1D from TMatrixD
+// reference_hist should have the desired binning, but will not
+// itself be filled
+TH1D TMatrixDtoTH1D(const TMatrixD& input_mat, const TH1D& reference_hist)
+{
+  Int_t nBins = reference_hist.GetNbinsX();
+  Double_t binEdges[nBins+1];
+  for(int i=0; i<nBins+1; i++){
+      binEdges[i] = reference_hist.GetBinLowEdge(i+1);
+  }
+  TH1D output_hist("","",nBins,binEdges);
+  for(Int_t i=0; i<input_mat.GetNrows(); i++)
+    {
+      output_hist.SetBinContent(i+1, input_mat.operator()(i, 0));
+    }
+  return output_hist;
+}
 
 using namespace std;
 
