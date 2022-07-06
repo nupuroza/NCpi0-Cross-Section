@@ -41,19 +41,14 @@ TMatrixD TH1DtoTMatrixD(const TH1D& input_hist)
 // Create TH2D from TMatrixD
 // reference_hist should have the desired binning, but will not
 // itself be filled
-TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH2D& reference_hist)
+TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist)
 {
-  Int_t nBinsX = reference_hist.GetNbinsX();
-  Int_t nBinsY = reference_hist.GetNbinsY();
-  Double_t binEdgesX[nBinsX+1];
-  for(int i=0; i<nBinsX+1; i++){
-      binEdgesX[i] = reference_hist.GetXaxis()->GetBinLowEdge(i+1);
+  Int_t nBins = reference_hist.GetNbinsX();
+  Double_t binEdges[nBins+1];
+  for(int i=0; i<nBins+1; i++){
+      binEdges[i] = reference_hist.GetBinLowEdge(i+1);
   }
-  Double_t binEdgesY[nBinsY+1];
-  for(int i=0; i<nBinsY+1; i++){
-      binEdgesY[i] = reference_hist.GetYaxis()->GetBinLowEdge(i+1);
-  }
-  TH2D output_hist("","",nBinsX,binEdgesX,nBinsY,binEdgesY);
+  TH2D output_hist("","",nBins,binEdges,nBins,binEdges);
   for(Int_t i=0; i<input_mat.GetNrows(); i++)
     {
       for(Int_t j=0; j<input_mat.GetNcols(); j++)
@@ -118,16 +113,19 @@ void MAT_test()
     //Pull out unfolded signal and covariance from results
     auto tMat_unfolded_signal = result.unfolded_signal_.get();
     auto tMat_unfolded_covariance = result.cov_matrix_.get();
+    auto tMat_errprop_matrix = result.err_prop_matrix_.get();
 
     // Convert outputs into TH1D/TH2D  
     TH1D tHist_unfolded_signal = TMatrixDtoTH1D(*tMat_unfolded_signal, tHist_prior_true_signal);
-    // TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(tMat_unfolded_covariance);
- 
+    TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
+
+    // Construct MnvH1D
+     
     // Write unfolder output to file
     TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-30_unfolded.root", "RECREATE"); 
 
     tHist_unfolded_signal.Write();
-    // tHist2D_unfolded_covariance->Write();
+    tHist2D_unfolded_covariance.Write();
     file->Close();
 
     return;
