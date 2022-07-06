@@ -100,9 +100,9 @@ void MAT_test()
     TH1D *tHist_prior_true_signal = new TH1D(mHist_prior_true_signal->GetCVHistoWithStatError());
 
     // Convert inputs into TMatrixD
-    TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal);
-    TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
-    TMatrix tMat_response = TH2DtoTMatrixD(tHist2D_response, kTRUE);
+    TMatrixD tMat_data_signal = TH1DtoTMatrixD(*tHist_data_signal);
+    TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(*tHist_prior_true_signal);
+    TMatrix tMat_response = TH2DtoTMatrixD(*tHist2D_response, kTRUE);
 
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
@@ -120,13 +120,13 @@ void MAT_test()
     auto tMat_unfolded_covariance = result.cov_matrix_.get();
 
     // Convert outputs into TH1D/TH2D  
-    TH1D tHist_unfolded_signal = TMatrixDtoTH1D(tMat_unfolded_signal, tHist_prior_true_signal);
+    TH1D tHist_unfolded_signal = TMatrixDtoTH1D(*tMat_unfolded_signal, *tHist_prior_true_signal);
     // TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(tMat_unfolded_covariance);
  
     // Write unfolder output to file
     TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-30_unfolded.root", "RECREATE"); 
 
-    tHist_unfolded_signal->Write();
+    tHist_unfolded_signal.Write();
     // tHist2D_unfolded_covariance->Write();
     file->Close();
 
