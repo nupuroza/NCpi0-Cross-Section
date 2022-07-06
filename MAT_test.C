@@ -90,19 +90,19 @@ void MAT_test()
     
     // Pull out measured signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_data_signal = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
-    TH1D *tHist_data_signal = new TH1D(mHist_data_signal->GetCVHistoWithStatError());
+    TH1D tHist_data_signal = mHist_data_signal->GetCVHistoWithStatError();
     // Extract covariance 
     TMatrixD tMat_data_covmat = mHist_data_signal->GetTotalErrorMatrix();
     // Pull out response matrix from input file
     TH2D* tHist2D_response = (TH2D*)f->Get("response_2g1p_inclusive");
     // Pull out predicted signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)f->Get("effNum_2g1p_inclusive");  
-    TH1D *tHist_prior_true_signal = new TH1D(mHist_prior_true_signal->GetCVHistoWithStatError());
+    TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
 
     // Convert inputs into TMatrixD
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal);
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
-    TMatrix tMat_response = TH2DtoTMatrixD(tHist2D_response, kTRUE);
+    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, kTRUE);
 
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
@@ -120,13 +120,13 @@ void MAT_test()
     auto tMat_unfolded_covariance = result.cov_matrix_.get();
 
     // Convert outputs into TH1D/TH2D  
-    TH1D tHist_unfolded_signal = TMatrixDtoTH1D(tMat_unfolded_signal, tHist_prior_true_signal);
+    TH1D tHist_unfolded_signal = TMatrixDtoTH1D(*tMat_unfolded_signal, tHist_prior_true_signal);
     // TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(tMat_unfolded_covariance);
  
     // Write unfolder output to file
     TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-30_unfolded.root", "RECREATE"); 
 
-    tHist_unfolded_signal->Write();
+    tHist_unfolded_signal.Write();
     // tHist2D_unfolded_covariance->Write();
     file->Close();
 
