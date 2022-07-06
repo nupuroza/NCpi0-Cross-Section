@@ -27,13 +27,14 @@ TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix)
 }
 
 // Create TMatrixD from TH1D
+// Pad TMatrixD to include underflow/overflow bins
 TMatrixD TH1DtoTMatrixD(const TH1D& input_hist)
 {
-  Int_t nBins = input_hist.GetNbinsX();
+  Int_t nBins = input_hist.GetNbinsX()+2;
   TMatrixD output_matrix(nBins,1);
   for(Int_t i=0; i<nBins; i++)
     {
-      output_matrix(i, 0) = input_hist.GetBinContent(i+1);
+      output_matrix(i, 0) = input_hist.GetBinContent(i);
     }
   return output_matrix;
 }
