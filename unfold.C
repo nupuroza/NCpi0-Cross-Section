@@ -80,7 +80,7 @@ TH1D TMatrixDtoTH1D(const TMatrixD& input_mat, const TH1D& reference_hist)
 
 using namespace std;
 
-void MAT_test()
+void unfold()
 {
     TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-29_out.root", "READ");
     
@@ -99,12 +99,6 @@ void MAT_test()
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal);
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
     TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, kTRUE);
-
-    // DEBUG
-    Int_t data_rows = tMat_data_signal.GetNrows();
-    Int_t data_cols = tMat_data_signal.GetNcols();
-
-    std::cout << "data_rows: " << data_rows << "\t" << "data_cols: " << data_cols << std::endl;
 
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
