@@ -85,10 +85,10 @@ void MAT_test()
     TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-29_out.root", "READ");
     
     // Pull out measured signal MnvH1D from input file
-    PlotUtils::MnvH1D *mHist_data_signal = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
-    TH1D tHist_data_signal = mHist_data_signal->GetCVHistoWithStatError();
+    PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
+    TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
     // Extract covariance 
-    TMatrixD tMat_data_covmat = mHist_data_signal->GetTotalErrorMatrix();
+    TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
     // Pull out response matrix from input file
     TH2D* tHist2D_response = (TH2D*)f->Get("response_2g1p_inclusive");
     // Pull out predicted signal MnvH1D from input file
@@ -118,20 +118,22 @@ void MAT_test()
     auto result = unfolder->unfold( tMat_data_signal, tMat_data_covmat, tMat_response, tMat_prior_true_signal );
 
     //Pull out unfolded signal and covariance from results
-    auto tMat_unfolded_signal = result.unfolded_signal_.get();
+    auto tMat_data_signal_unfolded = result.unfolded_signal_.get();
     auto tMat_unfolded_covariance = result.cov_matrix_.get();
     auto tMat_errprop_matrix = result.err_prop_matrix_.get();
 
     // Convert outputs into TH1D/TH2D  
-    TH1D tHist_unfolded_signal = TMatrixDtoTH1D(*tMat_unfolded_signal, tHist_prior_true_signal);
+    TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal);
     TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
 
     // Construct MnvH1D
+    PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
+    mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
      
     // Write unfolder output to file
     TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-30_unfolded.root", "RECREATE"); 
 
-    tHist_unfolded_signal.Write();
+    mHist_data_signal_unfolded.Write();
     tHist2D_unfolded_covariance.Write();
     file->Close();
 
