@@ -8,19 +8,20 @@
 #include "DAgostiniUnfolder.hh"
 
 // Create TMatrixD from TH2D
+// Pad TMatrixD to include underflow/overflow bins
 // If TH2D(i, j) = Matrix(i, j), invert_matrix = kFALSE, else invert_matrix = kTRUE
 // Used to allow for an input TH2D that has an opposite vertical/horizontal axis convention              
 TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix)
 {
-  Int_t nBinsX = input_hist.GetNbinsX();
-  Int_t nBinsY = input_hist.GetNbinsY();
+  Int_t nBinsX = input_hist.GetNbinsX()+2;
+  Int_t nBinsY = input_hist.GetNbinsY()+2;
   TMatrixD output_matrix(nBinsX,nBinsY);
   for(Int_t i=0; i<nBinsX; i++)
   {
     for(Int_t j=0; j<nBinsY; j++)
     {
-      if(invert_matrix) output_matrix(j, i) = input_hist.GetBinContent(i+1, j+1);
-      else          output_matrix(i, j) = input_hist.GetBinContent(i+1, j+1);
+      if(invert_matrix) output_matrix(j, i) = input_hist.GetBinContent(i, j);
+      else          output_matrix(i, j) = input_hist.GetBinContent(i, j);
     }
   }
   return output_matrix;
@@ -82,7 +83,7 @@ using namespace std;
 
 void unfold()
 {
-    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-29_out.root", "READ");
+    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-29_out.root", "UPDATE");
     
     // Pull out measured signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
@@ -99,6 +100,29 @@ void unfold()
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal);
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
     TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, kTRUE);
+
+
+    // DEBUG
+    Int_t data_rows = tMat_data_signal.GetNrows();
+    Int_t data_cols = tMat_data_signal.GetNcols();
+
+    std::cout << "data_rows: " << data_rows << "\t" << "data_cols: " << data_cols << std::endl;
+
+    Int_t cov_rows = tMat_data_covmat.GetNrows();
+    Int_t cov_cols = tMat_data_covmat.GetNcols();
+
+    std::cout << "cov_rows: " << cov_rows << "\t" << "cov_cols: " << cov_cols << std::endl;
+
+    Int_t response_rows = tMat_response.GetNrows();
+    Int_t response_cols = tMat_response.GetNcols();
+
+    std::cout << "response_rows: " << response_rows << "\t" << "response_cols: " << response_cols << std::endl;
+
+    Int_t mc_rows = tMat_prior_true_signal.GetNrows();
+    Int_t mc_cols = tMat_prior_true_signal.GetNcols();
+
+    std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
+
 
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
@@ -124,12 +148,9 @@ void unfold()
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
     mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
      
-    // Write unfolder output to file
-    TFile* file = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-30_unfolded.root", "RECREATE"); 
-
     mHist_data_signal_unfolded.Write();
     tHist2D_unfolded_covariance.Write();
-    file->Close();
+    f->Close();
 
     return;
 }
