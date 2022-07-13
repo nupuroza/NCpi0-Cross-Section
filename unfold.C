@@ -81,19 +81,22 @@ TH1D TMatrixDtoTH1D(const TMatrixD& input_mat, const TH1D& reference_hist)
 
 using namespace std;
 
-void unfold()
+void unfold(std::string filePath_in)
 {
-    TFile* f = new TFile("/uboone/data/users/noza/gLEE/xsection/2022-06-29_out.root", "UPDATE");
-    
+    TFile* file_in = new TFile(filePath_in.c_str(),"READ");
+    file_in->Cp("test_output.root");
+    file_in->Close();
+    TFile* file_out = new TFile("test_output.root","UPDATE");
+ 
     // Pull out measured signal MnvH1D from input file
-    PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)f->Get("evtRate_2g1p_inclusive");
+    PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("evtRate_2g1p_inclusive");
     TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
     // Extract covariance 
     TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
     // Pull out response matrix from input file
-    TH2D* tHist2D_response = (TH2D*)f->Get("response_2g1p_inclusive");
+    TH2D* tHist2D_response = (TH2D*)file_out->Get("response_2g1p_inclusive");
     // Pull out predicted signal MnvH1D from input file
-    PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)f->Get("effNum_2g1p_inclusive");  
+    PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get("effNum_2g1p_inclusive");  
     TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
 
     // Convert inputs into TMatrixD
@@ -147,10 +150,11 @@ void unfold()
     // Construct MnvH1D
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
     mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
-     
+    
+    file_out->cd(); 
     mHist_data_signal_unfolded.Write();
     tHist2D_unfolded_covariance.Write();
-    f->Close();
+    file_out->Close();
 
     return;
 }
