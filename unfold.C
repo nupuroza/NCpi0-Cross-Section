@@ -11,14 +11,18 @@
 // Pad TMatrixD to include underflow/overflow bins
 // If TH2D(i, j) = Matrix(i, j), invert_matrix = kFALSE, else invert_matrix = kTRUE
 // Used to allow for an input TH2D that has an opposite vertical/horizontal axis convention              
-TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix)
+TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix, bool include_underflow_X, bool include_overflow_X, bool include_underflow_Y, bool include_overflow_Y)
 {
+  // These should be reduced by one unit for each of the underflow and overflow that is excluded
   Int_t nBinsX = input_hist.GetNbinsX()+2;
   Int_t nBinsY = input_hist.GetNbinsY()+2;
   TMatrixD output_matrix(nBinsX,nBinsY);
+  // This loop should start at zero only if we're including underflow X
   for(Int_t i=0; i<nBinsX; i++)
   {
-    for(Int_t j=0; j<nBinsY; j++)
+    // This loop should start at zero only if we're including underflow Y
+    Int_t lowerBound_Y = include_underflow_Y ? 0 : 1; // Move this outside of the loop over X
+    for(Int_t j=lowerBound_Y; j<nBinsY; j++)
     {
       if(invert_matrix) output_matrix(j, i) = input_hist.GetBinContent(i, j);
       else          output_matrix(i, j) = input_hist.GetBinContent(i, j);
@@ -30,6 +34,7 @@ TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix)
 // Create TMatrixD from TH1D
 // Pad TMatrixD to include underflow/overflow bins
 TMatrixD TH1DtoTMatrixD(const TH1D& input_hist)
+// This method needs changes parallel to what is sketched out in TH2DtoTMatrixD above
 {
   Int_t nBins = input_hist.GetNbinsX()+2;
   TMatrixD output_matrix(nBins,1);
@@ -99,11 +104,32 @@ void unfold(std::string filePath_in)
     PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get("effNum_2g1p_inclusive");  
     TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
 
-    // Convert inputs into TMatrixD
-    TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal);
-    TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal);
-    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, kTRUE);
+    // Nothing changes above here (in main function)
+    ////////////////////////////////////////////////
 
+    // Think about a good tolerance to compare the bin content against
+    threshold = 10e-6;
+
+    // Check if underflow is zero for data_signal (reco space)
+    double binVal_underflow_reco = tHist_data_signal->GetBinContent(0);
+    bool include_underflow_reco = binVal_underflow_reco > threshold ? 1 : 0;
+
+    // Check if overflow is zero for data_signal (reco space)
+    double binVal_overflow_reco = tHist_data_signal->GetBinContent(NbinsX);
+    bool include_overflow_reco = binVal_overflow_reco > threshold ? 1 : 0;
+
+    // Repeat above 2 blocks for tHist_prior_true_signal (true space)
+
+    // Convert inputs into TMatrixD
+    TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
+    TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
+    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
+
+    // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
+    // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const
+
+    // Nothing changes below here (in main function)
+    ////////////////////////////////////////////////
 
     // DEBUG
     Int_t data_rows = tMat_data_signal.GetNrows();
