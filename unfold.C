@@ -14,25 +14,23 @@ TMatrixD TH2DtoTMatrixD(const TH2D& input_hist, bool invert_matrix, bool include
   // Number of bins are increased by one unit for each of the underflow and overflow that is included
   Int_t nRows = input_hist.GetNbinsX();
   Int_t nColumns = input_hist.GetNbinsY();
+  
+  if(include_underflow_X) nRows = nRows+1;
+  if(include_overflow_X)  nRows = nRows+1;
 
-  if(include_underflow_X) Int_t nRows = nRows+1;
-  if(include_overflow_X)  Int_t nRows = nRows+1;
-
-  if(include_underflow_Y) Int_t nColumns = nColumns+1;
-  if(include_overflow_Y)  Int_t nColumns = nColumns+1;
- 
+  if(include_underflow_Y) nColumns = nColumns+1;
+  if(include_overflow_Y)  nColumns = nColumns+1;
+   
   TMatrixD output_matrix(nRows,nColumns);
   // The following loops start at zero only if we're including underflow
-  Int_t lowerBound_X = include_underflow_X ? 0 : 1;  
-  Int_t upperBound_X = include_overflow_X  ? nRows+1 : nRows;
-  Int_t lowerBound_Y = include_underflow_Y ? 0 : 1;
-  Int_t upperBound_Y = include_overflow_Y  ? nColumns+1 : nColumns;
-  for(Int_t i=lowerBound_X; i<upperBound_X; i++)
+  Int_t offset_X = include_underflow_X ? 0 : 1;  
+  Int_t offset_Y = include_underflow_Y ? 0 : 1;
+  for(Int_t i=0; i<nRows; i++)
   {
-    for(Int_t j=lowerBound_Y; j<upperBound_Y; j++)
+    for(Int_t j=0; j<nColumns; j++)
     {
-      if(invert_matrix) output_matrix(j, i) = input_hist.GetBinContent(i, j);
-      else              output_matrix(i, j) = input_hist.GetBinContent(i, j);
+      if(invert_matrix) output_matrix(i, j) = input_hist.GetBinContent(j+offset_Y, i+offset_X);
+      else              output_matrix(i, j) = input_hist.GetBinContent(i+offset_X, j+offset_Y);
     }
   }
   return output_matrix;
@@ -44,16 +42,15 @@ TMatrixD TH1DtoTMatrixD(const TH1D& input_hist, bool include_underflow, bool inc
   // Number of bins are increased by one unit for each of the underflow and overflow that is included
   Int_t nRows = input_hist.GetNbinsX();
 
-  if(include_underflow) Int_t nRows = nRows+1;
-  if(include_overflow)  Int_t nRows = nRows+1;
+  if(include_underflow) nRows = nRows+1;
+  if(include_overflow)  nRows = nRows+1;
 
   TMatrixD output_matrix(nRows,1);
   // The following loop starts at zero only if we're including underflow
-  Int_t lowerBound = include_underflow ? 0 : 1;  
-  Int_t upperBound = include_overflow  ? nRows+1 : nRows;
-  for(Int_t i=lowerBound; i<nRows; i++)
+  Int_t offset = include_underflow ? 0 : 1;  
+  for(Int_t i=0; i<nRows; i++)
     {
-      output_matrix(i, 0) = input_hist.GetBinContent(i);
+      output_matrix(i, 0) = input_hist.GetBinContent(i+offset);
     }
   return output_matrix;
 }
@@ -116,10 +113,8 @@ void unfold(std::string filePath_in)
     // Pull out predicted signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get("effNum_2g1p_inclusive");  
     TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
-
-    // Nothing changes above here (in main function)
-    ////////////////////////////////////////////////
-
+ 
+    // Decide whether to include or exclude underflow/overflow
     // Think about a good tolerance to compare the bin content against
     double threshold = 10e-6;
 
@@ -141,22 +136,10 @@ void unfold(std::string filePath_in)
     double binVal_overflow_true = tHist_prior_true_signal.GetBinContent(nBins_true+1);
     bool include_overflow_true = binVal_overflow_true > threshold ? 1 : 0;
 
-    // DEBUG
-    std::cout << "underflow_data: " << binVal_underflow_reco << "\t" << "overflow_data: " << binVal_overflow_reco << std::endl;
-    std::cout << "underflow_mc: " << binVal_underflow_true << "\t" << "overflow_mc: " << binVal_overflow_true << std::endl;
-
     // Convert inputs into TMatrixD
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
-    // DEBUG
-    std::cout << "Debug A" << std::endl;
-
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
-    // DEBUG
-    std::cout << "Debug B" << std::endl;
-
-    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_true, include_overflow_true, include_underflow_reco, include_overflow_reco);
-    // DEBUG
-    std::cout << "Debug C" << std::endl;
+    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
 
     // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
     // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
@@ -164,35 +147,22 @@ void unfold(std::string filePath_in)
     Int_t upperBound = include_overflow_reco ? nBins_reco+1 : nBins_reco;
     TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
 
-    // Nothing changes below here (in main function)
-    ////////////////////////////////////////////////
-
-    // DEBUG
+    // Print out number of rows and columns in each input matrix
     Int_t data_rows = tMat_data_signal.GetNrows();
     Int_t data_cols = tMat_data_signal.GetNcols();
-
     std::cout << "data_rows: " << data_rows << "\t" << "data_cols: " << data_cols << std::endl;
-
-    Int_t cov_rows = tMat_data_covmat.GetNrows();
-    Int_t cov_cols = tMat_data_covmat.GetNcols();
-
-    std::cout << "cov_rows: " << cov_rows << "\t" << "cov_cols: " << cov_cols << std::endl;
 
     Int_t cov_final_rows = tMat_data_covmat_final.GetNrows();
     Int_t cov_final_cols = tMat_data_covmat_final.GetNcols();
-
     std::cout << "cov_final_rows: " << cov_final_rows << "\t" << "cov_final_cols: " << cov_final_cols << std::endl;
 
     Int_t response_rows = tMat_response.GetNrows();
     Int_t response_cols = tMat_response.GetNcols();
-
     std::cout << "response_rows: " << response_rows << "\t" << "response_cols: " << response_cols << std::endl;
 
     Int_t mc_rows = tMat_prior_true_signal.GetNrows();
     Int_t mc_cols = tMat_prior_true_signal.GetNcols();
-
     std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
-
 
     // Initialize unfolder
     // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
@@ -201,7 +171,7 @@ void unfold(std::string filePath_in)
             WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
             //new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
 					  );
-
+    
     // Run unfolder
     auto result = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final, tMat_response, tMat_prior_true_signal );
 
@@ -218,11 +188,11 @@ void unfold(std::string filePath_in)
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
     mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
     
-    file_out->cd(); 
+    // DEBUG
     mHist_data_signal_unfolded.Write();
     tHist2D_unfolded_covariance.Write();
     file_out->Close();
-
+    std::cout << "Closed outfile" << std::endl;
     return;
 }
 
