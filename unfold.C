@@ -98,10 +98,10 @@ using namespace std;
 
 void unfold(std::string filePath_in)
 {
-    TFile* file_in = new TFile(filePath_in.c_str(),"READ");
-    file_in->Cp("test_output.root");
+    TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
+    file_in->Cp((filePath_in+"_unfolded.root").c_str());
     file_in->Close();
-    TFile* file_out = new TFile("test_output.root","UPDATE");
+    TFile* file_out = new TFile((filePath_in+"_unfolded.root").c_str(),"UPDATE");
  
     // Pull out measured signal MnvH1D from input file
     PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("evtRate_2g1p_inclusive");
@@ -165,11 +165,11 @@ void unfold(std::string filePath_in)
     std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
 
     // Initialize unfolder
-    // constexpr int NUM_DAGOSTINI_ITERATIONS = 6;
+    constexpr int NUM_DAGOSTINI_ITERATIONS = 3;
     std::unique_ptr< Unfolder > unfolder (
-					  new WienerSVDUnfolder( true,
-            WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
-            //new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
+					  //new WienerSVDUnfolder( true,
+            //WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
+            new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
 					  );
     
     // Run unfolder
@@ -188,11 +188,11 @@ void unfold(std::string filePath_in)
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
     mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
     
-    // DEBUG
-    mHist_data_signal_unfolded.Write();
+    mHist_data_signal_unfolded.SetName("unfolded_evtRate_2g1p_inclusive");
+    mHist_data_signal_unfolded.Write();   
+    tHist2D_unfolded_covariance.SetName("unfolded_cov_evtRate_2g1p_inclusive");
     tHist2D_unfolded_covariance.Write();
     file_out->Close();
-    std::cout << "Closed outfile" << std::endl;
     return;
 }
 

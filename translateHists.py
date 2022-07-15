@@ -509,7 +509,9 @@ for sigDef in ["2g1p"]:
       exec("mHist_evtRate_{0}_{1}.Add(mHist_background_{0}_{1},-1.)".format(sigDef,sigDefexcl))
 
       exec("writeHist(mHist_evtRate_{0}_{1},outFile)".format(sigDef,sigDefexcl))
-
+      
+      ## Cross Section calculation now performed in calculateXsection.py
+      '''
       ## Cross section calculation
       exec("mHist_xSection_{0}_{1} = mHist_evtRate_{0}_{1}.Clone(\"xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
       exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
@@ -533,7 +535,7 @@ for sigDef in ["2g1p"]:
         exec("mHist_xSection_mc_{0}_{1}.PopVertErrorBand(\"{2}\")".format(sigDef,sigDefexcl,systName))
 
       exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
-
+      '''
       #############################################################################################################
       ### Extract Covariance Matrix for Unfolding #################################################################
       #############################################################################################################
