@@ -68,7 +68,7 @@ if p.in_dir < 0:
 
 ## If in_date is not provided, search file created today
 if p.in_date < 0:
-  histFileLocation = p.in_dir+"/{0}_out.root".format(dt.date.today())
+  histFileLocation = p.in_dir+"/{0}_out_final.root".format(dt.date.today())
   if not os.path.exists(histFileLocation):
     print "ERROR: An input ROOT file created today does not exist. Specify input date argument"
     parser.print_help()
@@ -77,7 +77,7 @@ if p.in_date < 0:
     print "This is the input file I'm opening: {0}".format(histFileLocation)
     histFile = ROOT.TFile(histFileLocation)
 else: 
-  histFileLocation = p.in_dir+"/"+p.in_date+"_out_unfolded.root"
+  histFileLocation = p.in_dir+"/"+p.in_date+"_out_final.root"
   if not os.path.exists(histFileLocation):
     print "ERROR: An input ROOT file created on "+p.in_date+" does not exist"
     parser.print_help()
