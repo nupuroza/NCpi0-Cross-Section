@@ -114,7 +114,7 @@ for sigDef in ["2g1p"]:
       continue
 
     else:
-      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected", "unfolded_evtRate", "unfolded_cov_evtRate"]:
+      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected", "unfolded_evtRate"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
@@ -243,4 +243,9 @@ with makeEnv_TCanvas('{0}/response_2g1p_inclusive.png'.format(plotDir)) as canva
   tmp.GetYaxis().SetTitle("Reconstructed #pi^{0} momentum")
   canvas.canvas.SetLogz()
 
-
+with makeEnv_TCanvas('{0}/unfolded_cov_evtRate_2g1p_inclusive.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('unfolded_cov_evtRate_2g1p_inclusive')
+  tmp.Draw("colz")
+  tmp.GetXaxis().SetTitle("True bins")
+  tmp.GetYaxis().SetTitle("True bins")
+  canvas.canvas.SetLogz()
