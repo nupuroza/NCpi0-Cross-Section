@@ -77,7 +77,7 @@ if p.in_date < 0:
     print "This is the input file I'm opening: {0}".format(histFileLocation)
     histFile = ROOT.TFile(histFileLocation)
 else: 
-  histFileLocation = p.in_dir+"/"+p.in_date+"_out.root"
+  histFileLocation = p.in_dir+"/"+p.in_date+"_out_unfolded.root"
   if not os.path.exists(histFileLocation):
     print "ERROR: An input ROOT file created on "+p.in_date+" does not exist"
     parser.print_help()
@@ -114,7 +114,7 @@ for sigDef in ["2g1p"]:
       continue
 
     else:
-      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected"]:
+      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected", "unfolded_evtRate", "unfolded_cov_evtRate"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
