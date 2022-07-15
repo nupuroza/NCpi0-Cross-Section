@@ -139,7 +139,7 @@ void unfold(std::string filePath_in)
     // Convert inputs into TMatrixD
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
-    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
+    TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, false, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
 
     // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
     // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
