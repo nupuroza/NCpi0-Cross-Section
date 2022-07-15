@@ -15,7 +15,7 @@ ROOT.TH1.AddDirectory(False)
 #############################################################################################################
 
 ## CV
-cvFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NCPi0_2g1p_NextGen_data_spectra.root"
+cvFilePath_2g1p_inclusive = "/pnfs/uboone/persistent/users/noza/sbnfit_2g1p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_v50.5.root"
 cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
