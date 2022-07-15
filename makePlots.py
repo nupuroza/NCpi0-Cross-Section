@@ -114,7 +114,7 @@ for sigDef in ["2g1p"]:
       continue
 
     else:
-      for histCat in ["background","evtRate","effNum","effDenom", "eff", "xSection", "xSection_mc","data_selected", "unfolded_evtRate"]:
+      for histCat in ["background","evtRate","effNum","effDenom", "eff", "unfolded_xSection", "xSection_mc","data_selected", "unfolded_evtRate"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
@@ -125,20 +125,20 @@ for sigDef in ["2g1p"]:
           ## Set vertical axis label
           if histCat == "eff":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Efficiency/GeV\")".format(histCat,sigDef,sigDefexcl))
-          elif histCat == "xSection" or histCat == "xSection_mc":
+          elif histCat == "unfolded_xSection" or histCat == "xSection_mc":
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"#sigma_{{NC 1 #pi^{{0}}}}[10^{{-38}} cm^{{2}}/Atom]/GeV\")".format(histCat,sigDef,sigDefexcl))
             exec("tHist_{0}_{1}_{2}.Scale(10**38)".format(histCat,sigDef,sigDefexcl))
           else:
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events/GeV\")".format(histCat,sigDef,sigDefexcl))
           ## Set horizontal axis label
-          if histCat == "background" or histCat == "evtRate" or histCat == "xSection" or histCat == "data_selected" or histCat == "BNB_ext":
+          if histCat == "background" or histCat == "evtRate" or histCat == "data_selected" or histCat == "BNB_ext":
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
           else: 
             exec("tHist_{0}_{1}_{2}.GetXaxis().SetTitle(\"#pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Scale(1.0,\"width\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
-        if histCat == "background" or histCat == "evtRate" or histCat == "xSection" or histCat == "data_selected" or histCat == "BNB_ext":
+        if histCat == "background" or histCat == "evtRate" or histCat == "data_selected" or histCat == "BNB_ext":
           with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
             exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"Reconstructed #pi^{{0}} momentum\")".format(histCat,sigDef,sigDefexcl))
         else:
