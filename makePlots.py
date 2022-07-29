@@ -232,8 +232,8 @@ ROOT.gStyle.SetNumberContours(200)
 with makeEnv_TCanvas('{0}/cov_evtRate_2g1p_inclusive.png'.format(plotDir)) as canvas:
   tmp = histFile.Get('cov_evtRate_2g1p_inclusive')
   tmp.Draw("colz")
-  tmp.GetXaxis().SetTitle("Reconstructed bins")
-  tmp.GetYaxis().SetTitle("Reconstructed bins")
+  tmp.GetXaxis().SetTitle("Reconstructed #pi^{0} momentum")
+  tmp.GetYaxis().SetTitle("Reconstructed #pi^{0} momentum")
   canvas.canvas.SetLogz()
 
 with makeEnv_TCanvas('{0}/response_2g1p_inclusive.png'.format(plotDir)) as canvas:
@@ -246,6 +246,6 @@ with makeEnv_TCanvas('{0}/response_2g1p_inclusive.png'.format(plotDir)) as canva
 with makeEnv_TCanvas('{0}/unfolded_cov_evtRate_2g1p_inclusive.png'.format(plotDir)) as canvas:
   tmp = histFile.Get('unfolded_cov_evtRate_2g1p_inclusive')
   tmp.Draw("colz")
-  tmp.GetXaxis().SetTitle("True bins")
-  tmp.GetYaxis().SetTitle("True bins")
+  tmp.GetXaxis().SetTitle("True #pi^{0} momentum")
+  tmp.GetYaxis().SetTitle("True #pi^{0} momentum")
   canvas.canvas.SetLogz()
