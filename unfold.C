@@ -136,6 +136,11 @@ void unfold(std::string filePath_in)
     double binVal_overflow_true = tHist_prior_true_signal.GetBinContent(nBins_true+1);
     bool include_overflow_true = binVal_overflow_true > threshold ? 1 : 0;
 
+    include_underflow_reco = 0;
+    include_overflow_reco = 0;
+    include_underflow_true = 0;
+    include_overflow_true = 0;   
+
     // Convert inputs into TMatrixD
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
@@ -165,11 +170,11 @@ void unfold(std::string filePath_in)
     std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
 
     // Initialize unfolder
-    constexpr int NUM_DAGOSTINI_ITERATIONS = 3;
+    //constexpr int NUM_DAGOSTINI_ITERATIONS = 4;
     std::unique_ptr< Unfolder > unfolder (
-					  //new WienerSVDUnfolder( true,
-            //WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
-            new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
+					  new WienerSVDUnfolder( true,
+            WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
+            //new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
 					  );
     
     // Run unfolder
@@ -183,6 +188,7 @@ void unfold(std::string filePath_in)
     // Convert outputs into TH1D/TH2D  
     TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal);
     TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
+    TH2D tHist2D_covariance = TMatrixDtoTH2D(tMat_data_covmat_final, tHist_data_signal);
 
     // Construct MnvH1D
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
@@ -192,6 +198,8 @@ void unfold(std::string filePath_in)
     mHist_data_signal_unfolded.Write();   
     tHist2D_unfolded_covariance.SetName("unfolded_cov_evtRate_2g1p_inclusive");
     tHist2D_unfolded_covariance.Write();
+    tHist2D_covariance.SetName("cov_evtRate_2g1p_inclusive");
+    tHist2D_covariance.Write();
     file_out->Close();
     return;
 }
