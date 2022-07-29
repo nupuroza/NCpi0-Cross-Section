@@ -19,7 +19,7 @@ cvFilePath_2g1p_inclusive = "/uboone/app/users/noza/gLEE/NCPi0NuWroProcessing/sb
 cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root"
+inFilePath_2g1p_inclusive = "/uboone/app/users/noza/gLEE/NCPi0NuWroProcessing/sbnfit/variation_spectra/SBNfit_variation_spectra_Sys.root" 
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
 #inFilePath_2g0p_inclusive = 
@@ -183,8 +183,7 @@ writeHist(mHist_nTargets,outFile)
 #############################################################################################################
 ### Calculate POT ###########################################################################################
 #############################################################################################################
-
-POT_2g1p = 5.8447*10**20
+POT_2g1p = 2.92948*10**20
 POT_2g0p = 5.8930*10**20
 POT_scaling = POT_2g1p/POT_2g0p
 
@@ -536,16 +535,6 @@ for sigDef in ["2g1p"]:
 
       exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
       
-      #############################################################################################################
-      ### Extract Covariance Matrix for Unfolding #################################################################
-      #############################################################################################################
-      
-      exec("tMat_cov_evtRate_{0}_{1} = mHist_evtRate_{0}_{1}.GetTotalErrorMatrix()".format(sigDef,sigDefexcl))
-      exec("tHist2D_cov_evtRate_{0}_{1} = ROOT.TH2D(tMat_cov_evtRate_{0}_{1})".format(sigDef,sigDefexcl))   
-      exec("tHist2D_cov_evtRate_{0}_{1}.SetName(\"cov_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))   
-      exec("writeHist(tHist2D_cov_evtRate_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
-
-
 #############################################################################################################
 ### Response Matrix #########################################################################################
 #############################################################################################################
