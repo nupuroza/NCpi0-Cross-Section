@@ -19,7 +19,7 @@ cvFilePath_2g1p_inclusive = "/uboone/app/users/noza/gLEE/NCPi0NuWroProcessing/sb
 cvFile_2g1p_inclusive = ROOT.TFile(cvFilePath_2g1p_inclusive)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2g1p_inclusive = "/uboone/app/users/noza/gLEE/NCPi0NuWroProcessing/sbnfit/variation_spectra/SBNfit_variation_spectra_Sys.root" 
+inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
 #inFilePath_2g0p_inclusive = 
@@ -39,6 +39,7 @@ inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
 parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
 parser.add_argument('test',help='Run in test mode using smaller number of syst universes (faster)',type=str,nargs='?')
+parser.add_argument('fakedata',help='Run with fake data',type=str,nargs='?')
 p = parser.parse_args()
 
 ## If output_dir is not provided, exit
@@ -183,7 +184,7 @@ writeHist(mHist_nTargets,outFile)
 #############################################################################################################
 ### Calculate POT ###########################################################################################
 #############################################################################################################
-POT_2g1p = 2.92948*10**20
+POT_2g1p = 6.7873*10**20
 POT_2g0p = 5.8930*10**20
 POT_scaling = POT_2g1p/POT_2g0p
 
@@ -318,7 +319,6 @@ writeHist(mHist_flux_integral,outFile)
 #############################################################################################################
 ### Assemble MnvH1D for Data ################################################################################
 #############################################################################################################
-
 #for sigDefexcl in ['inclusive', 'exclusive']:
 for sigDefexcl in ['inclusive']:
   ## Pull out CV hists
@@ -340,7 +340,16 @@ for sigDefexcl in ['inclusive']:
     ## Populate error bands
     for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
       exec("mHist_data_selected_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef,sigDefexcl))
-  
+    
+    ## Scale POT of data if using fakedata
+
+    if p.fakedata>0:       
+      print("I am doing a POT correction for fake data")
+      POT_2g1p_fakedata = 2.92948*10**20
+      POT_2g1p_sim = POT_2g1p
+      POT_2g1p_fakedatascaling = POT_2g1p_sim/POT_2g1p_fakedata
+      exec("mHist_data_selected_{0}_{1}.Scale(POT_2g1p_fakedatascaling)".format(sigDef,sigDefexcl))
+
     exec("writeHist(mHist_data_selected_{0}_{1},outFile)".format(sigDef,sigDefexcl))
   
 #############################################################################################################
