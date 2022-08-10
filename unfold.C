@@ -168,9 +168,9 @@ void unfold(std::string filePath_in)
     Int_t mc_rows = tMat_prior_true_signal.GetNrows();
     Int_t mc_cols = tMat_prior_true_signal.GetNcols();
     std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
-
+ 
     // Initialize unfolder
-    //constexpr int NUM_DAGOSTINI_ITERATIONS = 4;
+    //constexpr int NUM_DAGOSTINI_ITERATIONS = 3;
     std::unique_ptr< Unfolder > unfolder (
 					  new WienerSVDUnfolder( true,
             WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
@@ -189,6 +189,15 @@ void unfold(std::string filePath_in)
     TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal);
     TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
     TH2D tHist2D_covariance = TMatrixDtoTH2D(tMat_data_covmat_final, tHist_data_signal);
+ 
+    //for(Int_t i=1; i<nBins_true+1; i++)
+    //{    
+    //double a = tHist_data_signal_unfolded.GetBinError(i);
+    //double b = tHist2D_unfolded_covariance.GetBinError(i,i);
+    //tHist_data_signal_unfolded.SetBinError(i,b);
+    //double c = tHist_data_signal_unfolded.GetBinError(i);
+    //std::cout << "tHist_before: " << a << "\t" << "tHist_after: " << c << "\t" << "cov: " << b << std::endl;  
+    //}
 
     // Construct MnvH1D
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
