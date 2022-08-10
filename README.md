@@ -1,4 +1,4 @@
-# NCpi0-Cross-Section
+# NC $\pi^0$ Cross Section
 
 Using the MINERvA Analysis Toolkit (MAT) and data from the single photon low energy excess analysis for MicroBooNE, uncertainty systematics are evaluated for the calculation of neutral current neutral pion cross-section.
 
