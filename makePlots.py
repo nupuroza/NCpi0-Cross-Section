@@ -114,7 +114,7 @@ for sigDef in ["2g1p"]:
       continue
 
     else:
-      for histCat in ["background","evtRate","effNum","effDenom", "eff", "unfolded_xSection", "xSection_mc","data_selected", "unfolded_evtRate"]:
+      for histCat in ["evtRate", "background", "effNum","effDenom", "eff", "unfolded_xSection", "xSection_mc","data_selected", "unfolded_evtRate"]:
         exec("{0}_{1}_{2} = histFile.Get(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
@@ -249,3 +249,26 @@ with makeEnv_TCanvas('{0}/unfolded_cov_evtRate_2g1p_inclusive.png'.format(plotDi
   tmp.GetXaxis().SetTitle("True #pi^{0} momentum")
   tmp.GetYaxis().SetTitle("True #pi^{0} momentum")
   canvas.canvas.SetLogz()
+
+with makeEnv_TCanvas('{0}/fakedatavsgenie.png'.format(plotDir)):
+  tHist_unfolded_evtRate = unfolded_evtRate_2g1p_inclusive.GetCVHistoWithError()
+  tHist_effNum = effNum_2g1p_inclusive.GetCVHistoWithError()
+
+  tHist_effNum.GetYaxis().SetTitleSize(0.05)
+  tHist_effNum.GetXaxis().SetTitleSize(0.05)
+  tHist_effNum.GetYaxis().SetTitle("Number of Events/GeV")
+  tHist_effNum.GetXaxis().SetTitle("#pi^{0} momentum")
+
+  tHist_effNum.SetLineColor(ROOT.kRed)
+  tHist_effNum.SetMarkerColor(ROOT.kRed)
+  tHist_effNum.SetMarkerSize(0.5)
+  tHist_effNum.Draw()
+
+  tHist_unfolded_evtRate.SetMarkerSize(0.5)
+  tHist_unfolded_evtRate.Draw("SAME")
+
+  legend = ROOT.TLegend(0.6,0.8,0.6,0.8, "")
+  legend.SetBorderSize(0);
+  legend.AddEntry(tHist_unfolded_evtRate,"NuWro Fake Data","lep")
+  legend.AddEntry(tHist_effNum,"GENIE Prediction","lep")
+  legend.Draw()
