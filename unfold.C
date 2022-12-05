@@ -104,8 +104,7 @@ void unfold(std::string filePath_in)
     TFile* file_out = new TFile((filePath_in+"_unfolded.root").c_str(),"UPDATE");
  
     // Pull out measured signal MnvH1D from input file
-    //PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("evtRate_2g1p_inclusive");
-    PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("effNum_2g1p_inclusive");
+    PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("evtRate_2g1p_inclusive");
     TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
     // Extract covariance 
     TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
