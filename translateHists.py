@@ -20,6 +20,7 @@ def writeHist(hist,outFile):
 ### File Management #########################################################################################
 #############################################################################################################
 
+<<<<<<< Updated upstream
 ## CV
 cvFilePath_2g1p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/whipping_star/build/bin/XS_calculation_July2021/XS2g1p_MConly_FinalSelection_CV.SBNspec.root"
 cvFile_2g1p = ROOT.TFile(cvFilePath_2g1p)
@@ -38,6 +39,25 @@ effDenomFile_2g0p = ROOT.TFile(effDenomFilePath_2g0p)
 ## (histograms of 2g1p and 2g0p are included in this file with naming "nu_uBooNE_2g1p/2g0p_xxx")
 effNumFilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/variation_spectra/Merged_SBNfit_variation_spectra_FluxXSDet.root"
 effNumFile = ROOT.TFile(effNumFilePath)
+=======
+## Data
+dataFilePath = "/uboone/app/users/noza/gLEE/NCPi0NuWroProcessing/sbnfit/data_V2_CV.SBNspec.root"
+dataFile = ROOT.TFile(dataFilePath)
+
+## NuWro fake data
+dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_OCt2022/NuWro_Oct2022_CV.SBNspec.root"
+dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
+
+## Load input file with efficiency denominator, efficiency numerator and background
+inFilePath_2gnp_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
+inFile_2gnp_inclusive = ROOT.TFile(inFilePath_2gnp_inclusive)
+
+inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
+inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
+
+inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
+inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
+>>>>>>> Stashed changes
 
 g4FilePath = "/uboone/app/users/gge/singlephoton/whipping_star/working_directory/SinglePhoton_test/NCpi_cross_section/final_stage/variation_spectra/SBNfit_variation_spectra_GEANT4.root"
 g4File = ROOT.TFile(g4FilePath)
@@ -155,6 +175,9 @@ writeHist(mHist_nTargets,outFile)
 POT_2g1p = 5.8447*10**20
 POT_2g0p = 5.8930*10**20
 POT_scaling = POT_2g1p/POT_2g0p
+
+## NuWro fake data POT (not needed yet, but included so all POTs are in the same place)
+POT_fakedata = 3.0041393*10**20
 
 ## For 2gnp, scale 2g0p POT to 2g1p POT before combining samples
 POT_2gnp = 5.8447*10**20
@@ -331,6 +354,7 @@ print "--integrated flux-- CV: {0}\terr: {1}".format(integrated_flux_cv,integrat
 #############################################################################################################
 ### Assemble MnvH1Ds for Data and BNB EXT Background (which is also data) ###################################
 #############################################################################################################
+<<<<<<< Updated upstream
 
 ## Pull out CV hists
 for sigDef in ["2g1p","2g0p"]:
@@ -364,6 +388,41 @@ for dataDef in ["data_selected","BNB_ext"]:
 
     exec("writeHist(mHist_{0}_{1},outFile)".format(dataDef,sigDef))
 
+=======
+
+## Prescription is slightly different for fake data
+is_fake_data = True if p.fakedata>0 else False
+
+## Pull out CV hists
+for sigDef in ["2g1p","2g0p"]:
+  if is_fake_data:
+    exec("tHist_data_selected_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
+  else:
+    exec("tHist_data_selected_{0} = dataFile.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
+
+## Add together 2g1p and 2g0p hists to form 2gnp data hist
+tHist_data_selected_2gnp = tHist_data_selected_2g0p.Clone("tHist_data_selected_2gnp")
+tHist_data_selected_2gnp.Scale(POT_scaling)
+tHist_data_selected_2gnp.Add(tHist_data_selected_2g1p)
+
+for sigDef in ["2g0p","2g1p","2gnp"]:
+  ## Create MnvH1D from TH1D
+  exec("mHist_data_selected_{0} = ROOT.PlotUtils.MnvH1D(tHist_data_selected_{0})".format(sigDef))
+  exec("mHist_data_selected_{0}.SetName(\"data_selected_{0}\")".format(sigDef))
+
+  ## Populate error bands
+  for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
+    exec("mHist_data_selected_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
+  
+  ## Scale POT of data if using fakedata
+
+  if is_fake_data:
+    print("I am scaling the POT to account for this being fake data")
+    exec("mHist_data_selected_{0}.Scale(POT_{0}/POT_fakedata)".format(sigDef))
+
+  exec("writeHist(mHist_data_selected_{0},outFile)".format(sigDef))
+  
+>>>>>>> Stashed changes
 #############################################################################################################
 ### Assemble xsec component MnvHnDs for 2g1p, 2g0p ##########################################################
 #############################################################################################################
@@ -720,10 +779,16 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
 
   exec("writeHist(mHist_eff_{0},outFile)".format(sigDef))
 
+<<<<<<< Updated upstream
   ## Background-subtracted event rate
   exec("mHist_evtRate_{0} = mHist_data_selected_{0}.Clone(\"evtRate_{0}\")".format(sigDef))
   exec("mHist_evtRate_{0}.Add(mHist_BNB_ext_{0},-1.)".format(sigDef))
   exec("mHist_evtRate_{0}.Add(mHist_background_{0},-1.)".format(sigDef))
+=======
+      ## Background-subtracted event rate
+      exec("mHist_evtRate_{0}_{1} = mHist_data_selected_{0}.Clone(\"evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_evtRate_{0}_{1}.Add(mHist_background_{0}_{1},-1.)".format(sigDef,sigDefexcl))
+>>>>>>> Stashed changes
 
   exec("writeHist(mHist_evtRate_{0},outFile)".format(sigDef))
 
