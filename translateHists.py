@@ -329,35 +329,6 @@ writeHist(mHist_flux_integral,outFile)
 #############################################################################################################
 ### Assemble MnvH1D for Data ################################################################################
 #############################################################################################################
-#for sigDefexcl in ['inclusive', 'exclusive']:
-for sigDefexcl in ['inclusive']:
-  ## Pull out CV hists
-  #for sigDef in ["2g1p","2g0p"]:
-  for sigDef in ["2g1p"]:
-    exec("tHist_data_selected_{0}_{1} = cvFile_{0}_{1}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef,sigDefexcl))
-  ## Add together 2g1p and 2g0p hists
-  #exec("tHist_data_selected_2gnp_{1} = tHist_data_selected_2g0p_{0}.Clone(\"tHist_data_selected_2gnp\")".format(sigDefexcl))
-  #exec("tHist_data_selected_2gnp_{0}.Scale(POT_scaling)".format(sigDefexcl))
-  #exec("tHist_data_selected_2gnp_{0}.Add(tHist_data_selected_2g1p_{0})".format(sigDefexcl))
-  
-  #for sigDef in ["2g0p","2g1p","2gnp"]:
-  for sigDef in ["2g1p"]:
-    ## Create MnvH1D from TH1D
-    exec("mHist_data_selected_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_data_selected_{0}_{1})".format(sigDef,sigDefexcl))
-    exec("mHist_data_selected_{0}_{1}.SetName(\"data_selected_{0}_{1}\")".format(sigDef,sigDefexcl))
-  
-    ## Populate error bands
-    for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
-      exec("mHist_data_selected_{0}_{1}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef,sigDefexcl))
-    
-    ## Scale POT of data if using fakedata
-
-    if p.fakedata>0:       
-      print("I am doing a POT correction for fake data")
-      POT_2g1p_fakedata = 2.92948*10**20
-      POT_2g1p_sim = POT_2g1p
-      POT_2g1p_fakedatascaling = POT_2g1p_sim/POT_2g1p_fakedata
-      exec("mHist_data_selected_{0}_{1}.Scale(POT_2g1p_fakedatascaling)".format(sigDef,sigDefexcl))
 
 ## Prescription is slightly different for fake data
 is_fake_data = True if p.fakedata>0 else False
