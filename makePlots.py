@@ -155,11 +155,11 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
             exec("tHist_{0}_{1}_{2}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef,sigDefexcl))
           exec("tHist_{0}_{1}_{2}.Draw()".format(histCat,sigDef,sigDefexcl))
 
-        if not histCat == "xSection_mc":
-          for flux_uni in FLUX_SYSTS:
-            exec("veb_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
-            with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
-              exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
+        ## if not histCat == "xSection_mc":
+        ##   for flux_uni in FLUX_SYSTS:
+        ##     exec("veb_{0}_{1}_{2} = {0}_{1}_{2}.GetVertErrorBand(\"{3}\")".format(histCat,sigDef,sigDefexcl,flux_uni))
+        ##     with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}_{4}.png".format(plotDir,flux_uni,histCat,sigDef,sigDefexcl)):
+        ##       exec("veb_{0}_{1}_{2}.DrawAll(\"\",True)".format(histCat,sigDef,sigDefexcl))
 
         with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}_{3}.png".format(plotDir,histCat,sigDef,sigDefexcl)):
           exec("localDrawErrorSummary(plotter,{0}_{1}_{2},\"\")".format(histCat,sigDef,sigDefexcl))
@@ -188,10 +188,10 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
       exec("tHist_{0}_{1}.GetYaxis().SetTitle(\"Number of Events\")".format(histCat,sigDef))
       exec("tHist_{0}_{1}.Draw()".format(histCat,sigDef))
       
-    for flux_uni in FLUX_SYSTS:
-      exec("veb_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
-      with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
-        exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
+    ## for flux_uni in FLUX_SYSTS:
+    ##   exec("veb_{0}_{1} = {0}_{1}.GetVertErrorBand(\"{2}\")".format(histCat,sigDef,flux_uni))
+    ##   with makeEnv_TCanvas("{0}/breakout_{1}_{2}_{3}.png".format(plotDir,flux_uni,histCat,sigDef)):
+    ##     exec("veb_{0}_{1}.DrawAll(\"\",True)".format(histCat,sigDef))
 
     with makeEnv_TCanvas("{0}/errorSummary_{1}_{2}.png".format(plotDir,histCat,sigDef)):
       exec("localDrawErrorSummary(plotter,{0}_{1},\"\")".format(histCat,sigDef))
@@ -206,6 +206,33 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     err_val_syst = tHist_systError.GetBinError(1)
     print "sigDef: {0}\thistCat: {1}\tcv_val: {2}\terr_val_stat: {3}\terr_val_syst: {4}\terr_val_tot: {5}".format(histCat,sigDef,cv_val,err_val_stat,err_val_syst,err_val)
     
+#############################################################################################################
+### Make simple xsec ratio plots ############################################################################
+#############################################################################################################
+
+xsec_ratio = histFile.Get("xSecRatio")
+
+with makeEnv_TCanvas("{0}/xsec_ratio.png".format(plotDir)):
+  tHist_xsec_ratio = xsec_ratio.GetCVHistoWithError()
+  tHist_xsec_ratio.GetXaxis().SetTitle("cos(#theta_{#pi^{0}})")
+  tHist_xsec_ratio.GetXaxis().SetTitleSize(0.05)
+  tHist_xsec_ratio.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}+1p}/#sigma_{NC 1 #pi^{0}+0p}")
+  tHist_xsec_ratio.GetYaxis().SetTitleSize(0.05)
+  tHist_xsec_ratio.Draw()
+
+with makeEnv_TCanvas("{0}/errorSummary_xsec_ratio.png".format(plotDir)):
+  localDrawErrorSummary(plotter,xsec_ratio,"")
+
+## Print out value and error to package into table
+tHist_xsec_ratio = xsec_ratio.GetCVHistoWithError()
+cv_val = tHist_xsec_ratio.GetBinContent(1)
+err_val = tHist_xsec_ratio.GetBinError(1)
+tHist_statError = xsec_ratio.GetCVHistoWithStatError()
+tHist_systError = xsec_ratio.GetCVHistoWithError(False)
+err_val_stat = tHist_statError.GetBinError(1)
+err_val_syst = tHist_systError.GetBinError(1)
+print "xsec_Ratio\tcv_val: {0}\terr_val_stat: {1}\terr_val_syst: {2}\terr_val_tot: {3}".format(cv_val,err_val_stat,err_val_syst,err_val)
+
 #############################################################################################################
 ### Make simple flux plots ##################################################################################
 #############################################################################################################
@@ -236,10 +263,10 @@ for histCat in ["flux","integratedFlux","nTargets"]:
     exec("tHist_{0}.GetYaxis().SetTitleSize(0.05)".format(histCat))
     exec("tHist_{0}.Draw()".format(histCat))
 
-  for flux_uni in FLUX_SYSTS:
-    exec("veb_{0} = {0}.GetVertErrorBand(\"{1}\")".format(histCat,flux_uni))
-    with makeEnv_TCanvas("{0}/breakout_{1}_{2}.png".format(plotDir,flux_uni,histCat)):
-      exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
+  ## for flux_uni in FLUX_SYSTS:
+  ##   exec("veb_{0} = {0}.GetVertErrorBand(\"{1}\")".format(histCat,flux_uni))
+  ##   with makeEnv_TCanvas("{0}/breakout_{1}_{2}.png".format(plotDir,flux_uni,histCat)):
+  ##     exec("veb_{0}.DrawAll(\"\",True)".format(histCat))
 
   with makeEnv_TCanvas("{0}/errorSummary_{1}.png".format(plotDir,histCat)):
     exec("localDrawErrorSummary(plotter,{0},\"\")".format(histCat))
@@ -248,11 +275,11 @@ for histCat in ["flux","integratedFlux","nTargets"]:
 ### Make downstream breakout plots ##########################################################################
 #############################################################################################################
 
-for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
-
-  for sigDefexcl in ["exclusive", "inclusive"]:
-
-    exec("veb_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
-    with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
-      exec("veb_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
+## for syst_uni in ["piplus_PrimaryHadronSWCentralSplineVariation","All_UBGenie"]:
+## 
+##   for sigDefexcl in ["exclusive", "inclusive"]:
+## 
+##     exec("veb_xSection_2g1p_{1}_breakout = xSection_2g1p_{1}.GetVertErrorBand(\"{0}\")".format(syst_uni,sigDefexcl))
+##     with makeEnv_TCanvas("{0}/breakout_{1}_xSection.png".format(plotDir,syst_uni)):
+##       exec("veb_xSection_2g1p_{0}_breakout.DrawAll(\"\",True)".format(sigDefexcl))
 
