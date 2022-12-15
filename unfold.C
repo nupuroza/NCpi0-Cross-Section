@@ -106,6 +106,7 @@ void unfold(std::string filePath_in)
     // Pull out measured signal MnvH1D from input file
     //PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("evtRate_2g1p_inclusive");
     PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("effNum_2g1p_inclusive");
+    //PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("effDenom_2g1p_inclusive");
     TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
     // Extract covariance 
     TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
@@ -210,6 +211,9 @@ void unfold(std::string filePath_in)
     tHist2D_unfolded_covariance.Write();
     tHist2D_covariance.SetName("cov_evtRate_2g1p_inclusive");
     tHist2D_covariance.Write();
+
+    tMat_response.Write("responseMatrix_postUnfoldingScript");
+
     file_out->Close();
     return;
 }

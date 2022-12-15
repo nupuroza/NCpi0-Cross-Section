@@ -558,7 +558,7 @@ for sigDef in ["2g1p"]:
 ### Response Matrix #########################################################################################
 #############################################################################################################
 
-responsePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/NCPi0_2g1p_Response_v1.root" 
+responsePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/NCPi0_2g1p_Response_v2.root" 
 response_2g1p_inclusive = ROOT.TFile(responsePath_2g1p_inclusive)
 '''
 responsePath_2g0p_inclusive =
