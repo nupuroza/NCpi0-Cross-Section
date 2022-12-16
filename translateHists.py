@@ -732,6 +732,10 @@ mHist_xSecRatio = mHist_xSection_2g1p_exclusive.Clone("xSecRatio")
 mHist_xSecRatio.Divide(mHist_xSection_2g1p_exclusive,mHist_xSection_2g0p_exclusive)
 writeHist(mHist_xSecRatio,outFile)
 
+mHist_xSecRatio_mc = mHist_xSection_mc_2g1p_exclusive.Clone("xSecRatio_mc")
+mHist_xSecRatio_mc.Divide(mHist_xSection_mc_2g1p_exclusive,mHist_xSection_mc_2g0p_exclusive)
+writeHist(mHist_xSecRatio_mc,outFile)
+
 #############################################################################################################
 ### Close output file; other business #######################################################################
 #############################################################################################################

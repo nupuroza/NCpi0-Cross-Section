@@ -233,6 +233,29 @@ err_val_stat = tHist_statError.GetBinError(1)
 err_val_syst = tHist_systError.GetBinError(1)
 print "xsec_Ratio\tcv_val: {0}\terr_val_stat: {1}\terr_val_syst: {2}\terr_val_tot: {3}".format(cv_val,err_val_stat,err_val_syst,err_val)
 
+xsec_ratio_mc = histFile.Get("xSecRatio_mc")
+
+with makeEnv_TCanvas("{0}/xsec_ratio_mc.png".format(plotDir)):
+  tHist_xsec_ratio_mc = xsec_ratio_mc.GetCVHistoWithError()
+  tHist_xsec_ratio_mc.GetXaxis().SetTitle("cos(#theta_{#pi^{0}})")
+  tHist_xsec_ratio_mc.GetXaxis().SetTitleSize(0.05)
+  tHist_xsec_ratio_mc.GetYaxis().SetTitle("#sigma^_{MC}_{NC 1 #pi^{0}+1p}/#sigma^{MC}_{NC 1 #pi^{0}+0p}")
+  tHist_xsec_ratio_mc.GetYaxis().SetTitleSize(0.05)
+  tHist_xsec_ratio_mc.Draw()
+
+with makeEnv_TCanvas("{0}/errorSummary_xsec_ratio_mc.png".format(plotDir)):
+  localDrawErrorSummary(plotter,xsec_ratio_mc,"")
+
+## Print out value and error to package into table
+tHist_xsec_ratio_mc = xsec_ratio_mc.GetCVHistoWithError()
+cv_val = tHist_xsec_ratio_mc.GetBinContent(1)
+err_val = tHist_xsec_ratio_mc.GetBinError(1)
+tHist_statError = xsec_ratio_mc.GetCVHistoWithStatError()
+tHist_systError = xsec_ratio_mc.GetCVHistoWithError(False)
+err_val_stat = tHist_statError.GetBinError(1)
+err_val_syst = tHist_systError.GetBinError(1)
+print "xsec_Ratio_mc\tcv_val: {0}\terr_val_stat: {1}\terr_val_syst: {2}\terr_val_tot: {3}".format(cv_val,err_val_stat,err_val_syst,err_val)
+
 #############################################################################################################
 ### Make simple flux plots ##################################################################################
 #############################################################################################################
