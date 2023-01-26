@@ -112,8 +112,8 @@ void unfold(std::string filePath_in)
     TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
     // Pull out response matrix from input file
     TH2D* tHist2D_response = (TH2D*)file_out->Get("response_2g1p_inclusive");
-    // Pull out predicted signal MnvH1D from input file
-    PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get("effNum_2g1p_inclusive");  
+    // Pull out predicted signal MnvH1D from input file //needs to be in true space; it's a reference true space
+    PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get("effDenom_2g1p_inclusive");  
     TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
  
     // Decide whether to include or exclude underflow/overflow
@@ -147,6 +147,7 @@ void unfold(std::string filePath_in)
     TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
     TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
     TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, false, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
+    //TMatrixD tMat_response = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
 
     // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
     // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
@@ -170,14 +171,23 @@ void unfold(std::string filePath_in)
     Int_t mc_rows = tMat_prior_true_signal.GetNrows();
     Int_t mc_cols = tMat_prior_true_signal.GetNcols();
     std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
- 
+
+    //// Even simpler debugging test, which turns off the Wiener filter and only performs an inversion 
     // Initialize unfolder
     //constexpr int NUM_DAGOSTINI_ITERATIONS = 3;
     std::unique_ptr< Unfolder > unfolder (
-					  new WienerSVDUnfolder( true,
+					  new WienerSVDUnfolder( false,
             WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
             //new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
 					  );
+    
+//    // Initialize unfolder
+//    //constexpr int NUM_DAGOSTINI_ITERATIONS = 3;
+//    std::unique_ptr< Unfolder > unfolder (
+//					  new WienerSVDUnfolder( true,
+//            WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
+//            //new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
+//					  );
     
     // Run unfolder
     auto result = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final, tMat_response, tMat_prior_true_signal );
