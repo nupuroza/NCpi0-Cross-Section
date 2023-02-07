@@ -4,8 +4,8 @@
 #include "TH2D.h"
 #include "PlotUtils/MnvH1D.h"
 
-#include "WienerSVDUnfolder.hh"
-#include "DAgostiniUnfolder.hh"
+#include "../stv-analysis-new/WienerSVDUnfolder.hh"
+#include "../stv-analysis-new/DAgostiniUnfolder.hh"
 
 // Create TMatrixD from TH2D
 // Used to allow for an input TH2D that has an opposite vertical/horizontal axis convention              
@@ -99,9 +99,9 @@ using namespace std;
 void unfold(std::string filePath_in)
 {
     TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
-    file_in->Cp((filePath_in+"_unfolded.root").c_str());
+    file_in->Cp((filePath_in+"_unfolded_kIdentity.root").c_str());
     file_in->Close();
-    TFile* file_out = new TFile((filePath_in+"_unfolded.root").c_str(),"UPDATE");
+    TFile* file_out = new TFile((filePath_in+"_unfolded_kIdentity.root").c_str(),"UPDATE");
  
     // Pull out measured signal MnvH1D from input file
     //PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get("evtRate_2g1p_inclusive");
@@ -176,8 +176,10 @@ void unfold(std::string filePath_in)
     // Initialize unfolder
     //constexpr int NUM_DAGOSTINI_ITERATIONS = 3;
     std::unique_ptr< Unfolder > unfolder (
-					  new WienerSVDUnfolder( false,
-            WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
+					  //new WienerSVDUnfolder( false,
+            //WienerSVDUnfolder::RegularizationMatrixType::kSecondDeriv )
+					  new WienerSVDUnfolder( true,
+            WienerSVDUnfolder::RegularizationMatrixType::kIdentity )
             //new DAgostiniUnfolder( NUM_DAGOSTINI_ITERATIONS ) 
 					  );
     
@@ -224,7 +226,7 @@ void unfold(std::string filePath_in)
 
     tMat_response.Write("responseMatrix_postUnfoldingScript");
 
-    file_out->Close();
+    //file_out->Close();
     return;
 }
 
