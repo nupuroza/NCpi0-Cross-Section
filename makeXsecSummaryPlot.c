@@ -115,13 +115,9 @@ void makeXsecSummaryPlot(){
     Dat_comb->SetBinError(51,Estat_comb_scale);
     Dat_comb->Draw("E1p same");
 
-
-
     //************
 
-
     TH1D *Dat_MC = new TH1D("MC","MC",3,0.0,1.0);
-
 
     for(int i=0; i< xs_genie_scale.size(); i++){
         Dat_MC->SetBinContent(i+1,xs_genie_scale[i]);
@@ -138,7 +134,6 @@ void makeXsecSummaryPlot(){
     Dat_MC->Draw("E2 same");
 
     clone_Dat_MC->DrawCopy("hist same");
-
 
     TH1D *Dat_genie2 = new TH1D("genie2","genie2",3,0.0,1.0);
     TH1D *Dat_nuwro = new TH1D("nuwro","nuwro",3,0.0,1.0);
@@ -174,8 +169,7 @@ void makeXsecSummaryPlot(){
     Dat_gibuu->SetLineWidth(4);
     //Dat_gibuu->DrawCopy("hist same");
 
-
-
+    //************
 
     TH1D *Dat_2g0p = new TH1D("dat2g0p","dat2g0p",300,0.0,1);
     Dat_2g0p->SetBinContent(251,xs_2g0p_scale);
@@ -189,6 +183,8 @@ void makeXsecSummaryPlot(){
     Dat_2g0p->SetBinError(251,Estat_2g0p_scale);
     Dat_2g0p->DrawClone("E1p same");
 
+    //************
+
     TH1D *Dat_2g1p = new TH1D("dat2g1p","dat2g1p",300,0.0,1.0);
     Dat_2g1p->SetBinContent(151,xs_2g1p_scale);
     Dat_2g1p->SetBinError(151,E_2g1p_scale); //15
@@ -201,6 +197,7 @@ void makeXsecSummaryPlot(){
     Dat_2g1p->SetBinError(151,Estat_2g1p_scale);
     Dat_2g1p->Draw("E1p same");
 
+    //************
 
     TLine *l1 = new TLine(1.0/3.0,0,1.0/3.0,2.5);
     TLine *l2 = new TLine(2.0/3.0,0,2.0/3.0,2.5);

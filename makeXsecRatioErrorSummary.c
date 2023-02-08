@@ -101,16 +101,38 @@ void makeXsecRatioErrorSummary(){
     TH1D *tHist_dummy = new TH1D("dummy","dummy",3,0.0,1.0);
     tHist_dummy->SetLineColor(kWhite);
 
-    // Panel labels
-    TLegend *l = new TLegend(0.10,0.00,0.89,0.10);
-    l->AddEntry(tHist_dummy,"#splitline{#sigma_{NC 1 #pi^{0} + 1 p}/}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
-    l->AddEntry(tHist_dummy,"#splitline{Exclusive}{NC 1 #pi^{0} + 1 proton}","lp");
-    l->AddEntry(tHist_dummy,"#splitline{Exclusive}{NC 1 #pi^{0} + 0 proton}","lp");
-    l->SetNColumns(3);
-    l->SetLineColor(kWhite);
-    l->SetLineWidth(0);
-    l->SetFillStyle(0);
-    l->Draw();
+//    // Panel labels
+//    TLegend *l = new TLegend(0.10,0.00,0.89,0.10);
+//    //l->AddEntry(tHist_dummy,"#splitline{#sigma_{NC 1 #pi^{0} + 1 p}/}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
+//    l->AddEntry(tHist_dummy,"#frac{#sigma_{NC 1 #pi^{0} + 1 p}}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
+//    l->AddEntry(tHist_dummy,"#splitline{Exclusive}{NC 1 #pi^{0} + 1 proton}","lp");
+//    l->AddEntry(tHist_dummy,"#splitline{Exclusive}{NC 1 #pi^{0} + 0 proton}","lp");
+//    l->SetNColumns(3);
+//    l->SetLineColor(kWhite);
+//    l->SetLineWidth(0);
+//    l->SetFillStyle(0);
+//    l->Draw();
+
+    // Legend to display ratio data point
+    TLegend *leg1 = new TLegend(0.13,0.03,0.4,0.07);
+    //TLegend *l = new TLegend(0.10,0.00,0.89,0.10);
+    leg1->AddEntry(tHist_dummy,"#frac{#sigma_{NC 1 #pi^{0} + 1 p}}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
+    leg1->SetNColumns(1);
+    leg1->SetLineColor(kWhite);
+    leg1->SetLineWidth(0);
+    leg1->SetFillStyle(0);
+    leg1->Draw();
+
+    // Legend to display exclusive measurement data points
+    TLegend *leg2 = new TLegend(0.34,0.00,0.875,0.10);
+    //TLegend *l = new TLegend(0.10,0.00,0.89,0.10);
+    leg2->AddEntry(tHist_dummy,"#splitline{Exclusive}{NC 1 #pi^{0} + 1 proton}","lp");
+    leg2->AddEntry(tHist_dummy,"#splitline{Exclusive}{NC 1 #pi^{0} + 0 proton}","lp");
+    leg2->SetNColumns(2);
+    leg2->SetLineColor(kWhite);
+    leg2->SetLineWidth(0);
+    leg2->SetFillStyle(0);
+    leg2->Draw();
 
     // Curve labels
     TLegend *lb = new TLegend(0.375,0.60,0.89,0.875);
