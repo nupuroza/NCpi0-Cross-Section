@@ -133,6 +133,6 @@ void makeXsecErrorSummary(){
     latex.DrawLatex(.05,0.43,"MicroBooNE");
 
     // Save plot as image
-    c->SaveAs("errorSummary_xsec_panels.pdf","pdf");
+    c->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/errorSummary_xsec_panels.pdf","pdf");
 
 }

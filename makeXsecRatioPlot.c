@@ -227,7 +227,7 @@ void makeXsecRatioPlot(){
     latex.DrawLatex(.05,2.45,"MicroBooNE");
 
     // Save plot as image
-    c->SaveAs("xsec_ratio_panels.pdf","pdf");
+    c->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/xsec_ratio_panels.pdf","pdf");
 
 
 }
