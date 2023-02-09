@@ -31,7 +31,7 @@ void example_unfolding_stv_inputs() {
   TFile* file_in = new TFile("../stv-analysis-new/unf_input_dump.root","READ");
   file_in->Cp("output_example_unfolding_stv-inputs.root");
   file_in->Close();
-  TFile* file_out = new TFile("output_example_unfolding_stv-inputs.root","UPDATE");
+  TFile* file_out = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-02_unfolding-work/output_example_unfolding_stv-inputs.root","UPDATE");
 
   // -----------------------------------------------------
   // Get inputs for unfolding sorted out
