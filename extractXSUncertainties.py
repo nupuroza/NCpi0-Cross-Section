@@ -2,7 +2,7 @@
 ### using the MINERvA Analysis Toolkit
 
 import ROOT
-import argparse
+import argparse,math
 from plottingClasses import *
 from errorMaps_gLEE import *
 
@@ -64,6 +64,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
       cv_val = tHist_totalError.GetBinContent(1)
       err_val_total = tHist_totalError.GetBinError(1)/cv_val
       err_val_stat = tHist_statError.GetBinError(1)/cv_val
+      err_val_syst = 0.0
       print "cv_val: {0}".format(cv_val)
       print "err_val_total: {0}".format(err_val_total)
       print "err_val_stat: {0}".format(err_val_stat)
@@ -82,7 +83,9 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
         exec("tHist = local_xsec_only_{0}.GetCVHistoWithError(False)".format(err_to_keep))
         err_val = tHist.GetBinError(1)/cv_val
         print "err_to_keep: {1}\t{2}".format(cv_val,err_to_keep,err_val)
+        err_val_syst = math.sqrt(err_val_syst*err_val_syst+err_val*err_val)
 
+      print "err_val_syst: {0}".format(err_val_syst)
       print "-----------------------------------------"
 
 #############################################################################################################
@@ -100,6 +103,7 @@ tHist_statError = xsec_ratio.GetCVHistoWithStatError()
 cv_val = tHist_totalError.GetBinContent(1)
 err_val_total = tHist_totalError.GetBinError(1)/cv_val
 err_val_stat = tHist_statError.GetBinError(1)/cv_val
+err_val_syst = 0.0
 print "cv_val: {0}".format(cv_val)
 print "err_val_total: {0}".format(err_val_total)
 print "err_val_stat: {0}".format(err_val_stat)
@@ -118,6 +122,8 @@ for err_to_keep in error_bands:
   exec("tHist = local_xsec_only_{0}.GetCVHistoWithError(False)".format(err_to_keep))
   err_val = tHist.GetBinError(1)/cv_val
   print "err_to_keep: {1}\t{2}".format(cv_val,err_to_keep,err_val)
+  err_val_syst = math.sqrt(err_val_syst*err_val_syst+err_val*err_val)
 
+print "err_val_syst: {0}".format(err_val_syst)
 print "-----------------------------------------"
 
