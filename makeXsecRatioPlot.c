@@ -10,8 +10,6 @@ void makeXsecRatioPlot(){
     double Estat_2g1p = 0.047e-38;
     double Estat_2g1p_scale = Estat_2g1p/1e-38;
 
-    double Esys_2g1p_scale = E_2g1p_scale - Estat_2g1p_scale;
-
     std::cout<<" XS for 2g1p "<<xs_2g1p_scale<<" +/- "<<E_2g1p_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
 
     
@@ -24,8 +22,6 @@ void makeXsecRatioPlot(){
 
     double Estat_2g0p = 0.075e-38;
     double Estat_2g0p_scale = Estat_2g0p/1e-38;
-
-    double Esys_2g0p_scale = E_2g0p_scale - Estat_2g0p_scale;
 
     std::cout<<" XS for 2g0p "<<xs_2g0p_scale<<" +/- "<<E_2g0p_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
 
