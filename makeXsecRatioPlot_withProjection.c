@@ -10,7 +10,8 @@ void makeXsecRatioPlot_withProjection(){
     double Estat_2g1p = 0.047e-38;
     double Estat_2g1p_scale = Estat_2g1p/1e-38;
 
-    double Esys_2g1p_scale = E_2g1p_scale - Estat_2g1p_scale;
+    double Esys_2g1p = 0.098e-38;
+    double Esys_2g1p_scale = Esys_2g1p/1e-38;
 
     std::cout<<" XS for 2g1p "<<xs_2g1p_scale<<" +/- "<<E_2g1p_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
 
@@ -25,43 +26,50 @@ void makeXsecRatioPlot_withProjection(){
     double Estat_2g0p = 0.075e-38;
     double Estat_2g0p_scale = Estat_2g0p/1e-38;
 
-    double Esys_2g0p_scale = E_2g0p_scale - Estat_2g0p_scale;
+    double Esys_2g0p = 0.131e-38;
+    double Esys_2g0p_scale = Esys_2g0p/1e-38;
 
     std::cout<<" XS for 2g0p "<<xs_2g0p_scale<<" +/- "<<E_2g0p_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
 
 
     //***************** 2g1p/2g0p Ratio ***********************
-    double xs_ratio = 0.710216920178; 
+    double xs_ratio = 0.710; 
     double xs_ratio_scale  = xs_ratio;
 
-    double E_ratio = 0.13821;
+    double E_ratio = 0.138;
     double E_ratio_scale = E_ratio;
 
-    double Estat_ratio =  0.11381;
+    double Estat_ratio = 0.114;
     double Estat_ratio_scale = Estat_ratio;
+
+    double Esys_ratio = 0.078;
+    double Esys_ratio_scale = Esys_ratio;
 
     std::cout<<" XS for ratio "<<xs_ratio_scale<<" +/- "<<E_ratio_scale<<" with "<<std::endl;
 
+
     // Projections of the stat and total errors with the full data set
-    // Calculated by scaling the present 2g0p and 2g1p stat errors down by sqrt(2) (assuming doubling of analysis stats)
+    // Calculated by scaling the present 2g0p and 2g1p stat errors down by sqrt(1.78) (assuming 78% increase in analysis stats)
     // ====== CALCULATION FOR FRACTIONAL ERRORS ==========
-    // 2g1p stat uncertainty: 0.10649/math.sqrt(2) = 0.07530
-    // 2g0p stat uncertainty: 0.11974/math.sqrt(2) = 0.08467
-    // ratio stat uncertainty: math.sqrt(0.08467*0.08467+0.07530*0.07530) = 0.11331
-    // ratio total uncertainty = math.sqrt(0.1104*0.1104+0.11331*0.1131) = 0.1582
-    // ====== CALCULATION FOR ABSOLUTE ERRORS ==========
-    // ratio stat uncertainty: 0.11331*0.710216920178 = 0.08047
-    // ratio total uncertainty = 0.1582*0.710216920178 = 0.11236
+    // 2g1p stat uncertainty: 0.10649/math.sqrt(1.78) = 0.07982
+    double Estat_2g1p_projection_frac = 0.07982;
+    // 2g0p stat uncertainty: 0.11974/math.sqrt(1.78) = 0.08975
+    double Estat_2g0p_projection_frac = 0.08975;
+    // ratio stat uncertainty: math.sqrt(0.08975*0.08975+0.07982*0.07982) = 0.12011
+    double Estat_ratio_projection_frac = 0.12011;
 
-    double E_ratio_projection_scale = 0.11236;
-    double Estat_ratio_projection_scale = 0.08047;
+    // Propagate revised statistical uncertainty to total uncertainty by summing the fractional uncertainties
+    // in quadrature and convert from fractional total error to absolute total error
+    double E_2g1p_projection_scale = sqrt(pow(Esys_2g1p_scale/xs_2g1p_scale,2)+pow(Estat_2g1p_projection_frac,2))*xs_2g1p_scale;
+    double E_2g0p_projection_scale = sqrt(pow(Esys_2g0p_scale/xs_2g0p_scale,2)+pow(Estat_2g0p_projection_frac,2))*xs_2g0p_scale;
+    double E_ratio_projection_scale = sqrt(pow(Esys_ratio_scale/xs_ratio_scale,2)+pow(Estat_ratio_projection_frac,2))*xs_ratio_scale;
+    // Convert fractional stat error to absolute stat error
+    double Estat_2g1p_projection_scale = Estat_2g1p_projection_frac*xs_2g1p_scale;
+    double Estat_2g0p_projection_scale = Estat_2g0p_projection_frac*xs_2g0p_scale;
+    double Estat_ratio_projection_scale = Estat_ratio_projection_frac*xs_ratio_scale;
 
-    // Similar procedure to project the two exclusive measurements' errors
-    double E_2g1p_projection_scale = sqrt(pow(Esys_2g1p_scale/xs_2g1p_scale,2)+pow(0.07530,2))*xs_2g1p_scale;
-    double Estat_2g1p_projection_scale = 0.07530*xs_2g1p_scale;
-    double E_2g0p_projection_scale = sqrt(pow(Esys_2g0p_scale/xs_2g0p_scale,2)+pow(0.08467,2))*xs_2g0p_scale;
-    double Estat_2g0p_projection_scale = 0.08467*xs_2g0p_scale;
-
+    std::cout<<"Estat_ratio_projection_scale: "<<Estat_ratio_projection_scale<<std::endl;
+    std::cout<<"E_ratio_projection_scale: "<<E_ratio_projection_scale<<std::endl;
 
     //******************* MC numbers **********************
     //                              ratio    1p      0p
