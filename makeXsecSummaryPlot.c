@@ -219,7 +219,7 @@ void makeXsecSummaryPlot(){
     l->Draw();
 
     TLegend *lb = new TLegend(0.45,0.55,0.85,0.85);
-    lb->AddEntry(Dat_MC,"GENIE v3.0.6 (G18_10a_02_11)","lf");
+    lb->AddEntry(Dat_MC,"GENIE v3.0.6 (G18_10a_02_11a)","lf");
     lb->AddEntry(Dat_genie2,"GENIE v2.12.10","l");
     lb->AddEntry(Dat_neut,"NEUT v5.4.0.1","l");
     lb->AddEntry(Dat_nuwro,"NuWro v19.02.1","l");
