@@ -1,5 +1,9 @@
 void makeXsecRatioPlot_withProjection(){
 
+    //----------------------------------------------------
+    //------------- XSEC NUMBERS -------------------------
+    //----------------------------------------------------
+
     //***************** 2g1p ***********************
     double xs_2g1p = 0.444e-38;
     double xs_2g1p_scale = xs_2g1p/1e-38;
@@ -15,7 +19,6 @@ void makeXsecRatioPlot_withProjection(){
 
     std::cout<<" XS for 2g1p "<<xs_2g1p_scale<<" +/- "<<E_2g1p_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
 
-    
     //***************** 2g0p ***********************
     double xs_2g0p = 0.624e-38; 
     double xs_2g0p_scale  = xs_2g0p/1e-38 ;
@@ -31,7 +34,6 @@ void makeXsecRatioPlot_withProjection(){
 
     std::cout<<" XS for 2g0p "<<xs_2g0p_scale<<" +/- "<<E_2g0p_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
 
-
     //***************** 2g1p/2g0p Ratio ***********************
     double xs_ratio = 0.710; 
     double xs_ratio_scale  = xs_ratio;
@@ -46,7 +48,6 @@ void makeXsecRatioPlot_withProjection(){
     double Esys_ratio_scale = Esys_ratio;
 
     std::cout<<" XS for ratio "<<xs_ratio_scale<<" +/- "<<E_ratio_scale<<" with "<<std::endl;
-
 
     // Projections of the stat and total errors with the full data set
     // Calculated by scaling the present 2g0p and 2g1p stat errors down by sqrt(1.78) (assuming 78% increase in analysis stats)
@@ -68,9 +69,6 @@ void makeXsecRatioPlot_withProjection(){
     double Estat_2g0p_projection_scale = Estat_2g0p_projection_frac*xs_2g0p_scale;
     double Estat_ratio_projection_scale = Estat_ratio_projection_frac*xs_ratio_scale;
 
-    std::cout<<"Estat_ratio_projection_scale: "<<Estat_ratio_projection_scale<<std::endl;
-    std::cout<<"E_ratio_projection_scale: "<<E_ratio_projection_scale<<std::endl;
-
     //******************* MC numbers **********************
     //                              ratio    1p      0p
     std::vector<double> xs_genie = {0.93248,0.722e-38,0.775e-38}; 
@@ -82,24 +80,28 @@ void makeXsecRatioPlot_withProjection(){
     std::vector<double> xs_genie2_scale = {0.72318/1.0033,0.72318,1.0033};
     std::vector<double> xs_neut_scale = {0.61092/0.76273,0.61092,0.76273};
     std::vector<double> xs_nuwro_scale = {0.58938/0.96381,0.58938,0.96381};
-    std::vector<double> xs_gibuu_scale = {0.73226/0.77836,0.73226,0.77836};
 
-    std::cout<<"NUIS: "<<(xs_gibuu_scale[0]-xs_genie_scale[0])/(xs_gibuu_scale[0])*100.0<<"\n";
-    std::cout<<"NUIS1p: "<<(xs_gibuu_scale[1]-xs_genie_scale[1])/(xs_gibuu_scale[1])*100.0<<"\n";
-    std::cout<<"NUIS0p: "<<(xs_gibuu_scale[2]-xs_genie_scale[2])/(xs_gibuu_scale[2])*100.0<<"\n";
-    // std::cout<<" XS for genie "<<xs_genie_scale<<" +/- "<<E_genie_scale<<" x 10^-38 cm^2/Atom "<<std::endl;
+    //----------------------------------------------------
+    //------------- PLOTTING BELOW ----------------------
+    //----------------------------------------------------
 
-
-
-    // ******************* Just Plotting Below****************8
-    TCanvas *c = new TCanvas();//"c","c",780,640);
-    c->cd();
+    TCanvas* c0 = new TCanvas("myCanvasName","The Canvas Title",800,600);
 
     gStyle->SetOptStat(0);
     gStyle->SetEndErrorSize(7);
-    //gStyle->SetErrorX(0.00001);
+    gStyle->SetLineStyleString(10,"80 15 25 15");
 
-    TH1D *Dat_ratio = new TH1D("dat","dat",300,0.0,1.0);
+    //----------------------------------------------------
+    //------------- LEFT PANEL
+    //----------------------------------------------------
+
+    TPad *pad1 = new TPad("pad1", "pad1",0.0,0.0,0.33,1.0);
+    pad1->SetLeftMargin(0.22);
+    pad1->SetRightMargin(0.05);
+    pad1->Draw();
+    pad1->cd();
+
+    TH1D *Dat_ratio = new TH1D("dat","dat",100,0.0,1.0);
     Dat_ratio->SetBinContent(45,xs_ratio_scale);
     Dat_ratio->SetBinError(45,E_ratio_scale); //15
     Dat_ratio->SetLineColor(kBlack);
@@ -108,13 +110,16 @@ void makeXsecRatioPlot_withProjection(){
     Dat_ratio->SetMarkerStyle(20);
 
     Dat_ratio->Draw("E1p");
-    Dat_ratio->SetMaximum(2.5);
-    Dat_ratio->SetMinimum(0);
-    //Dat_ratio->SetAxisRange(0.4,0.6,"X");
+    Dat_ratio->SetMaximum(1.75);
+    Dat_ratio->SetMinimum(0.25);
     Dat_ratio->SetTitle("");
-    Dat_ratio->GetYaxis()->SetTitle("#sigma_{NC 1 #pi^{0}} [10^{-38} cm^{2}/Atom]");
+    Dat_ratio->GetYaxis()->SetTitle("Ratio");
     Dat_ratio->GetYaxis()->SetTitleOffset(0.8);
-    Dat_ratio->GetYaxis()->SetTitleSize(0.05);
+    Dat_ratio->GetYaxis()->SetTitleSize(0.12);
+    Dat_ratio->GetYaxis()->SetLabelOffset(0.02);
+    Dat_ratio->GetYaxis()->SetLabelSize(0.07);
+    Dat_ratio->GetYaxis()->SetTickLength(0.06);
+    Dat_ratio->GetYaxis()->SetNdivisions(605,kTRUE);
     Dat_ratio->GetXaxis()->SetLabelOffset(999);
     Dat_ratio->GetXaxis()->SetLabelSize(0);
     Dat_ratio->GetXaxis()->SetTickLength(0.);
@@ -127,7 +132,7 @@ void makeXsecRatioPlot_withProjection(){
     //************
     // Projected full data set ratio data point/errors
 
-    TH1D *Dat_ratio_fullset = new TH1D("dat_full","dat_full",300,0.0,1.0);
+    TH1D *Dat_ratio_fullset = new TH1D("dat_full","dat_full",100,0.0,1.0);
     Dat_ratio_fullset->SetBinContent(55,xs_ratio_scale);
     Dat_ratio_fullset->SetBinError(55,E_ratio_projection_scale); //15
     Dat_ratio_fullset->SetLineColor(kBlue);
@@ -137,22 +142,103 @@ void makeXsecRatioPlot_withProjection(){
     Dat_ratio_fullset->DrawCopy("E1p same");
     
     Dat_ratio_fullset->SetBinError(55,Estat_ratio_projection_scale);
-    Dat_ratio_fullset->DrawClone("E1p same");
+    Dat_ratio_fullset->Draw("E1p same");
 
+    TH1D *Dat_MC_ratio = new TH1D("MC_ratio","MC_ratio",1,0.0,1.0);
+    TH1D *Dat_genie2_ratio = new TH1D("genie2_ratio","genie2_ratio",1,0.0,1.0);
+    TH1D *Dat_nuwro_ratio = new TH1D("nuwro_ratio","nuwro_ratio",1,0.0,1.0);
+    TH1D *Dat_neut_ratio = new TH1D("neut_ratio","neut_ratio",1,0.0,1.0);
+
+    for(int i=0; i< 1; i++){
+        Dat_MC_ratio->SetBinContent(i+1,xs_genie_scale[i]);
+        Dat_MC_ratio->SetBinError(i+1,E_genie_scale[i]); 
+        Dat_genie2_ratio->SetBinContent(i+1,xs_genie2_scale[i]);
+        Dat_neut_ratio->SetBinContent(i+1,xs_neut_scale[i]);
+        Dat_nuwro_ratio->SetBinContent(i+1,xs_nuwro_scale[i]);
+    }
+
+    Dat_MC_ratio->SetLineColor(kRed-7);
+    Dat_MC_ratio->SetLineWidth(4);
+    Dat_MC_ratio->DrawCopy("hist same");
+    TH1D * clone_Dat_MC_ratio = (TH1D*)Dat_MC_ratio->Clone("datmcratioclone");
+
+    Dat_MC_ratio->SetFillColor(kRed-7);
+    Dat_MC_ratio->SetFillStyle(3554);
+    Dat_MC_ratio->Draw("E2 same");
+    
+    clone_Dat_MC_ratio->DrawCopy("hist same");
+
+    Dat_genie2_ratio->SetLineColor(kOrange+1);
+    Dat_genie2_ratio->SetLineStyle(2);
+    Dat_genie2_ratio->SetLineWidth(3);
+    Dat_genie2_ratio->DrawCopy("hist same");
+
+    Dat_neut_ratio->SetLineColor(kBlue-7);
+    Dat_neut_ratio->SetLineStyle(9);
+    Dat_neut_ratio->SetLineWidth(3);
+    Dat_neut_ratio->DrawCopy("hist same");
+
+    //!! gStyle->SetLineStyleString(10,"80 15 25 15");
+
+    Dat_nuwro_ratio->SetLineColor(kGreen-3);
+    Dat_nuwro_ratio->SetLineStyle(10);
+    Dat_nuwro_ratio->SetLineWidth(3);
+    Dat_nuwro_ratio->DrawCopy("hist same");
 
     //************
 
+    // Legend to display ratio data point
+    TLegend *leg1 = new TLegend(0.33,0.12,0.85,0.2);
+    leg1->AddEntry(Dat_ratio,"#frac{#sigma_{NC 1 #pi^{0} + 1 p}}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
+    leg1->SetNColumns(1);
+    leg1->SetLineColor(kWhite);
+    leg1->SetLineWidth(0);
+    leg1->SetFillStyle(0);
+    leg1->Draw();
 
-    TH1D *Dat_MC = new TH1D("MC","MC",3,0.0,1.0);
+    // "MicroBooNE" label
+    TLatex latex;
+    latex.SetTextSize(0.1);
+    latex.SetTextAlign(13);  //align at top
+    latex.DrawLatex(.05,1.7,"MicroBooNE");
 
-    for(int i=0; i< xs_genie_scale.size(); i++){
-        Dat_MC->SetBinContent(i+1,xs_genie_scale[i]);
-        Dat_MC->SetBinError(i+1,E_genie_scale[i]); 
+    c0->cd();
+
+    //----------------------------------------------------
+    //------------- RIGHT PANELS
+    //----------------------------------------------------
+
+    TPad *pad2 = new TPad("pad2", "pad2",0.33,0.0,1.0,1.0);
+    pad2->SetLeftMargin(0.15);
+    pad2->Draw();
+    pad2->cd();
+
+    TH1D *Dat_MC = new TH1D("MC","MC",2,0.0,1.0);
+    TH1D *Dat_genie2 = new TH1D("genie2","genie2",2,0.0,1.0);
+    TH1D *Dat_nuwro = new TH1D("nuwro","nuwro",2,0.0,1.0);
+    TH1D *Dat_neut = new TH1D("neut","neut",2,0.0,1.0);
+
+    for(int i=1; i< xs_genie_scale.size(); i++){
+        Dat_MC->SetBinContent(i,xs_genie_scale[i]);
+        Dat_MC->SetBinError(i,E_genie_scale[i]); 
+        Dat_genie2->SetBinContent(i,xs_genie2_scale[i]);
+        Dat_neut->SetBinContent(i,xs_neut_scale[i]);
+        Dat_nuwro->SetBinContent(i,xs_nuwro_scale[i]);
     }
+
+    Dat_MC->SetMaximum(2.5);
+    Dat_MC->SetMinimum(0);
+    Dat_MC->SetTitle("");
+    Dat_MC->GetYaxis()->SetTitle("#sigma_{NC 1 #pi^{0}} [10^{-38} cm^{2}/Atom]");
+    Dat_MC->GetYaxis()->SetTitleOffset(1.2);
+    Dat_MC->GetYaxis()->SetTitleSize(0.05);
+    Dat_MC->GetXaxis()->SetLabelOffset(999);
+    Dat_MC->GetXaxis()->SetLabelSize(0);
+    Dat_MC->GetXaxis()->SetTickLength(0.);
 
     Dat_MC->SetLineColor(kRed-7);
     Dat_MC->SetLineWidth(4);
-    Dat_MC->DrawCopy("hist same");
+    Dat_MC->DrawCopy("hist");
     TH1D * clone_Dat_MC = (TH1D*)Dat_MC->Clone("datmcclone");
 
     Dat_MC->SetFillColor(kRed-7);
@@ -160,18 +246,6 @@ void makeXsecRatioPlot_withProjection(){
     Dat_MC->Draw("E2 same");
     
     clone_Dat_MC->DrawCopy("hist same");
-
-    TH1D *Dat_genie2 = new TH1D("genie2","genie2",3,0.0,1.0);
-    TH1D *Dat_nuwro = new TH1D("nuwro","nuwro",3,0.0,1.0);
-    TH1D *Dat_gibuu = new TH1D("gibuu","gibuu",3,0.0,1.0);
-    TH1D *Dat_neut = new TH1D("neut","neut",3,0.0,1.0);
-
-    for(int i=0; i< xs_genie_scale.size(); i++){
-        Dat_genie2->SetBinContent(i+1,xs_genie2_scale[i]);
-        Dat_neut->SetBinContent(i+1,xs_neut_scale[i]);
-        Dat_nuwro->SetBinContent(i+1,xs_nuwro_scale[i]);
-        Dat_gibuu->SetBinContent(i+1,xs_gibuu_scale[i]);
-    }
 
     Dat_genie2->SetLineColor(kOrange+1);
     Dat_genie2->SetLineStyle(2);
@@ -183,98 +257,74 @@ void makeXsecRatioPlot_withProjection(){
     Dat_neut->SetLineWidth(3);
     Dat_neut->DrawCopy("hist same");
 
-    gStyle->SetLineStyleString(10,"80 15 25 15");
-
     Dat_nuwro->SetLineColor(kGreen-3);
     Dat_nuwro->SetLineStyle(10);
     Dat_nuwro->SetLineWidth(3);
     Dat_nuwro->DrawCopy("hist same");
 
-    Dat_gibuu->SetLineColor(kMagenta);
-    Dat_gibuu->SetLineStyle(9);
-    Dat_gibuu->SetLineWidth(4);
-    //Dat_gibuu->DrawCopy("hist same");
-
     //************
 
-    TH1D *Dat_2g0p = new TH1D("dat2g0p","dat2g0p",300,0.0,1);
-    Dat_2g0p->SetBinContent(245,xs_2g0p_scale);
-    Dat_2g0p->SetBinError(245,E_2g0p_scale); //15
-    Dat_2g0p->SetLineColor(kBlack);//kBlue -7
-    Dat_2g0p->SetMarkerColor(kBlack);
-    Dat_2g0p->SetLineWidth(2);
-    Dat_2g0p->SetMarkerStyle(20);
-    Dat_2g0p->DrawCopy("E1p same");
-
-    Dat_2g0p->SetBinError(245,Estat_2g0p_scale);
-    Dat_2g0p->DrawClone("E1p same");
-
-    //************
-
-    TH1D *Dat_2g1p = new TH1D("dat2g1p","dat2g1p",300,0.0,1.0);
-    Dat_2g1p->SetBinContent(145,xs_2g1p_scale);
-    Dat_2g1p->SetBinError(145,E_2g1p_scale); //15
+    TH1D *Dat_2g1p = new TH1D("dat2g1p","dat2g1p",200,0.0,1.0);
+    Dat_2g1p->SetBinContent(45,xs_2g1p_scale);
+    Dat_2g1p->SetBinError(45,E_2g1p_scale); //15
     Dat_2g1p->SetLineColor(kBlack); //kGreen-3
     Dat_2g1p->SetMarkerColor(kBlack);
     Dat_2g1p->SetLineWidth(2);
     Dat_2g1p->SetMarkerStyle(20);
     Dat_2g1p->DrawCopy("E1p same");
 
-    Dat_2g1p->SetBinError(145,Estat_2g1p_scale);
+    Dat_2g1p->SetBinError(45,Estat_2g1p_scale);
     Dat_2g1p->Draw("E1p same");
 
     //************
 
-    TH1D *Dat_2g0p_fullset = new TH1D("dat2g0p_full","dat2g0p_full",300,0.0,1);
-    Dat_2g0p_fullset->SetBinContent(255,xs_2g0p_scale);
-    Dat_2g0p_fullset->SetBinError(255,E_2g0p_projection_scale);
-    Dat_2g0p_fullset->SetLineColor(kBlue);
-    Dat_2g0p_fullset->SetMarkerColor(kBlue);
-    Dat_2g0p_fullset->SetLineWidth(2);
-    Dat_2g0p_fullset->SetMarkerStyle(20);
-    Dat_2g0p_fullset->DrawCopy("E1p same");
+    TH1D *Dat_2g0p = new TH1D("dat2g0p","dat2g0p",200,0.0,1.0);
+    Dat_2g0p->SetBinContent(145,xs_2g0p_scale);
+    Dat_2g0p->SetBinError(145,E_2g0p_scale); //15
+    Dat_2g0p->SetLineColor(kBlack);//kBlue -7
+    Dat_2g0p->SetMarkerColor(kBlack);
+    Dat_2g0p->SetLineWidth(2);
+    Dat_2g0p->SetMarkerStyle(20);
+    Dat_2g0p->DrawCopy("E1p same");
 
-    Dat_2g0p_fullset->SetBinError(255,Estat_2g0p_projection_scale);
-    Dat_2g0p_fullset->DrawClone("E1p same");
+    Dat_2g0p->SetBinError(145,Estat_2g0p_scale);
+    Dat_2g0p->Draw("E1p same");
+
+    TLine *l1 = new TLine(1.0/2.0,0,1.0/2.0,2.5);
+    l1->SetLineColor(kBlack);
+    l1->SetLineWidth(3);
+    l1->Draw();
 
     //************
 
-    TH1D *Dat_2g1p_fullset = new TH1D("dat2g1p_full","dat2g1p_full",300,0.0,1.0);
-    Dat_2g1p_fullset->SetBinContent(155,xs_2g1p_scale);
-    Dat_2g1p_fullset->SetBinError(155,E_2g1p_projection_scale);
+    TH1D *Dat_2g1p_fullset = new TH1D("dat2g1p_full","dat2g1p_full",200,0.0,1.0);
+    Dat_2g1p_fullset->SetBinContent(55,xs_2g1p_scale);
+    Dat_2g1p_fullset->SetBinError(55,E_2g1p_projection_scale);
     Dat_2g1p_fullset->SetLineColor(kBlue);
     Dat_2g1p_fullset->SetMarkerColor(kBlue);
     Dat_2g1p_fullset->SetLineWidth(2);
     Dat_2g1p_fullset->SetMarkerStyle(20);
     Dat_2g1p_fullset->DrawCopy("E1p same");
 
-    Dat_2g1p_fullset->SetBinError(155,Estat_2g1p_projection_scale);
+    Dat_2g1p_fullset->SetBinError(55,Estat_2g1p_projection_scale);
     Dat_2g1p_fullset->Draw("E1p same");
 
     //************
 
-    TLine *l1 = new TLine(1.0/3.0,0,1.0/3.0,2.5);
-    TLine *l2 = new TLine(2.0/3.0,0,2.0/3.0,2.5);
-    l1->SetLineColor(kBlack);
-    l1->SetLineWidth(3);
-    l2->SetLineColor(kBlack);
-    l2->SetLineWidth(3);
-    l1->Draw();
-    l2->Draw();
+    TH1D *Dat_2g0p_fullset = new TH1D("dat2g0p_full","dat2g0p_full",200,0.0,1);
+    Dat_2g0p_fullset->SetBinContent(155,xs_2g0p_scale);
+    Dat_2g0p_fullset->SetBinError(155,E_2g0p_projection_scale);
+    Dat_2g0p_fullset->SetLineColor(kBlue);
+    Dat_2g0p_fullset->SetMarkerColor(kBlue);
+    Dat_2g0p_fullset->SetLineWidth(2);
+    Dat_2g0p_fullset->SetMarkerStyle(20);
+    Dat_2g0p_fullset->DrawCopy("E1p same");
 
-    // Legend to display ratio data point
-    //TLegend *leg1 = new TLegend(0.13,0.06,0.4,0.23);
-    TLegend *leg1 = new TLegend(0.13,0.13,0.4,0.18);
-    leg1->AddEntry(Dat_ratio,"#frac{#sigma_{NC 1 #pi^{0} + 1 p}}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
-    leg1->SetNColumns(1);
-    leg1->SetLineColor(kWhite);
-    leg1->SetLineWidth(0);
-    leg1->SetFillStyle(0);
-    leg1->Draw();
+    Dat_2g0p_fullset->SetBinError(155,Estat_2g0p_projection_scale);
+    Dat_2g0p_fullset->Draw("E1p same");
 
     // Legend to display exclusive measurement data points
-    TLegend *leg2 = new TLegend(0.365,0.06,0.9,0.23);
-    //TLegend *leg2 = new TLegend(0.365,0.1,0.89,0.2);
+    TLegend *leg2 = new TLegend(0.15,0.06,0.885,0.23);
     leg2->AddEntry(Dat_2g1p,"#splitline{Exclusive}{NC 1 #pi^{0} + 1 proton}","lp");
     leg2->AddEntry(Dat_2g0p,"#splitline{Exclusive}{NC 1 #pi^{0} + 0 proton}","lp");
     leg2->SetNColumns(2);
@@ -283,26 +333,24 @@ void makeXsecRatioPlot_withProjection(){
     leg2->SetFillStyle(0);
     leg2->Draw();
 
-    TLegend *lb = new TLegend(0.45,0.45,0.85,0.85);
+    TLegend *lb = new TLegend(0.2,0.55,0.85,0.85);
     lb->AddEntry(Dat_ratio, "Runs 1-3", "ep");
     lb->AddEntry(Dat_ratio_fullset, "Runs 1-5 (projected)", "ep");
     lb->AddEntry(Dat_MC,"GENIE v3.0.6 (G18_10a_02_11)","lf");
     lb->AddEntry(Dat_genie2,"GENIE v2.12.10","l");
     lb->AddEntry(Dat_neut,"NEUT v5.4.0.1","l");
     lb->AddEntry(Dat_nuwro,"NuWro v19.02.1","l");
-    //lb->AddEntry(Dat_gibuu,"NUISENCE Genie v3","l");
     lb->SetNColumns(1);
     lb->SetLineColor(kBlack);
     lb->Draw();
 
-    // "MicroBooNE" label
-    TLatex latex;
-    latex.SetTextSize(0.05);
-    latex.SetTextAlign(13);  //align at top
-    latex.DrawLatex(.05,2.45,"MicroBooNE");
+    c0->Draw();
+
+    //----------------------------------------------------
+    //------------- WRITE OUT PLOT 
+    //----------------------------------------------------
 
     // Save plot as image
-    c->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/xsec_ratio_panels_withProjection.pdf","pdf");
-
+    c0->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/xsec_ratio_panels_withProjection.pdf","pdf");
 
 }
