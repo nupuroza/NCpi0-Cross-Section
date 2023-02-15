@@ -189,7 +189,7 @@ void makeXsecRatioPlot_withProjection(){
 
     // Legend to display ratio data point
     TLegend *leg1 = new TLegend(0.33,0.12,0.85,0.2);
-    leg1->AddEntry(Dat_ratio,"#frac{#sigma_{NC 1 #pi^{0} + 1 p}}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
+    leg1->AddEntry(Dat_ratio,"#frac{#sigma_{NC 1 #pi^{0} + 1 proton}}{#sigma_{NC 1 #pi^{0} + 0 proton}}","lp");
     leg1->SetNColumns(1);
     leg1->SetLineColor(kWhite);
     leg1->SetLineWidth(0);

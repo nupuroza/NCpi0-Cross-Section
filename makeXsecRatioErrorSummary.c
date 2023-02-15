@@ -114,9 +114,9 @@ void makeXsecRatioErrorSummary(){
 //    l->Draw();
 
     // Legend to display ratio data point
-    TLegend *leg1 = new TLegend(0.13,0.03,0.4,0.07);
+    TLegend *leg1 = new TLegend(0.08,0.03,0.4,0.07);
     //TLegend *l = new TLegend(0.10,0.00,0.89,0.10);
-    leg1->AddEntry(tHist_dummy,"#frac{#sigma_{NC 1 #pi^{0} + 1 p}}{#sigma_{NC 1 #pi^{0} + 0 p}}","lp");
+    leg1->AddEntry(tHist_dummy,"#frac{#sigma_{NC 1 #pi^{0} + 1 proton}}{#sigma_{NC 1 #pi^{0} + 0 proton}}","lp");
     leg1->SetNColumns(1);
     leg1->SetLineColor(kWhite);
     leg1->SetLineWidth(0);
