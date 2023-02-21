@@ -72,34 +72,6 @@ void makeXsecRatioPlot(){
     pad1->Draw();
     pad1->cd();
 
-    TH1D *Dat_ratio = new TH1D("dat","dat",100,0.0,1.0);
-    Dat_ratio->SetBinContent(51,xs_ratio_scale);
-    Dat_ratio->SetBinError(51,E_ratio_scale); //15
-    Dat_ratio->SetLineColor(kBlack);
-    Dat_ratio->SetMarkerColor(kBlack);
-    Dat_ratio->SetLineWidth(2);
-    Dat_ratio->SetMarkerStyle(20);
-
-    Dat_ratio->Draw("E1p");
-    Dat_ratio->SetMaximum(1.75);
-    Dat_ratio->SetMinimum(0.25);
-    Dat_ratio->SetTitle("");
-    Dat_ratio->GetYaxis()->SetTitle("Ratio");
-    Dat_ratio->GetYaxis()->SetTitleOffset(0.8);
-    Dat_ratio->GetYaxis()->SetTitleSize(0.12);
-    Dat_ratio->GetYaxis()->SetLabelOffset(0.02);
-    Dat_ratio->GetYaxis()->SetLabelSize(0.07);
-    Dat_ratio->GetYaxis()->SetTickLength(0.06);
-    Dat_ratio->GetYaxis()->SetNdivisions(605,kTRUE);
-    Dat_ratio->GetXaxis()->SetLabelOffset(999);
-    Dat_ratio->GetXaxis()->SetLabelSize(0);
-    Dat_ratio->GetXaxis()->SetTickLength(0.);
-
-    Dat_ratio->DrawCopy("E1p same");
-
-    Dat_ratio->SetBinError(51,Estat_ratio_scale);
-    Dat_ratio->Draw("E1p same");
-
     TH1D *Dat_MC_ratio = new TH1D("MC_ratio","MC_ratio",1,0.0,1.0);
     TH1D *Dat_genie2_ratio = new TH1D("genie2_ratio","genie2_ratio",1,0.0,1.0);
     TH1D *Dat_nuwro_ratio = new TH1D("nuwro_ratio","nuwro_ratio",1,0.0,1.0);
@@ -113,9 +85,23 @@ void makeXsecRatioPlot(){
         Dat_nuwro_ratio->SetBinContent(i+1,xs_nuwro_scale[i]);
     }
 
+    Dat_MC_ratio->SetMaximum(1.75);
+    Dat_MC_ratio->SetMinimum(0.25);
+    Dat_MC_ratio->SetTitle("");
+    Dat_MC_ratio->GetYaxis()->SetTitle("Ratio");
+    Dat_MC_ratio->GetYaxis()->SetTitleOffset(0.8);
+    Dat_MC_ratio->GetYaxis()->SetTitleSize(0.12);
+    Dat_MC_ratio->GetYaxis()->SetLabelOffset(0.02);
+    Dat_MC_ratio->GetYaxis()->SetLabelSize(0.07);
+    Dat_MC_ratio->GetYaxis()->SetTickLength(0.06);
+    Dat_MC_ratio->GetYaxis()->SetNdivisions(605,kTRUE);
+    Dat_MC_ratio->GetXaxis()->SetLabelOffset(999);
+    Dat_MC_ratio->GetXaxis()->SetLabelSize(0);
+    Dat_MC_ratio->GetXaxis()->SetTickLength(0.);
+
     Dat_MC_ratio->SetLineColor(kRed-7);
     Dat_MC_ratio->SetLineWidth(4);
-    Dat_MC_ratio->DrawCopy("hist same");
+    Dat_MC_ratio->DrawCopy("hist");
     TH1D * clone_Dat_MC_ratio = (TH1D*)Dat_MC_ratio->Clone("datmcratioclone");
 
     Dat_MC_ratio->SetFillColor(kRed-7);
@@ -140,6 +126,20 @@ void makeXsecRatioPlot(){
     Dat_nuwro_ratio->SetLineStyle(10);
     Dat_nuwro_ratio->SetLineWidth(3);
     Dat_nuwro_ratio->DrawCopy("hist same");
+
+    //************
+
+    TH1D *Dat_ratio = new TH1D("dat","dat",100,0.0,1.0);
+    Dat_ratio->SetBinContent(51,xs_ratio_scale);
+    Dat_ratio->SetBinError(51,E_ratio_scale); //15
+    Dat_ratio->SetLineColor(kBlack);
+    Dat_ratio->SetMarkerColor(kBlack);
+    Dat_ratio->SetLineWidth(2);
+    Dat_ratio->SetMarkerStyle(20);
+    Dat_ratio->DrawCopy("E1p same");
+
+    Dat_ratio->SetBinError(51,Estat_ratio_scale);
+    Dat_ratio->Draw("E1p same");
 
     //************
 
