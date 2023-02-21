@@ -1,15 +1,13 @@
-### Script to take make plots, etc.
+### Script to calculate chi2 using functionality of the MINERvA Analysis Toolkit
 ### using the MINERvA Analysis Toolkit
 
 import ROOT
 import datetime as dt
 import argparse
-import os
 import numpy
 from array import *
 
 from plottingClasses import *
-from errorMaps import *
 
 ## Set ROOT to batch mode
 ROOT.gROOT.SetBatch()
@@ -20,49 +18,38 @@ ROOT.TH1.AddDirectory(False)
 ## Setup MnvPlotter, which has all of the plotting utilities
 plotter = ROOT.PlotUtils.MnvPlotter()
 
-## Manually override default error summary groups
-plotter.error_summary_group_map.clear()
-for group in error_bands:
-  for error in error_bands[group]:
-    plotter.error_summary_group_map[group].push_back(error)
-plotter.SetLegendNColumns(2)
-
 plotter.SetROOT6Palette(54) # I think this needs to be done again after instantiating MnvPlotter, because I guess MnvPlotter sets the palette as well
 ROOT.gStyle.SetNumberContours(200)
 
 #############################################################################################################
 ### File Management #########################################################################################
 #############################################################################################################
-parser = argparse.ArgumentParser(description='Script to make cross-section plots using the MINERvA Analysis Toolkit')
-parser.add_argument('in_dir', help='Path to input directory', type=str,nargs='?')
-parser.add_argument('in_date', help='Creation date of input file (yyyy-mm-dd). Defaults to a file dated today if it exists', type=str,nargs='?')
+
+parser = argparse.ArgumentParser(description='Script to calculate chi2 using the MINERvA Analysis Toolkit')
+parser.add_argument('in_file', help='Path to input file', type=str,nargs='?')
+parser.add_argument('out_dir', help='Path to ouput directory', type=str)
 p = parser.parse_args()
 
-## If in_dir is not provided, exit
-if p.in_dir < 0:
-  print "ERROR: Input directory argument not provided"
+## If in_file is not provided, exit
+if p.in_file < 0:
+  print "ERROR: Input file argument not provided"
   parser.print_help()
   exit(1)
 
-## If in_date is not provided, search file created today
-if p.in_date < 0:
-  histFileLocation = p.in_dir+"/{0}_out.root".format(dt.date.today())
-  if not os.path.exists(histFileLocation):
-    print "ERROR: An input ROOT file created today does not exist. Specify input date argument"
-    parser.print_help()
-    exit(1)
-  else:
-    print "This is the input file I'm opening: {0}".format(histFileLocation)
-    histFile = ROOT.TFile(histFileLocation)
-else: 
-  histFileLocation = p.in_dir+"/"+p.in_date+"_out.root"
-  if not os.path.exists(histFileLocation):
-    print "ERROR: An input ROOT file created on "+p.in_date+" does not exist"
-    parser.print_help()
-    exit(1)
-  else:
-    print "This is the input file I'm opening: {0}".format(histFileLocation)
-    histFile = ROOT.TFile(histFileLocation)  
+histFile = ROOT.TFile(p.in_file)
+
+## If output_dir is not provided, exit
+if p.out_dir < 0:
+  print "ERROR: Output directory argument not provided"
+  parser.print_help()
+  exit(1)
+
+## Create output directory if it doesn't exist
+if not os.path.isdir(p.out_dir):
+  print "Making output directory {0}".format(p.out_dir)
+  os.system( "mkdir %s" % p.out_dir )
+
+plotDir = p.out_dir
 
 #############################################################################################################
 ### Calculate Data/GENIE Chi2 ###############################################################################
@@ -216,7 +203,7 @@ for generator in ["genieV2","neut","nuwro","gibuu"]:
 ### Draw Covariance Matrices ################################################################################
 #############################################################################################################
 
-with makeEnv_TCanvas("covarianceMatrix_exclusive_xsecs_data.png") as canvas:
+with makeEnv_TCanvas("{0}/covarianceMatrix_exclusive_xsecs_data.png".format(plotDir)) as canvas:
   mHist_exclusive_xsecs_data_scaled = mHist_exclusive_xsecs_data.Clone("mHist_exclusive_xsecs_data_scaled")
   mHist_exclusive_xsecs_data_scaled.Scale(1e38)
   tmp_matrix = mHist_exclusive_xsecs_data_scaled.GetTotalErrorMatrix(True,False,False)
@@ -224,7 +211,7 @@ with makeEnv_TCanvas("covarianceMatrix_exclusive_xsecs_data.png") as canvas:
   tmp_hist.GetZaxis().SetRangeUser(0,0.05)
   tmp_hist.Draw("colzTEXT")
 
-with makeEnv_TCanvas("covarianceMatrix_exclusive_xsecs_mc.png") as canvas:
+with makeEnv_TCanvas("{0}/covarianceMatrix_exclusive_xsecs_mc.png".format(plotDir)) as canvas:
   mHist_exclusive_xsecs_mc_scaled = mHist_exclusive_xsecs_mc.Clone("mHist_exclusive_xsecs_mc_scaled")
   mHist_exclusive_xsecs_mc_scaled.Scale(1e38)
   tmp_matrix = mHist_exclusive_xsecs_mc_scaled.GetTotalErrorMatrix(True,False,False)
@@ -235,13 +222,13 @@ with makeEnv_TCanvas("covarianceMatrix_exclusive_xsecs_mc.png") as canvas:
 ## Correlation matrices should use a different color palette
 plotter.SetROOT6Palette(87)
 
-with makeEnv_TCanvas("correlationMatrix_exclusive_xsecs_data.png") as canvas:
+with makeEnv_TCanvas("{0}/correlationMatrix_exclusive_xsecs_data.png".format(plotDir)) as canvas:
   tmp_matrix = mHist_exclusive_xsecs_data.GetTotalCorrelationMatrix(True,True)
   tmp_hist = ROOT.TH2D(tmp_matrix)
   tmp_hist.GetZaxis().SetRangeUser(-1.0,1.0)
   tmp_hist.Draw("colzTEXT")
 
-with makeEnv_TCanvas("correlationMatrix_exclusive_xsecs_mc.png") as canvas:
+with makeEnv_TCanvas("{0}/correlationMatrix_exclusive_xsecs_mc.png".format(plotDir)) as canvas:
   tmp_matrix = mHist_exclusive_xsecs_mc.GetTotalCorrelationMatrix(True,True)
   tmp_hist = ROOT.TH2D(tmp_matrix)
   tmp_hist.GetZaxis().SetRangeUser(-1.0,1.0)
