@@ -15,7 +15,7 @@ ROOT.TH1.AddDirectory(False)
 #############################################################################################################
 
 ## Data
-dataFilePath = "/uboone/app/users/noza/gLEE/NCPi0NuWroProcessing/sbnfit/data_V2_CV.SBNspec.root"
+dataFilePath = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g1p_v3_d22_23_CV.SBNspec.root"
 dataFile = ROOT.TFile(dataFilePath)
 
 ## NuWro fake data
@@ -23,20 +23,20 @@ dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_S
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2gnp_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
+inFilePath_2gnp_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Inclusive_2g1p.root" ## placeholder
 inFile_2gnp_inclusive = ROOT.TFile(inFilePath_2gnp_inclusive)
 
-inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
+inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Inclusive_2g1p.root"
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/NCPi0_Combined_NextGen_SBNfit_variation_spectra_Flux_XS_G4_v3.root" 
+inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Inclusive_2g0p.root"
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
-#inFilePath_2g1p_exclusive = 
-#inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
+inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Exclusive_2g1p.root"
+inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
-#inFilePath_2g0p_exclusive = 
-#inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
+inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Exclusive_2g0p.root"
+inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
 # File with detector systematics
 #detectorFilePath_2g1p_inclusive = 
