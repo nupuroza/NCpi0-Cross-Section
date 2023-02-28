@@ -15,8 +15,11 @@ ROOT.TH1.AddDirectory(False)
 #############################################################################################################
 
 ## Data
-dataFilePath = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g1p_v3_d22_23_CV.SBNspec.root"
-dataFile = ROOT.TFile(dataFilePath)
+dataFilePath_2g1p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g1p_v3_d22_23_CV.SBNspec.root"
+dataFile_2g1p = ROOT.TFile(dataFilePath_2g1p)
+
+dataFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g0p_v3_d22_23_CV.SBNspec.root"
+dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 
 ## NuWro fake data
 dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_OCt2022/NuWro_Oct2022_CV.SBNspec.root"
@@ -62,13 +65,13 @@ if not os.path.isdir(p.output_dir):
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
 
-
 #############################################################################################################
 ### Create Reference Hist ###################################################################################
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-histToBeCloned_true = inFile_2g1p_inclusive.Get("Sys_CV_Dir/Sel2g1p_numerator_truth_Bkgd")
+## Doesn't really matter which hist is used for this, as long as it has the correct binning
+histToBeCloned_true = inFile_2g1p_inclusive.Get("Inclusive_2g1p_CV_Dir/Inc2g1p_numerator_truth_Bkgd")
 referenceHist_true = histToBeCloned_true.Clone("referenceHist_true")
 referenceHist_true.SetTitle("")
 nBins_true = referenceHist_true.GetNbinsX()
@@ -76,7 +79,8 @@ for i in range(1,nBins_true+1):
   referenceHist_true.SetBinContent(i,-999.)
   referenceHist_true.SetBinError(i,0.)
 
-histToBeCloned_reco = inFile_2g1p_inclusive.Get("Sys_CV_Dir/Sel2g1p_numerator_reco_Bkgd")
+## Creat a distinct reco space reference hist, as reco and true may have different binnings
+histToBeCloned_reco = inFile_2g1p_inclusive.Get("Inclusive_2g1p_CV_Dir/Inc2g1p_numerator_reco_Bkgd")
 referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
 nBins_reco = referenceHist_reco.GetNbinsX()
 
@@ -140,12 +144,15 @@ DETECTOR_SYSTS = [
   ["WireYZ","minmax", nMinMaxUniverses]
 ]
 '''
+G4_SYSTS = []
+'''
 G4_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
   ["reinteractions_piminus_Geant4","universe",nMultiverses],
   ["reinteractions_piplus_Geant4","universe",nMultiverses],
   ["reinteractions_proton_Geant4","universe",nMultiverses]
 ]
+'''
  
 OTHER_SYSTS = [
   ## [syst_name,universe_prefix,n_universes]
@@ -338,7 +345,7 @@ for sigDef in ["2g1p","2g0p"]:
   if is_fake_data:
     exec("tHist_data_selected_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
   else:
-    exec("tHist_data_selected_{0} = dataFile.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
+    exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
 
 ## Add together 2g1p and 2g0p hists to form 2gnp data hist
 tHist_data_selected_2gnp = tHist_data_selected_2g0p.Clone("tHist_data_selected_2gnp")
@@ -366,17 +373,16 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
 ### Assemble xsec component MnvHnDs for 2g1p, 2g0p ##########################################################
 #############################################################################################################
 
-#for sigDef in ["2g1p","2g0p"]:
-for sigDef in ["2g1p"]:  
-  #for sigDefexcl in ['inclusive', 'exclusive']:
-  for sigDefexcl in ['inclusive']:
+for sigDef in ["2g1p","2g0p"]:
+  for sigDefexcl,syntax1,syntax2 in [("inclusive","Inclusive","Inc"), ("exclusive","Exclusive","Exc")]:
+
     #############################################################################################################
     ### Construct Efficiency Denominator MnvH1D #################################################################
     #############################################################################################################
 
     ## CV
     # Pull out the TH1D
-    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"Sys_CV_Dir/Sel{0}_denominator_truth_Signal\")".format(sigDef,sigDefexcl))
+    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"{2}_{0}_CV_Dir/{3}{0}_denominator_truth_Signal\")".format(sigDef,sigDefexcl,syntax1,syntax2))
     # Copy this into an MnvH1D (no systs yet)
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
@@ -392,14 +398,16 @@ for sigDef in ["2g1p"]:
       # Loop over universes in this category of systematic
       for i in range(nUniverses):
         # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"Sys_{2}_Dir/Sel{0}_denominator_truth_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
+        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"{6}_{0}_{2}_Dir/{7}{0}_denominator_truth_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1,syntax1,syntax2))
         # Pull out content of relevant bin
         for j in range(1,nBins_true+1):
           exec("binVal = tHist_effDenom_{0}_{1}_{2}_{3}.GetBinContent(j)".format(sigDef,sigDefexcl,systName,i)) 
           # Populate corresponding hist in error band with bin content
           exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(systName).GetHist(i).SetBinContent(j,binVal)".format(sigDef,sigDefexcl))
 
-
+    ########
+    ## TODO: Is G4 really supposed to be in this category? And not the above?
+    ########
     ## Loop over detector, GEANT4, and other systematics
     for systName,universePrefix,nUniverses in DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
 
@@ -416,9 +424,10 @@ for sigDef in ["2g1p"]:
 
     ### This is the actual CV
     #########################
+
     for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background","Bkgd","reco",nBins_reco)]:
 
-      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"Sys_CV_Dir/Sel{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label))
+      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"{5}_{1}_CV_Dir/{6}{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label,syntax1,syntax2))
   
       ## Pull out the value and save as a scalar
       ## This is the actual CV in this bin for the analysis
@@ -434,14 +443,17 @@ for sigDef in ["2g1p"]:
   
       ## Loop over cross section and flux systematics
       for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + G4_SYSTS:
-  
+ 
+        ## DEBUG
+        print("systName: {0}".format(systName))
+ 
         # Create the appropriate error band in the MnvH1D
         exec("mHist_{0}_{1}_{2}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(histCat,sigDef,sigDefexcl))
   
         # Loop over universes in this category of systematic
         for i in range(nUniverses):
           # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-          exec("tHist_{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"Sys_{2}_Dir/Sel{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label))
+          exec("tHist_{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"{9}_{1}_{2}_Dir/{10}{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label,syntax1,syntax2))
           # Pull out content of relevant bin
           for j in range(1,nBins+1):
             exec("binVal = tHist_{0}_{1}_{2}_{3}.GetBinContent(j)".format(histCat,sigDef,systName,i))
@@ -484,7 +496,7 @@ for sigDef in ["2g1p"]:
 #############################################################################################################
 ### Derive xsec component MnvHnDs for 2gnp ##################################################################
 #############################################################################################################
-'''
+
 for histCat in ["effNum","background"]:
 
   exec("mHist_{0}_2gnp_inclusive = mHist_{0}_2g0p_inclusive.Clone(\"{0}_2gnp_inclusive\")".format(histCat))
@@ -497,15 +509,13 @@ for histCat in ["effNum","background"]:
 mHist_effDenom_2gnp_inclusive = mHist_effDenom_2g1p_inclusive.Clone("effDenom_2gnp_inclusive")
 
 writeHist(mHist_effDenom_2gnp_inclusive,outFile)
-'''
+
 #############################################################################################################
 ### Loop over 2g1p, 2g0p, 2gnp ##############################################################################
 #############################################################################################################
 
-#for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDef in ["2g1p"]:
-  #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["inclusive"]:
+for sigDef in ["2g1p","2g0p","2gnp"]:
+  for sigDefexcl in ["inclusive","exclusive"]:
 
     #############################################################################################################
     ### Calculate Things ########################################################################################
@@ -558,26 +568,26 @@ for sigDef in ["2g1p"]:
 ### Response Matrix #########################################################################################
 #############################################################################################################
 
-responsePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/NCPi0_2g1p_Response_v2.root" 
-response_2g1p_inclusive = ROOT.TFile(responsePath_2g1p_inclusive)
+responsePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/response_2g1p_exclusive_v3_d22_23.root"
+response_2g1p_exclusive = ROOT.TFile(responsePath_2g1p_exclusive)
 '''
-responsePath_2g0p_inclusive =
+responsePath_2g0p_exclusive =
 response_2g0p_inclusive = ROOT.TFile(responsePath_2g0p_inclusive)
 
 responsePath_2gnp_inclusive =
 response_2gnp_inclusive = ROOT.TFile(responsePath_2gnp_inclusive)
 
-responsePath_2g1p_exclusive =
+responsePath_2g1p_inclusive =
 response_2g1p_exclusive = ROOT.TFile(responsePath_2g1p_exclusive)
 
-responsePath_2g0p_exclusive =
+responsePath_2g0p_inclusive =
 response_2g0p_exclusive = ROOT.TFile(responsePath_2g0p_exclusive)
 '''
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
 for sigDef in ["2g1p"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["inclusive"]:
+  for sigDefexcl in ["exclusive"]:
 
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue 
