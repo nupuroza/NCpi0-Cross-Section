@@ -26,19 +26,19 @@ dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_S
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2gnp_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Inclusive_2g1p.root" ## placeholder
+inFilePath_2gnp_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2gnp_inclusive = ROOT.TFile(inFilePath_2gnp_inclusive)
 
-inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Inclusive_2g1p.root"
+inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root"
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Inclusive_2g0p.root"
+inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root"
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
-inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Exclusive_2g1p.root"
+inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
-inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_Exclusive_2g0p.root"
+inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
 inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
 # File with detector systematics
@@ -71,7 +71,7 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 
 ## Create reference Hist that will be a template for whatever input binning is being used
 ## Doesn't really matter which hist is used for this, as long as it has the correct binning
-histToBeCloned_true = inFile_2g1p_inclusive.Get("Inclusive_2g1p_CV_Dir/Inc2g1p_numerator_truth_Bkgd")
+histToBeCloned_true = inFile_2g1p_inclusive.Get("inclusive_2g1p_CV_Dir/Sys2g1p_numerator_truth_Signal")
 referenceHist_true = histToBeCloned_true.Clone("referenceHist_true")
 referenceHist_true.SetTitle("")
 nBins_true = referenceHist_true.GetNbinsX()
@@ -80,7 +80,7 @@ for i in range(1,nBins_true+1):
   referenceHist_true.SetBinError(i,0.)
 
 ## Creat a distinct reco space reference hist, as reco and true may have different binnings
-histToBeCloned_reco = inFile_2g1p_inclusive.Get("Inclusive_2g1p_CV_Dir/Inc2g1p_numerator_reco_Bkgd")
+histToBeCloned_reco = inFile_2g1p_inclusive.Get("inclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal")
 referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
 nBins_reco = referenceHist_reco.GetNbinsX()
 
@@ -374,7 +374,7 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
 #############################################################################################################
 
 for sigDef in ["2g1p","2g0p"]:
-  for sigDefexcl,syntax1,syntax2 in [("inclusive","Inclusive","Inc"), ("exclusive","Exclusive","Exc")]:
+  for sigDefexcl in ["inclusive","exclusive"]:
 
     #############################################################################################################
     ### Construct Efficiency Denominator MnvH1D #################################################################
@@ -382,7 +382,7 @@ for sigDef in ["2g1p","2g0p"]:
 
     ## CV
     # Pull out the TH1D
-    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"{2}_{0}_CV_Dir/{3}{0}_denominator_truth_Signal\")".format(sigDef,sigDefexcl,syntax1,syntax2))
+    exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"{1}_{0}_CV_Dir/Sys{0}_denominator_truth_Signal\")".format(sigDef,sigDefexcl))
     # Copy this into an MnvH1D (no systs yet)
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
     # Rename new hist object
@@ -398,7 +398,7 @@ for sigDef in ["2g1p","2g0p"]:
       # Loop over universes in this category of systematic
       for i in range(nUniverses):
         # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"{6}_{0}_{2}_Dir/{7}{0}_denominator_truth_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1,syntax1,syntax2))
+        exec("tHist_effDenom_{0}_{1}_{2}_{3} = inFile_{0}_{1}.Get(\"{1}_{0}_{2}_Dir/Sys{0}_denominator_truth_{4}_{5}_Signal\")".format(sigDef,sigDefexcl,systName,i,universePrefix,i+1))
         # Pull out content of relevant bin
         for j in range(1,nBins_true+1):
           exec("binVal = tHist_effDenom_{0}_{1}_{2}_{3}.GetBinContent(j)".format(sigDef,sigDefexcl,systName,i)) 
@@ -427,7 +427,7 @@ for sigDef in ["2g1p","2g0p"]:
 
     for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background","Bkgd","reco",nBins_reco)]:
 
-      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"{5}_{1}_CV_Dir/{6}{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label,syntax1,syntax2))
+      exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"{2}_{1}_CV_Dir/Sys{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label))
   
       ## Pull out the value and save as a scalar
       ## This is the actual CV in this bin for the analysis
@@ -453,7 +453,7 @@ for sigDef in ["2g1p","2g0p"]:
         # Loop over universes in this category of systematic
         for i in range(nUniverses):
           # Pull out the relevant TH1D and map from TH1D universe numbering (starting at 1) to MnvH1D universe number (starting at 0)
-          exec("tHist_{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"{9}_{1}_{2}_Dir/{10}{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label,syntax1,syntax2))
+          exec("tHist_{0}_{1}_{2}_{3} = inFile_{1}_{4}.Get(\"{4}_{1}_{2}_Dir/Sys{1}_numerator_{5}_{6}_{7}_{8}\")".format(histCat,sigDef,systName,i,sigDefexcl,truereco,universePrefix,i+1,label))
           # Pull out content of relevant bin
           for j in range(1,nBins+1):
             exec("binVal = tHist_{0}_{1}_{2}_{3}.GetBinContent(j)".format(histCat,sigDef,systName,i))
