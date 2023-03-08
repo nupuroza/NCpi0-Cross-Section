@@ -28,11 +28,14 @@ void example_unfolding_gLEE_inputs() {
   // Specify input file; clone to ouput file
   // -----------------------------------------------------
 
-  TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-01-26_unfolding-investigation/2023-01-26_out_unfolded.root","READ");
-  TFile* file_in2 = new TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/NCPi0_2g1p_Response_v2.root","READ");
-  file_in->Cp("/uboone/data/users/finer/gLEE/NCPi0/2023-02_unfolding-work/output_example_unfolding_gLEE-inputs.root");
+  //TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-01-26_unfolding-investigation/2023-01-26_out_unfolded.root","READ");
+  TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/2023-03-01_out.root","READ");
+  //TFile* file_in2 = new TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/NCPi0_2g1p_Response_v2.root","READ");
+  //TFile* file_in2 = new TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/response_2g1p_exclusive_v3_d22_23.root","READ");
+  TFile* file_in2 = new TFile("response_2g1p_exclusive_v3_d22_23.root","READ");
+  file_in->Cp("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/output_example_unfolding_gLEE-inputs.root");
   file_in->Close();
-  TFile* file_out = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-02_unfolding-work/output_example_unfolding_gLEE-inputs.root","UPDATE");
+  TFile* file_out = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/output_example_unfolding_gLEE-inputs.root","UPDATE");
 
   // -----------------------------------------------------
   // Get inputs for unfolding sorted out
