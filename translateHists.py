@@ -518,7 +518,7 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
   for sigDefexcl in ["inclusive","exclusive"]:
 
     #############################################################################################################
-    ### Calculate Things ########################################################################################
+    ### Calculate efficiency and MC xsec ########################################################################
     #############################################################################################################
     
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
@@ -538,21 +538,11 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
 
       exec("writeHist(mHist_evtRate_{0}_{1},outFile)".format(sigDef,sigDefexcl))
       
-      ## Cross Section calculation now performed in calculateXsection.py
-      '''
-      ## Cross section calculation
-      exec("mHist_xSection_{0}_{1} = mHist_evtRate_{0}_{1}.Clone(\"xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_nTargets)".format(sigDef,sigDefexcl))
-  
-      exec("writeHist(mHist_xSection_{0}_{1},outFile)".format(sigDef,sigDefexcl))
-      '''
-      ## MC signal prediction
+      ## Data cross section extraction is performed in calculateXsection.py because unfolding needs to be performed first
+
+      ## MC cross section can be calculated now, however
       exec("mHist_xSection_mc_{0}_{1} = mHist_effNum_{0}_{1}.Clone(\"xSection_mc_{0}_{1}\")".format(sigDef,sigDefexcl))
-      ## We don't want to subtract off the background prediction because 
-      ## the MC signal doesn't include backgrounds
+      ## We don't want to subtract off the background prediction because the MC signal doesn't include backgrounds
       exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
       exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
       exec("mHist_xSection_mc_{0}_{1}.Divide(mHist_xSection_mc_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT

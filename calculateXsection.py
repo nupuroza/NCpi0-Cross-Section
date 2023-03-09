@@ -38,19 +38,31 @@ outFile = ROOT.TFile(outFilePath, "UPDATE")
 ### Cross section calculation ###############################################################################
 #############################################################################################################
 
-mHist_evtRate_2g1p_inclusive_unfolded = outFile.Get("unfolded_evtRate_2g1p_inclusive")
-mHist_eff_2g1p_inclusive = outFile.Get("eff_2g1p_inclusive")
+## Get xsec ingredients that are common to all calculations
 mHist_flux_integral = outFile.Get("integratedFlux")
-mHist_POT_2g1p = outFile.Get("POT_2g1p")
 mHist_nTargets = outFile.Get("nTargets")
 
-## Cross section calculation
-mHist_xSection_2g1p_inclusive_unfolded = mHist_evtRate_2g1p_inclusive_unfolded.Clone("unfolded_xSection_2g1p_inclusive")
-mHist_xSection_2g1p_inclusive_unfolded.Divide(mHist_xSection_2g1p_inclusive_unfolded,mHist_eff_2g1p_inclusive)
-mHist_xSection_2g1p_inclusive_unfolded.Divide(mHist_xSection_2g1p_inclusive_unfolded,mHist_flux_integral)
-mHist_xSection_2g1p_inclusive_unfolded.Divide(mHist_xSection_2g1p_inclusive_unfolded,mHist_POT_2g1p)# Remove units of per POT
-mHist_xSection_2g1p_inclusive_unfolded.Divide(mHist_xSection_2g1p_inclusive_unfolded,mHist_nTargets)
+for sigDef in ["2g1p","2g0p","2gnp"]:
+  for sigDefexcl in ["inclusive","exclusive"]:
 
-writeHist(mHist_xSection_2g1p_inclusive_unfolded,outFile)
+    if sigDef == "2gnp" and sigDefexcl == "exclusive":
+      continue
+    
+    else:
+      
+      ## Get xsec ingredients that are unique to this sigDef/sigDefexcl
+      exec("mHist_POT_{0} = outFile.Get(\"POT_{0}\")".format(sigDef))
+      exec("mHist_evtRate_unfolded_{0}_{1} = outFile.Get(\"unfolded_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_eff_{0}_{1} = outFile.Get(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
+
+      ## Calculate cross section
+      exec("mHist_xSection_{0}_{1} = mHist_evtRate_unfolded_{0}_{1}.Clone(\"xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT
+      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_nTargets)".format(sigDef,sigDefexcl))
+
+      ## Write xsec to output file
+      exec("writeHist(mHist_xSection_{0}_{1},outFile)")
 
 outFile.Close()
