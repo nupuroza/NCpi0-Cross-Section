@@ -4,7 +4,7 @@
 import ROOT
 import datetime as dt
 import argparse
-from plottingClasses import *
+from customHistAndPlotMethods import makeEnv_TCanvas,localDrawErrorSummary
 from errorMaps import *
 #from errorMaps_gLEE_GENIE_breakout import *
 #from errorMaps_gLEE_Detector_breakout import *
