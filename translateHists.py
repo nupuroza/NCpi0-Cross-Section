@@ -555,39 +555,6 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
       
 #############################################################################################################
-### Response Matrix #########################################################################################
-#############################################################################################################
-
-responsePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/response_2g1p_exclusive_v3_d22_23.root"
-response_2g1p_exclusive = ROOT.TFile(responsePath_2g1p_exclusive)
-'''
-responsePath_2g0p_exclusive =
-response_2g0p_inclusive = ROOT.TFile(responsePath_2g0p_inclusive)
-
-responsePath_2gnp_inclusive =
-response_2gnp_inclusive = ROOT.TFile(responsePath_2gnp_inclusive)
-
-responsePath_2g1p_inclusive =
-response_2g1p_exclusive = ROOT.TFile(responsePath_2g1p_exclusive)
-
-responsePath_2g0p_inclusive =
-response_2g0p_exclusive = ROOT.TFile(responsePath_2g0p_exclusive)
-'''
-
-#for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDef in ["2g1p"]:
-  #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["exclusive"]:
-
-    if sigDef == "2gnp" and sigDefexcl == "exclusive":
-      continue 
-
-    else:
-      exec("tHist2D_response_{0}_{1} = response_{0}_{1}.Get(\"Response\")".format(sigDef,sigDefexcl))
-      exec("tHist2D_response_{0}_{1}.SetName(\"response_{0}_{1}\")".format(sigDef,sigDefexcl))
-      exec("writeHist(tHist2D_response_{0}_{1}, outFile)".format(sigDef,sigDefexcl))
-
-#############################################################################################################
 ### Close output file; other business #######################################################################
 #############################################################################################################
 outFile.Close()

@@ -40,10 +40,39 @@ void unfold(std::string filePath_in)
   TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
   file_in->Cp((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str());
   file_in->Close();
-  TFile* file_out = new TFile((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str(),"UPDATE");
  
   // -----------------------------------------------------
-  // Pull unfolding ingredients out of input file
+  // Pull in response matrix from response matrix file
+  // -----------------------------------------------------
+
+  // Navigate to response matrix file in same directory as input hist file
+  std::size_t last_slash_pos = filePath_in.find_last_of("/");
+  std::string fileDir = filePath_in.substr(0,last_slash_pos);
+  TFile* file_in_response = new TFile((fileDir+"/response_2g1p_exclusive_v3_d22_23.root").c_str(),"READ");
+ 
+  // Copy all contents of response matrix file to output file 
+  TFile* file_out = new TFile((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str(),"UPDATE");
+  file_in_response->cd();
+  TList* keys = gDirectory->GetListOfKeys();
+
+  for(int i=0; i<keys->GetEntries(); i++){
+    TKey* key = (TKey*)keys->At(i);
+    TObject* obj = key->ReadObj();
+    file_out->cd();
+    obj->Write();
+  }
+  
+  file_out->Close();
+  file_in_response->Close();
+
+  // -----------------------------------------------------
+  // Everything needed can now be pulled from file_out
+  // -----------------------------------------------------
+
+  //TFile* file_out = new TFile((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str(),"UPDATE");
+
+  // -----------------------------------------------------
+  // Pull requisite unfolding ingredients from file
   // -----------------------------------------------------
 
   // Pull out measured signal MnvH1D from input file
@@ -51,12 +80,14 @@ void unfold(std::string filePath_in)
   TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
   // Extract covariance 
   TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
-  // Pull out response matrix from input file
-  TH2D* tHist2D_response = (TH2D*)file_out->Get(("response_"+sigDef).c_str());
   // Pull out predicted signal MnvH1D from input file //needs to be in true space; it's a reference true space
   PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get(("effDenom_"+sigDef).c_str());  
   TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
- 
+
+  // Pull out response matrix 
+  TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get("response_matrix");
+  //TH1D* tHist_prior_true_signal = (TH1D*)file_out->Get("htrue");
+
   // -----------------------------------------------------
   // Handle underflow/overflow bins and make sure all
   // inputs are self-consistent 
@@ -101,7 +132,7 @@ void unfold(std::string filePath_in)
   // Convert inputs into TMatrixD
   TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
   TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
-  TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, false, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
+  //TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, false, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
   //TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
 
   // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
@@ -129,8 +160,8 @@ void unfold(std::string filePath_in)
   Int_t cov_final_cols = tMat_data_covmat_final.GetNcols();
   std::cout << "cov_final_rows: " << cov_final_rows << "\t" << "cov_final_cols: " << cov_final_cols << std::endl;
 
-  Int_t smearcept_rows = tMat_smearcept.GetNrows();
-  Int_t smearcept_cols = tMat_smearcept.GetNcols();
+  Int_t smearcept_rows = tMat_smearcept->GetNrows();
+  Int_t smearcept_cols = tMat_smearcept->GetNcols();
   std::cout << "smearcept_rows: " << smearcept_rows << "\t" << "smearcept_cols: " << smearcept_cols << std::endl;
 
   Int_t mc_rows = tMat_prior_true_signal.GetNrows();
@@ -154,7 +185,7 @@ void unfold(std::string filePath_in)
   //*//UnfoldedMeasurement result = unfolder.unfold( tMat_data_signal, tMat_data_covmat,
   //*//  *tMat_smearcept, tMat_prior_true_signal );
   UnfoldedMeasurement result = unfolder.unfold( tMat_data_signal, tMat_data_covmat_final,
-    tMat_smearcept, tMat_prior_true_signal );
+    *tMat_smearcept, tMat_prior_true_signal );
 
   // -----------------------------------------------------
   // Extract output from Unfolder; write to output file 
@@ -215,8 +246,6 @@ void unfold(std::string filePath_in)
   tHist2D_unfolded_covariance.Write();
   tHist2D_covariance.SetName("cov_evtRate_2g1p_inclusive");
   tHist2D_covariance.Write();
-
-  tMat_smearcept.Write("responseMatrix_postUnfoldingScript");
 
   //file_out->Close();
   return;
