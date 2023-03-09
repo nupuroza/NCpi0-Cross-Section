@@ -14,7 +14,7 @@ TTree* loadgLEE(std::string filename, std::string int_dir){
 }
 
 // Method that creates response matrix to be used in 1D NCpi0 xsec extraction
-void ResponseMaker(){
+void ResponseMaker(std::string outDir){
 
     // -----------------------------------------------------
     // Interface with gLEE tuple 
@@ -123,7 +123,7 @@ void ResponseMaker(){
     // -----------------------------------------------------
 
     // Create output file
-    TFile *fout = new TFile("response_2g1p_exclusive_v3_d22_23.root","RECREATE");
+    TFile *fout = new TFile((outDir+"/response_2g1p_exclusive_v3_d22_23.root").c_str(),"RECREATE");
     fout->cd();
 
     // Write out response matrix TH2D
