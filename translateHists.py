@@ -66,7 +66,7 @@ outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
 
 #############################################################################################################
-### Create Reference Hist ###################################################################################
+### Create Reference Hists ##################################################################################
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
@@ -79,7 +79,7 @@ for i in range(1,nBins_true+1):
   referenceHist_true.SetBinContent(i,-999.)
   referenceHist_true.SetBinError(i,0.)
 
-## Creat a distinct reco space reference hist, as reco and true may have different binnings
+## Create a distinct reco space reference hist, as reco and true may have different binnings
 histToBeCloned_reco = inFile_2g1p_inclusive.Get("inclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal")
 referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
 nBins_reco = referenceHist_reco.GetNbinsX()
