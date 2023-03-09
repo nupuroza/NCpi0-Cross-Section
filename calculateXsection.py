@@ -1,57 +1,42 @@
 ## Script to take unfolded signal and output from translateHists.py perform the cross-section calculation
 
 import ROOT
-import datetime as dt
 import argparse
 import os
-from array import *
+from customHistAndPlotMethods import writeHist
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
 
-def writeHist(hist,outFile):
-  outFile.cd()
-  print 'Writing {0} to output file'.format(hist.GetName())
-  hist.Write()
-
+#############################################################################################################
 ### File Management #########################################################################################
 #############################################################################################################
+
 parser = argparse.ArgumentParser(description='Script to take unfolded signal and output from translateHists.py perform the cross-section calculation')
-parser.add_argument('in_dir', help='Path to input directory', type=str,nargs='?')
-parser.add_argument('in_date', help='Creation date of input file (yyyy-mm-dd). Defaults to a file dated today if it exists', type=str,nargs='?')
+parser.add_argument('in_file', help='Path to input file', type=str,nargs='?')
 p = parser.parse_args()
 
-## If in_dir is not provided, exit
-if p.in_dir < 0:
-  print "ERROR: Input directory argument not provided"
+## If in_file is not provided, exit
+if p.in_file < 0:
+  print "ERROR: Input file argument not provided"
   parser.print_help()
   exit(1)
 
-## If in_date is not provided, search file created today
-if p.in_date < 0:
-  inFile_Location = p.in_dir+"/{0}_out_unfolded.root".format(dt.date.today())
-  if not os.path.exists(inFile_Location):
-    print "ERROR: An input ROOT file created today does not exist. Specify input date argument"
-    parser.print_help()
-    exit(1)
-  else:
-    print "This is the input file I'm opening: {0}".format(inFile_Location)
-    inFile = ROOT.TFile(inFile_Location)
-else: 
-  inFile_Location = p.in_dir+"/"+p.in_date+"_out_unfolded.root"
-  if not os.path.exists(inFile_Location):
-    print "ERROR: An input ROOT file created on "+p.in_date+" does not exist"
-    parser.print_help()
-    exit(1)
-  else:
-    print "This is the input file I'm opening: {0}".format(inFile_Location)
-    inFile = ROOT.TFile(inFile_Location)
+inFilePath = p.in_file
+inFile = ROOT.TFile(inFilePath)
 
-## Set arguments
-outFile_Location = p.in_dir+"/{0}_out_final.root".format(dt.date.today())
-inFile.Cp(outFile_Location)
+outFileDir = os.path.dirname(inFilePath)
+fileBaseName,fileExtension = os.path.splitext(os.path.basename(inFilePath))
+outFilePath = "{0}/{1}_xsec-extracted{2}".format(outFileDir,fileBaseName,fileExtension)
+
+inFile.Cp(outFilePath)
 inFile.Close()
-outFile = ROOT.TFile(outFile_Location, "UPDATE")
+
+outFile = ROOT.TFile(outFilePath, "UPDATE")
+
+#############################################################################################################
+### Cross section calculation ###############################################################################
+#############################################################################################################
 
 mHist_evtRate_2g1p_inclusive_unfolded = outFile.Get("unfolded_evtRate_2g1p_inclusive")
 mHist_eff_2g1p_inclusive = outFile.Get("eff_2g1p_inclusive")
