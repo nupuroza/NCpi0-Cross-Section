@@ -20,12 +20,19 @@ void ResponseMaker(std::string outDir){
     // Interface with gLEE tuple 
     // -----------------------------------------------------
 
-    TTree * v = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_Run13_v50.0.root","singlephoton");
+    // This would change for 2g0p (or we'd have an all-inclusive file)
+    //TTree * v = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_Run13_v50.0.root","singlephoton");
+    // New input file that should ensure closure
+    TTree * v = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
 
     std::cout<<v->GetEntries()<<std::endl;
     //v->Scan("reco_asso_showers:rceo_asso_tracks:simple_2g1p_NextGen_v4COSMIC_mva:simple_2g1p_NextGen_v4BNB_mva");
 
-    // Prescription for evaluating reco cuts
+    // Prescription for calculating reconstructed pion momentum
+    // In hive framework, this variable is aliased as "reco_pion_momentum"
+    // Pmom_pi = sqrt(Ppix^2+Ppiy^2+Ppiz^2);
+    // Ppix = Pgamma1_x+Pgamma2_x;
+    // Pgamma_x = energy*dir_x;
     std::string reco_var =
     "sqrt(\
       ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirx[(i_shr[1])] )\
@@ -37,8 +44,8 @@ void ResponseMaker(std::string outDir){
       ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirz[(i_shr[1])] )\
      *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirz[(i_shr[1])] )\
     )/1000";
-
-    // Prescription for evaluating truth cuts
+ 
+    // Prescription for calculating truth pion momentum (this is already stored in a branch)
     std::string true_var = "mctruth_exiting_pi0_mom";
 
     TTreeFormula * reco_form = new TTreeFormula("recof",reco_var.c_str(), v);
@@ -47,14 +54,19 @@ void ResponseMaker(std::string outDir){
     // Prescription for calculating event weight
     std::string additional_weight=
     "(\
-      (simple_pot_weight*6.7873e20/4.8979173e21)\
+      (simple_pot_weight*6.7873e20/4.9669582e+21)\
      *(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20)\
      *(MCFlux_NuPosX > (0.0-1.55) && MCFlux_NuPosX < (256.35-1.55) && MCFlux_NuPosY > (-116.5+0.97) && MCFlux_NuPosY < (116.5+0.97) && MCFlux_NuPosZ > 0.0+0.1 && MCFlux_NuPosZ < 1036.8+0.1)\
      *(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)>0)\
-     *((run_number >= 4952 && run_number <= 7770)*0.246534/0.52438480+!(run_number >= 4952 && run_number <= 7770)*0.753466/0.47561520)\
+     *((run_number >= 4952 && run_number <= 7770)*0.943100+(( run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number     <= 18960))*1.020139)\
     )";
+    // *((run_number >= 4952 && run_number <= 7770)*0.9431+!(run_number >= 4952 && run_number <= 7770)*1.020139)\
 
+    // Prescription for determining which events pass selection cuts
+    // This would change for 2g0p
     TTreeFormula * pass_form = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v);
+
+    // Prescription for normalizing selection and implementing some cuts
     TTreeFormula * norm_form = new TTreeFormula("norm",(additional_weight).c_str(), v);
 
     // -----------------------------------------------------
@@ -70,8 +82,8 @@ void ResponseMaker(std::string outDir){
     TH1D * hreco = new TH1D("hreco","hreco",reco_bins.size()-1, &reco_bins[0]);
     TH2D * resp = new TH2D("Response","Response",reco_bins.size()-1, &reco_bins[0], true_bins.size()-1, &true_bins[0]);
 
-    // Create response TMatrix
-    TMatrixD mat(reco_bins.size()-1,true_bins.size()-1);
+    // Create response TMatrix (large enough to include underflow/underflow from corresponding TH2D)
+    TMatrixD mat(reco_bins.size()+1,true_bins.size()+1);
     mat.Zero();
 
     // Loop through event tree; fill htrue, hreco, and response hists
@@ -79,6 +91,7 @@ void ResponseMaker(std::string outDir){
 
         v->GetEntry(i);
 
+        // Technically not necessary, but Mark says that this avoids some inconsistent obscure ROOT bug
         reco_form->GetNdata();
         true_form->GetNdata();
         pass_form->GetNdata();
@@ -105,14 +118,15 @@ void ResponseMaker(std::string outDir){
     }
     std::cout << "Finished main loop; constructed htrue, hreco, and response hists." << std::endl;
 
-    for(int i=0;i< hreco->GetNbinsX()+1; i++){
-        for(int a=0; a<htrue->GetNbinsX()+1; a++){
+    for(int i=0;i< hreco->GetNbinsX()+2; i++){ // Both loops need to go to nbins+1 to capture the overflow
+        for(int a=0; a<htrue->GetNbinsX()+2; a++){
          
             double eff = resp->GetBinContent(i,a)/htrue->GetBinContent(a);
-            resp->SetBinContent(i,a, eff);
-            if(i>0 && a>0 && i < hreco->GetNbinsX()+1 && a< htrue->GetNbinsX()+1){
-                mat(i-1,a-1) = resp->GetBinContent(i,a); //this is just overflow and underflow
-            }
+            resp->SetBinContent(i,a, eff); // Resets content of Response TH2D so there is consistency
+            mat(i,a) = resp->GetBinContent(i,a); 
+            //if(i>0 && a>0 && i < hreco->GetNbinsX()+1 && a< htrue->GetNbinsX()+1){
+            //    mat(i-1,a-1) = resp->GetBinContent(i,a); //this is just overflow and underflow
+            //}
 
         }
     }
