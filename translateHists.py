@@ -35,7 +35,7 @@ inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root"
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
-inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
+inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root" ## new processing should ensure closure
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
 inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
@@ -48,8 +48,8 @@ inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 ## Output file
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
 parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
-parser.add_argument('test',help='Run in test mode using smaller number of syst universes (faster)',type=str,nargs='?')
-parser.add_argument('fakedata',help='Run with fake data',type=str,nargs='?')
+parser.add_argument('--test',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
+parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
 p = parser.parse_args()
 
 ## If output_dir is not provided, exit
