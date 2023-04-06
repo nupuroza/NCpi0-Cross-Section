@@ -19,7 +19,7 @@ const RMT MY_REGULARIZATION = RMT::kIdentity;
 //const RMT MY_REGULARIZATION = RMT::kFirstDeriv;
 //const RMT MY_REGULARIZATION = RMT::kSecondDeriv;
 
-std::string unfolding_spec = "kIdentity";
+std::string unfolding_spec = "kIdentity_true";
 std::string sigDef = "2g1p_exclusive";
 
 // -----------------------------------------------------
@@ -48,7 +48,7 @@ void unfold(std::string filePath_in)
   // Navigate to response matrix file in same directory as input hist file
   std::size_t last_slash_pos = filePath_in.find_last_of("/");
   std::string fileDir = filePath_in.substr(0,last_slash_pos);
-  TFile* file_in_response = new TFile((fileDir+"/response_2g1p_exclusive_v3_d22_23.root").c_str(),"READ");
+  TFile* file_in_response = new TFile((fileDir+"/response_"+sigDef+"_v3_d22_23.root").c_str(),"READ");
  
   // Copy all contents of response matrix file to output file 
   TFile* file_out = new TFile((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str(),"UPDATE");
@@ -58,25 +58,31 @@ void unfold(std::string filePath_in)
   for(int i=0; i<keys->GetEntries(); i++){
     TKey* key = (TKey*)keys->At(i);
     TObject* obj = key->ReadObj();
-    file_out->cd();
-    obj->Write();
+    // This is a bit kludgy, and won't work if there is more than one TMatrix in the response matrix file
+    // But if the object to copy is a TMatrix, we need to be more explicit about its name, or it won't get
+    // copied over.
+    if (TString(obj->ClassName()) == "TMatrixT<double>") {
+      file_out->cd();
+      obj->Write("response_matrix");
+    }
+    else{
+      file_out->cd();
+      obj->Write();
+    }
   }
   
-  file_out->Close();
+  // We don't need this file open any more
   file_in_response->Close();
 
-  // -----------------------------------------------------
   // Everything needed can now be pulled from file_out
   // -----------------------------------------------------
-
-  //TFile* file_out = new TFile((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str(),"UPDATE");
 
   // -----------------------------------------------------
   // Pull requisite unfolding ingredients from file
   // -----------------------------------------------------
 
   // Pull out measured signal MnvH1D from input file
-  PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get(("evtRate_"+sigDef).c_str());
+  PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get(("evtRate_"+sigDef).c_str()); 
   TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
   // Extract covariance 
   TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
@@ -140,6 +146,7 @@ void unfold(std::string filePath_in)
   Int_t lowerBound = include_underflow_reco ? 0 : 1;
   Int_t upperBound = include_overflow_reco ? nBins_reco+1 : nBins_reco;
   TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
+  TMatrixD tMat_smearcept_final = tMat_smearcept->GetSub(lowerBound, upperBound, lowerBound, upperBound);   
 
   // Print out number of rows and columns in each input matrix
 
@@ -160,9 +167,11 @@ void unfold(std::string filePath_in)
   Int_t cov_final_cols = tMat_data_covmat_final.GetNcols();
   std::cout << "cov_final_rows: " << cov_final_rows << "\t" << "cov_final_cols: " << cov_final_cols << std::endl;
 
-  Int_t smearcept_rows = tMat_smearcept->GetNrows();
-  Int_t smearcept_cols = tMat_smearcept->GetNcols();
+  Int_t smearcept_rows = tMat_smearcept_final.GetNrows();
+  Int_t smearcept_cols = tMat_smearcept_final.GetNcols();
   std::cout << "smearcept_rows: " << smearcept_rows << "\t" << "smearcept_cols: " << smearcept_cols << std::endl;
+  std::cout << "tMat_smearcept_final.Print(): " << std::endl;
+  //tMat_smearcept_final.Print();
 
   Int_t mc_rows = tMat_prior_true_signal.GetNrows();
   Int_t mc_cols = tMat_prior_true_signal.GetNcols();
@@ -173,19 +182,17 @@ void unfold(std::string filePath_in)
   // -----------------------------------------------------
 
   // Instantiate an object derived from the Unfolder base class
-  //WienerSVDUnfolder unfolder( true, MY_REGULARIZATION );
+  WienerSVDUnfolder unfolder( true, MY_REGULARIZATION );
   //WienerSVDUnfolder unfolder( false, MY_REGULARIZATION );
 
   //DAgostiniUnfolder unfolder( NUM_ITERATIONS );
-  DAgostiniUnfolder unfolder( 1 );
+  //DAgostiniUnfolder unfolder( 1 );
 
   //DAgostiniUnfolder unfolder( DCC:FigureOfMerit, 0.025 );
 
   // Perform the unfolding
-  //*//UnfoldedMeasurement result = unfolder.unfold( tMat_data_signal, tMat_data_covmat,
-  //*//  *tMat_smearcept, tMat_prior_true_signal );
   UnfoldedMeasurement result = unfolder.unfold( tMat_data_signal, tMat_data_covmat_final,
-    *tMat_smearcept, tMat_prior_true_signal );
+    tMat_smearcept_final, tMat_prior_true_signal );
 
   // -----------------------------------------------------
   // Extract output from Unfolder; write to output file 
@@ -240,11 +247,11 @@ void unfold(std::string filePath_in)
   // Write unfolded results to output file
   // -----------------------------------------------------
 
-  mHist_data_signal_unfolded.SetName("unfolded_evtRate_2g1p_inclusive");
+  mHist_data_signal_unfolded.SetName(("unfolded_evtRate_"+sigDef).c_str());
   mHist_data_signal_unfolded.Write();   
-  tHist2D_unfolded_covariance.SetName("unfolded_cov_evtRate_2g1p_inclusive");
+  tHist2D_unfolded_covariance.SetName(("unfolded_cov_evtRate_"+sigDef).c_str());
   tHist2D_unfolded_covariance.Write();
-  tHist2D_covariance.SetName("cov_evtRate_2g1p_inclusive");
+  tHist2D_covariance.SetName(("cov_evtRate_"+sigDef).c_str());
   tHist2D_covariance.Write();
 
   //file_out->Close();
