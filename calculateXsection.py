@@ -42,8 +42,10 @@ outFile = ROOT.TFile(outFilePath, "UPDATE")
 mHist_flux_integral = outFile.Get("integratedFlux")
 mHist_nTargets = outFile.Get("nTargets")
 
-for sigDef in ["2g1p","2g0p","2gnp"]:
-  for sigDefexcl in ["inclusive","exclusive"]:
+#for sigDef in ["2g1p","2g0p","2gnp"]:
+for sigDef in ["2g1p"]:
+  #for sigDefexcl in ["inclusive","exclusive"]:
+  for sigDefexcl in ["exclusive"]:
 
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue
@@ -52,17 +54,18 @@ for sigDef in ["2g1p","2g0p","2gnp"]:
       
       ## Get xsec ingredients that are unique to this sigDef/sigDefexcl
       exec("mHist_POT_{0} = outFile.Get(\"POT_{0}\")".format(sigDef))
-      exec("mHist_evtRate_unfolded_{0}_{1} = outFile.Get(\"unfolded_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("tHist_evtRate_unfolded_{0}_{1} = outFile.Get(\"unfolded_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
+      exec("mHist_evtRate_unfolded_{0}_{1} = ROOT.MnvH1D(tHist_evtRate_unfolded_{0}_{1})".format(sigDef,sigDefexcl))
       exec("mHist_eff_{0}_{1} = outFile.Get(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
 
       ## Calculate cross section
-      exec("mHist_xSection_{0}_{1} = mHist_evtRate_unfolded_{0}_{1}.Clone(\"xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_eff_{0}_{1})".format(sigDef,sigDefexcl))
+      exec("mHist_xSection_{0}_{1} = mHist_evtRate_unfolded_{0}_{1}.Clone(\"unfolded_xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
+      ## The efficiency should *not* be divided out here because it is already corrected for in the unfolding through the smearcept matrix
       exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
       exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT
       exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_nTargets)".format(sigDef,sigDefexcl))
 
       ## Write xsec to output file
-      exec("writeHist(mHist_xSection_{0}_{1},outFile)")
+      exec("writeHist(mHist_xSection_{0}_{1},outFile)".format(sigDef,sigDefexcl))
 
 outFile.Close()
