@@ -4,6 +4,7 @@
 import ROOT
 import datetime as dt
 import argparse
+import os
 from customHistAndPlotMethods import makeEnv_TCanvas,localDrawErrorSummary
 from errorMaps import *
 #from errorMaps_gLEE_GENIE_breakout import *
@@ -55,40 +56,23 @@ FLUX_SYSTS = [
 ### File Management #########################################################################################
 #############################################################################################################
 parser = argparse.ArgumentParser(description='Script to make cross-section plots using the MINERvA Analysis Toolkit')
-parser.add_argument('in_dir', help='Path to input directory', type=str,nargs='?')
-parser.add_argument('in_date', help='Creation date of input file (yyyy-mm-dd). Defaults to a file dated today if it exists', type=str,nargs='?')
+parser.add_argument('in_file', help='Path to input file', type=str,nargs='?')
 parser.add_argument('out_dir', help='Path to output directory. Defaults to input directory', type=str,nargs='?')
 p = parser.parse_args()
 
-## If in_dir is not provided, exit
-if p.in_dir < 0:
+## If in_file is not provided, exit
+if p.in_file < 0:
   print "ERROR: Input directory argument not provided"
   parser.print_help()
   exit(1)
 
-## If in_date is not provided, search file created today
-if p.in_date < 0:
-  histFileLocation = p.in_dir+"/{0}_out_final.root".format(dt.date.today())
-  if not os.path.exists(histFileLocation):
-    print "ERROR: An input ROOT file created today does not exist. Specify input date argument"
-    parser.print_help()
-    exit(1)
-  else:
-    print "This is the input file I'm opening: {0}".format(histFileLocation)
-    histFile = ROOT.TFile(histFileLocation)
-else: 
-  histFileLocation = p.in_dir+"/"+p.in_date+"_out_final.root"
-  if not os.path.exists(histFileLocation):
-    print "ERROR: An input ROOT file created on "+p.in_date+" does not exist"
-    parser.print_help()
-    exit(1)
-  else:
-    print "This is the input file I'm opening: {0}".format(histFileLocation)
-    histFile = ROOT.TFile(histFileLocation)  
+histFilePath = p.in_file
+histFile = ROOT.TFile(histFilePath)
 
 ## If out_dir is not provided, default to using in_dir
 if p.out_dir < 0:
-  plotDir = p.in_dir+"/{0}_xsec-plots".format(dt.date.today())
+  outFileDir = os.path.dirname(histFilePath)
+  plotDir = outFileDir+"/{0}_xsec-plots".format(dt.date.today())
 else:
   ## Create p.out_dir if it doesn't exist
   if not os.path.isdir(p.out_dir):
