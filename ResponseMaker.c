@@ -57,7 +57,7 @@ void ResponseMaker(std::string outDir){
       (simple_pot_weight*6.7873e20/4.9669582e+21)\
      *(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20)\
      *(MCFlux_NuPosX > (0.0-1.55) && MCFlux_NuPosX < (256.35-1.55) && MCFlux_NuPosY > (-116.5+0.97) && MCFlux_NuPosY < (116.5+0.97) && MCFlux_NuPosZ > 0.0+0.1 && MCFlux_NuPosZ < 1036.8+0.1)\
-     *(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)>0)\
+     *(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)\
      *((run_number >= 4952 && run_number <= 7770)*0.943100+(( run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number     <= 18960))*1.020139)\
     )";
     // *((run_number >= 4952 && run_number <= 7770)*0.9431+!(run_number >= 4952 && run_number <= 7770)*1.020139)\
