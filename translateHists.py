@@ -22,7 +22,7 @@ dataFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMe
 dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 
 ## NuWro fake data
-dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_OCt2022/NuWro_Oct2022_CV.SBNspec.root"
+dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_CV.SBNspec.root"
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
