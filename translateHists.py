@@ -29,13 +29,13 @@ dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 inFilePath_2gnp_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2gnp_inclusive = ROOT.TFile(inFilePath_2gnp_inclusive)
 
-inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root"
+inFilePath_2g1p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root"
+inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
-inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root" ## new processing should ensure closure
+inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
 inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
