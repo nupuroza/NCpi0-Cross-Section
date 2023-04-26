@@ -29,13 +29,15 @@ void example_unfolding_gLEE_inputs() {
   // -----------------------------------------------------
 
   //TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-01-26_unfolding-investigation/2023-01-26_out_unfolded.root","READ");
-  TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/2023-03-01_out.root","READ");
+  //TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/2023-03-01_out.root","READ");
+  TFile* file_in = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-14_should-close-now/2023-03-14_out.root","READ");
   //TFile* file_in2 = new TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/NCPi0_2g1p_Response_v2.root","READ");
   //TFile* file_in2 = new TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/ResponseMaker/response_2g1p_exclusive_v3_d22_23.root","READ");
-  TFile* file_in2 = new TFile("response_2g1p_exclusive_v3_d22_23.root","READ");
-  file_in->Cp("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/output_example_unfolding_gLEE-inputs.root");
+  //TFile* file_in2 = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/response_2g1p_exclusive_weightFix.root","READ");
+  TFile* file_in2 = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-14_should-close-now/response_2g1p_exclusive_weightFix.root","READ");
+  file_in->Cp("/uboone/data/users/finer/gLEE/NCPi0/2023-03-14_should-close-now/output_example_unfolding_gLEE-inputs.root");
   file_in->Close();
-  TFile* file_out = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-01_updated-inputs/output_example_unfolding_gLEE-inputs.root","UPDATE");
+  TFile* file_out = new TFile("/uboone/data/users/finer/gLEE/NCPi0/2023-03-14_should-close-now/output_example_unfolding_gLEE-inputs.root","UPDATE");
 
   // -----------------------------------------------------
   // Get inputs for unfolding sorted out
@@ -70,6 +72,7 @@ void example_unfolding_gLEE_inputs() {
   // Pull out response matrix and prior_true_signal from Mark's file
   TMatrixD* tMat_smearcept = (TMatrixD*)file_in2->Get("response_matrix");
   TH1D* tHist_prior_true_signal = (TH1D*)file_in2->Get("htrue");
+  TH1D* tHist_hreco_from_script = (TH1D*)file_in2->Get("hreco");
 
   // Convert prior_true_signal into TMatrixD
   TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(*tHist_prior_true_signal, false, false);
@@ -137,6 +140,8 @@ void example_unfolding_gLEE_inputs() {
   tHist_closure_test_data_signal.Write();
   tHist_prior_true_signal->SetName("closure_test_prior_true_signal");
   tHist_prior_true_signal->Write();
+  tHist_hreco_from_script->SetName("closure_test_hreco_from_script");
+  tHist_hreco_from_script->Write();
   tHist_smearcept_projectionX->SetName("closure_test_smearcept_projectionX");
   tHist_smearcept_projectionX->Write();
   tHist_smearcept_projectionY->SetName("closure_test_smearcept_projectionY");
