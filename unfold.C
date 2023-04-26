@@ -212,6 +212,13 @@ void unfold(std::string filePath_in)
   auto tMat_data_signal_unfolded = result.unfolded_signal_.get();
   auto tMat_unfolded_covariance = result.cov_matrix_.get();
   auto tMat_errprop_matrix = result.err_prop_matrix_.get();
+  auto tMat_add_smear_matrix = result.add_smear_matrix_.get();
+
+  // -----------------------------------------------------
+  // Calculate smeared true signal distribution
+  // -----------------------------------------------------
+  
+  TMatrixD* tMat_smeared_true_signal = new TMatrixD(*tMat_add_smear_matrix,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
 
   // -----------------------------------------------------
   // Convert unfolder outputs back to hists 
@@ -221,6 +228,8 @@ void unfold(std::string filePath_in)
   TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal);
   TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
   TH2D tHist2D_covariance = TMatrixDtoTH2D(tMat_data_covmat_final, tHist_data_signal);
+  TH2D tHist2D_add_smear_matrix = TMatrixDtoTH2D(*tMat_add_smear_matrix, tHist_prior_true_signal);
+  TH1D tHist_smeared_true_signal = TMatrixDtoTH1D(*tMat_smeared_true_signal, tHist_prior_true_signal);
 
   // -----------------------------------------------------
   // 
@@ -256,6 +265,13 @@ void unfold(std::string filePath_in)
   tHist2D_unfolded_covariance.Write();
   tHist2D_covariance.SetName(("cov_evtRate_"+sigDef).c_str());
   tHist2D_covariance.Write();
+
+  tHist2D_add_smear_matrix.SetName(("add_smear_matrix_"+sigDef).c_str());
+  tHist2D_add_smear_matrix.Write();
+  tHist_prior_true_signal.SetName(("prior_true_signal_"+sigDef).c_str());
+  tHist_prior_true_signal.Write();
+  tHist_smeared_true_signal.SetName(("smeared_true_signal_"+sigDef).c_str());
+  tHist_smeared_true_signal.Write();
 
   //file_out->Close();
   return;
