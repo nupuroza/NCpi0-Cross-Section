@@ -18,8 +18,12 @@ using RMT = WienerSVDUnfolder::RegularizationMatrixType;
 const RMT MY_REGULARIZATION = RMT::kIdentity;
 //const RMT MY_REGULARIZATION = RMT::kFirstDeriv;
 //const RMT MY_REGULARIZATION = RMT::kSecondDeriv;
+//const int NUM_ITERATIONS = 5;
 
-std::string unfolding_spec = "kIdentity_true";
+std::string unfolding_spec = "WSVD-kIdentity";
+//std::string unfolding_spec = "WSVD-kFirstDerivative";
+//std::string unfolding_spec = "WSVD-kSecondDerivative";
+//std::string unfolding_spec = "DAgostini-5-iteration";
 std::string sigDef = "2g1p_exclusive";
 
 // -----------------------------------------------------
@@ -186,7 +190,6 @@ void unfold(std::string filePath_in)
   //WienerSVDUnfolder unfolder( false, MY_REGULARIZATION );
 
   //DAgostiniUnfolder unfolder( NUM_ITERATIONS );
-  //DAgostiniUnfolder unfolder( 1 );
 
   //DAgostiniUnfolder unfolder( DCC:FigureOfMerit, 0.025 );
 
