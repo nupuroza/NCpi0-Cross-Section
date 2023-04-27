@@ -45,7 +45,6 @@ for config in configs_to_run:
   print "Running the following command: \"{0}\"".format(command_string)
 
   ## Run the command and capture the output
-  result = subprocess.Popen(command_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
-  output = result.communicate()[0] # read the output from the command
+  output = subprocess.check_output(command_string, shell=True, bufsize=0)
   print(output)
 
