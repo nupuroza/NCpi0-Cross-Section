@@ -9,28 +9,40 @@
 #include "../stv-analysis-new/WienerSVDUnfolder.hh"
 #include "../stv-analysis-new/DAgostiniUnfolder.hh"
 
-// -----------------------------------------------------
-// Specify Unfolder specs
-// -----------------------------------------------------
-using DCC = DAgostiniUnfolder::ConvergenceCriterion;
-using RMT = WienerSVDUnfolder::RegularizationMatrixType;
-
-const RMT MY_REGULARIZATION = RMT::kIdentity;
-//const RMT MY_REGULARIZATION = RMT::kFirstDeriv;
-//const RMT MY_REGULARIZATION = RMT::kSecondDeriv;
-//const int NUM_ITERATIONS = 5;
-
-std::string unfolding_spec = "WSVD-kIdentity";
-//std::string unfolding_spec = "WSVD-kFirstDerivative";
-//std::string unfolding_spec = "WSVD-kSecondDerivative";
-//std::string unfolding_spec = "DAgostini-5-iteration";
-std::string sigDef = "2g1p_exclusive";
 
 // -----------------------------------------------------
 // Main method
 // -----------------------------------------------------
-void unfold(std::string filePath_in)
+void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig)
 {
+
+  // -----------------------------------------------------
+  // Specify Unfolder specs
+  // -----------------------------------------------------
+
+  std::string unfolding_spec = "";
+  using RMT = WienerSVDUnfolder::RegularizationMatrixType;
+  RMT MY_REGULARIZATION; 
+  int NUM_ITERATIONS = 0;
+ 
+  if(useWienerSVD){
+    if(unfoldingConfig=="kIdentity"){
+      MY_REGULARIZATION = RMT::kIdentity;
+    }
+    else if(unfoldingConfig=="kFirstDerivative"){    
+      MY_REGULARIZATION = RMT::kFirstDeriv;
+    }
+    else if(unfoldingConfig== "kSecondDerivative"){
+      MY_REGULARIZATION = RMT::kSecondDeriv;
+    }
+    unfolding_spec = ("WSVD-"+unfoldingConfig).c_str();
+  }
+  else{
+    NUM_ITERATIONS = std::stoi(unfoldingConfig);
+    unfolding_spec = ("DAgostini-"+unfoldingConfig+"-iteration").c_str();
+  } 
+ 
+  std::string sigDef = "2g1p_exclusive";
 
   // -----------------------------------------------------
   // Clone input file to ouput file
@@ -186,15 +198,16 @@ void unfold(std::string filePath_in)
   // -----------------------------------------------------
 
   // Instantiate an object derived from the Unfolder base class
-  WienerSVDUnfolder unfolder( true, MY_REGULARIZATION );
-  //WienerSVDUnfolder unfolder( false, MY_REGULARIZATION );
-
-  //DAgostiniUnfolder unfolder( NUM_ITERATIONS );
-
-  //DAgostiniUnfolder unfolder( DCC:FigureOfMerit, 0.025 );
+  Unfolder* unfolder; 
+  if(useWienerSVD){
+    unfolder = new WienerSVDUnfolder( true, MY_REGULARIZATION );
+  } 
+  else{
+    unfolder = new DAgostiniUnfolder( NUM_ITERATIONS );
+  }
 
   // Perform the unfolding
-  UnfoldedMeasurement result = unfolder.unfold( tMat_data_signal, tMat_data_covmat_final,
+  UnfoldedMeasurement result = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final,
     tMat_smearcept_final, tMat_prior_true_signal );
 
   // -----------------------------------------------------
