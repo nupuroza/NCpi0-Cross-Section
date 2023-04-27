@@ -66,6 +66,13 @@ outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 outFile = ROOT.TFile(outputFilePath,"recreate")
 
 #############################################################################################################
+### Is this fake data? ######################################################################################
+#############################################################################################################
+
+## Prescription is slightly different for fake data
+is_fake_data = True if p.fakedata>0 else False
+
+#############################################################################################################
 ### Create Reference Hists ##################################################################################
 #############################################################################################################
 
@@ -159,6 +166,13 @@ OTHER_SYSTS = [
   ["POT_variation","minmax", nMinMaxUniverses],
   ["target_variation","minmax", nMinMaxUniverses]
 ]
+
+## If fake data, we only want to propagate cross section systematics
+if is_fake_data:
+  FLUX_SYSTS = []
+  DETECTOR_SYSTS = []
+  G4_SYSTS = []
+  OTHER_SYSTS = []
  
 #############################################################################################################
 ### Calculate N_targets #####################################################################################
@@ -189,9 +203,10 @@ for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS
 
 
 ## Steven Gardiner told us to use a 1% variation
-for i in range(1,nBins_true+1):
-  mHist_nTargets.GetVertErrorBand("target_variation").GetHist(0).SetBinContent(i,n_targets*0.99)
-  mHist_nTargets.GetVertErrorBand("target_variation").GetHist(1).SetBinContent(i,n_targets*1.01)
+if not is_fake_data: ## this won't work for fake data
+  for i in range(1,nBins_true+1):
+    mHist_nTargets.GetVertErrorBand("target_variation").GetHist(0).SetBinContent(i,n_targets*0.99)
+    mHist_nTargets.GetVertErrorBand("target_variation").GetHist(1).SetBinContent(i,n_targets*1.01)
 
 writeHist(mHist_nTargets,outFile)
 
@@ -221,9 +236,10 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
     exec("mHist_POT_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(sigDef))
 
   ## Steven Gardiner told us to use a 2% variation
-  for i in range(1,nBins_true+1):
-    exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(0).SetBinContent(i,POT_{0}*0.98)".format(sigDef))
-    exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(1).SetBinContent(i,POT_{0}*1.02)".format(sigDef))
+  if not is_fake_data: ## this won't work for fake data
+    for i in range(1,nBins_true+1):
+      exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(0).SetBinContent(i,POT_{0}*0.98)".format(sigDef))
+      exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(1).SetBinContent(i,POT_{0}*1.02)".format(sigDef))
 
   ## This mHist_POT_{0} object is only used in the xsec calculation, where we need the correct units
   #exec("mHist_POT_{0}.Scale(10**20)".format(sigDef))
@@ -336,9 +352,6 @@ writeHist(mHist_flux_integral,outFile)
 #############################################################################################################
 ### Assemble MnvH1D for Data ################################################################################
 #############################################################################################################
-
-## Prescription is slightly different for fake data
-is_fake_data = True if p.fakedata>0 else False
 
 ## Pull out CV hists
 for sigDef in ["2g1p","2g0p"]:
