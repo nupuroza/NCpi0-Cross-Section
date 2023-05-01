@@ -13,7 +13,7 @@
 // -----------------------------------------------------
 // Main method
 // -----------------------------------------------------
-void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig)
+void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest)
 {
 
   // -----------------------------------------------------
@@ -108,7 +108,6 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
 
   // Pull out response matrix 
   TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get("response_matrix");
-  //TH1D* tHist_prior_true_signal = (TH1D*)file_out->Get("htrue");
 
   // -----------------------------------------------------
   // Handle underflow/overflow bins and make sure all
@@ -141,21 +140,9 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   // Convert unfolding ingredients into matrices
   // -----------------------------------------------------
 
-//  // tMat_data_covmat will always include the underflow/overflow from mHist_data_signal_folded
-//  // by construction, so we always want to include the underflow/overflow for the other inputs
-//  // to the unfolding. Hence all of the `True` arguments below
-//  
-//  // Convert inputs into TMatrixD
-//  TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, true, true);
-//  TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, true, true);
-//  TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, false, true, true, true, true); // Note the first bool here isn't related to underflow/overflow
-//  //TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, true, true, true, true, true);
-
   // Convert inputs into TMatrixD
   TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
   TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
-  //TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, false, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
-  //TMatrixD tMat_smearcept = TH2DtoTMatrixD(*tHist2D_response, true, include_underflow_reco, include_overflow_reco, include_underflow_true, include_overflow_true);
 
   // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
   // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
