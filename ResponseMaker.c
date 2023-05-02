@@ -20,13 +20,10 @@ void ResponseMaker(std::string outDir){
     // Interface with gLEE tuple 
     // -----------------------------------------------------
 
-    // This would change for 2g0p (or we'd have an all-inclusive file)
-    //TTree * v = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_Run13_v50.0.root","singlephoton");
-    // New input file that should ensure closure
+    // Despite being labeled as 2g1p, because this file is from an earlier stage of the selection, it is inclusive of 2g0p and can be used to derive both response 2g0p and 2g1p matrices
     TTree * v = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
 
     std::cout<<v->GetEntries()<<std::endl;
-    //v->Scan("reco_asso_showers:rceo_asso_tracks:simple_2g1p_NextGen_v4COSMIC_mva:simple_2g1p_NextGen_v4BNB_mva");
 
     // Prescription for calculating reconstructed pion momentum
     // In hive framework, this variable is aliased as "reco_pion_momentum"
@@ -57,10 +54,9 @@ void ResponseMaker(std::string outDir){
       (simple_pot_weight*6.7873e20/4.9669582e+21)\
      *(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20)\
      *(MCFlux_NuPosX > (0.0-1.55) && MCFlux_NuPosX < (256.35-1.55) && MCFlux_NuPosY > (-116.5+0.97) && MCFlux_NuPosY < (116.5+0.97) && MCFlux_NuPosZ > 0.0+0.1 && MCFlux_NuPosZ < 1036.8+0.1)\
+     *( (run_number >= 4952 && run_number <= 7770)*0.943100 + ( (run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number <= 18960) )*1.020139 )\
      *(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)\
-     *((run_number >= 4952 && run_number <= 7770)*0.943100+(( run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number     <= 18960))*1.020139)\
     )";
-    // *((run_number >= 4952 && run_number <= 7770)*0.9431+!(run_number >= 4952 && run_number <= 7770)*1.020139)\
 
     // Prescription for determining which events pass selection cuts
     // This would change for 2g0p
@@ -124,9 +120,6 @@ void ResponseMaker(std::string outDir){
             double eff = resp->GetBinContent(i,a)/htrue->GetBinContent(a);
             resp->SetBinContent(i,a, eff); // Resets content of Response TH2D so there is consistency
             mat(i,a) = resp->GetBinContent(i,a); 
-            //if(i>0 && a>0 && i < hreco->GetNbinsX()+1 && a< htrue->GetNbinsX()+1){
-            //    mat(i-1,a-1) = resp->GetBinContent(i,a); //this is just overflow and underflow
-            //}
 
         }
     }
