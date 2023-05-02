@@ -161,26 +161,30 @@ with makeEnv_TCanvas('{0}/unfolded_corr_evtRate_2g1p_exclusive.png'.format(plotD
 #############################################################################################################
 with makeEnv_TCanvas('{0}/fakedatavsgenie_xSection.png'.format(plotDir)):
 
-  local_tHist_unfolded_xSection_2g1p_exclusive = tHist_unfolded_xSection_2g1p_exclusive.Clone("local_tHist_unfolded_xSection_2g1p_exclusive")
-  local_tHist_xSection_mc_2g1p_exclusive = tHist_xSection_mc_2g1p_exclusive.Clone("local_tHist_xSection_mc_2g1p_exclusive")
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled = tHist_unfolded_xSection_2g1p_exclusive.Clone("local_tHist_unfolded_xSection_2g1p_exclusive")
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.Scale(1e38) 
+  local_tHist_xSection_mc_2g1p_exclusive_scaled = tHist_xSection_mc_2g1p_exclusive.Clone("local_tHist_xSection_mc_2g1p_exclusive")
+  local_tHist_xSection_mc_2g1p_exclusive_scaled.Scale(1e38) 
 
-  local_tHist_unfolded_xSection_2g1p_exclusive.SetMarkerSize(0.5)
-  local_tHist_unfolded_xSection_2g1p_exclusive.Draw()
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.SetMarkerSize(0.5)
 
-  local_tHist_xSection_mc_2g1p_exclusive.GetYaxis().SetTitleSize(0.05)
-  local_tHist_xSection_mc_2g1p_exclusive.GetXaxis().SetTitleSize(0.05)
-  local_tHist_xSection_mc_2g1p_exclusive.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}}[10^{-38} cm^{2}/Atom/GeV]")
-  local_tHist_xSection_mc_2g1p_exclusive.GetXaxis().SetTitle("#pi^{0} momentum")
+  #local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetRangeUser(0,1500)
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetTitleSize(0.05)
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetXaxis().SetTitleSize(0.05)
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}}[10^{-38} cm^{2}/Atom/GeV]")
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetXaxis().SetTitle("True #pi^{0} momentum (GeV)")
 
-  local_tHist_xSection_mc_2g1p_exclusive.SetLineColor(ROOT.kRed)
-  local_tHist_xSection_mc_2g1p_exclusive.SetMarkerColor(ROOT.kRed)
-  local_tHist_xSection_mc_2g1p_exclusive.SetMarkerSize(0.5)
-  local_tHist_xSection_mc_2g1p_exclusive.Draw("SAME")
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.Draw()
+
+  local_tHist_xSection_mc_2g1p_exclusive_scaled.SetLineColor(ROOT.kRed)
+  local_tHist_xSection_mc_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kRed)
+  local_tHist_xSection_mc_2g1p_exclusive_scaled.SetMarkerSize(0.5)
+  local_tHist_xSection_mc_2g1p_exclusive_scaled.Draw("SAME")
 
   legend = ROOT.TLegend(0.55,0.7,0.8,0.85, "")
   legend.SetBorderSize(0);
-  legend.AddEntry(local_tHist_unfolded_xSection_2g1p_exclusive,"NuWro Fake Data","lep")
-  legend.AddEntry(local_tHist_xSection_mc_2g1p_exclusive,"GENIE Prediction","lep")
+  legend.AddEntry(local_tHist_unfolded_xSection_2g1p_exclusive_scaled,"NuWro Fake Data","lep")
+  legend.AddEntry(local_tHist_xSection_mc_2g1p_exclusive_scaled,"GENIE Prediction","lep")
   legend.Draw()
 
 ## Import NuWro Truth
@@ -199,10 +203,16 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
     local_tHist_unfolded_evtRate_2g1p_exclusive.SetBinError(i,math.sqrt(cov_binContent))
 
   local_tHist_unfolded_evtRate_2g1p_exclusive.SetMarkerSize(0.5)
-  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetRangeUser(0,1500)
   if is_closure_test:
     local_tHist_unfolded_evtRate_2g1p_exclusive.SetMarkerColor(ROOT.kCyan-3)
     local_tHist_unfolded_evtRate_2g1p_exclusive.SetLineColor(ROOT.kCyan-3)
+
+  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetRangeUser(0,1500)
+  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetTitleSize(0.05)
+  local_tHist_unfolded_evtRate_2g1p_exclusive.GetXaxis().SetTitleSize(0.05)
+  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetTitle("# Events")
+  local_tHist_unfolded_evtRate_2g1p_exclusive.GetXaxis().SetTitle("True #pi^{0} momentum (GeV)")
+
   local_tHist_unfolded_evtRate_2g1p_exclusive.Draw()
 
   if not is_closure_test:
@@ -213,11 +223,6 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
     local_tHist_nuwro_truth_2g1p_exclusive.SetMarkerColor(ROOT.kViolet)
     local_tHist_nuwro_truth_2g1p_exclusive.SetLineColor(ROOT.kViolet)
     local_tHist_nuwro_truth_2g1p_exclusive.Draw("SAME")
-
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.GetYaxis().SetTitleSize(0.05)
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.GetXaxis().SetTitleSize(0.05)
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.GetYaxis().SetTitle("\# Events")
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.GetXaxis().SetTitle("#pi^{0} momentum")
 
   local_tHist_genie_evtRate_smeared_2g1p_exclusive.SetLineColor(ROOT.kRed)
   local_tHist_genie_evtRate_smeared_2g1p_exclusive.SetMarkerColor(ROOT.kRed)
