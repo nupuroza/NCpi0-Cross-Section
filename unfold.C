@@ -54,7 +54,15 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   }
 
   TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
-  file_in->Cp((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str());
+  // A little hacky, but the best I figured out for how to handle the
+  // if/else and also the fact that ().c_str() returns a const char*
+  // -----------------------------------------------------------------
+  std::string output_file_path_base = filePath_in+"_unfolded_"+unfolding_spec;
+  std::string output_file_path_suffix = closureTest ? "_closureTest.root" : ".root";
+  std::string output_file_path = output_file_path_base + output_file_path_suffix;
+  std::cout << "DEBUG\toutput_file_path: " << output_file_path << std::endl;
+
+  file_in->Cp(output_file_path.c_str());
   file_in->Close();
  
   // -----------------------------------------------------
@@ -67,7 +75,7 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   TFile* file_in_response = new TFile((fileDir+"/response_"+sigDef+"_v3_d22_23.root").c_str(),"READ");
  
   // Copy all contents of response matrix file to output file 
-  TFile* file_out = new TFile((filePath_in+"_unfolded_"+unfolding_spec+".root").c_str(),"UPDATE");
+  TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
   file_in_response->cd();
   TList* keys = gDirectory->GetListOfKeys();
 
@@ -136,13 +144,10 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   double binVal_overflow_true = tHist_prior_true_signal.GetBinContent(nBins_true+1);
   bool include_overflow_true = binVal_overflow_true > threshold ? 1 : 0;
 
-  // -----------------------------------------------------
-  // Convert unfolding ingredients into matrices
-  // -----------------------------------------------------
-
-  // Convert inputs into TMatrixD
-  TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
-  TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
+  //-------------------------------------------------------------
+  // Deal with reducing the matrix scope first so that if needed
+  // the correct reduced smearcept matrix is used in closure test
+  //-------------------------------------------------------------
 
   // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
   // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
@@ -151,7 +156,20 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
   TMatrixD tMat_smearcept_final = tMat_smearcept->GetSub(lowerBound, upperBound, lowerBound, upperBound);   
 
+  // --------------------------------------------------------
+  // Then convert other unfolding ingredients into matrices
+  // --------------------------------------------------------
+
+  TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
+  TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
+  // If this is a closure test, derive data_signal directly from smearcept matrix and prior_true_signal
+  if(closureTest){
+    tMat_data_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+  }
+
+  // ----------------------------------------------------------
   // Print out number of rows and columns in each input matrix
+  // ----------------------------------------------------------
 
   std::cout << "binVal_underflow_reco: " << binVal_underflow_reco << std::endl;
   std::cout << "include_underflow_reco: " << include_underflow_reco << std::endl;
