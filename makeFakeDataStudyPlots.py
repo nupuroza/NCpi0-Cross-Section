@@ -22,6 +22,7 @@ plotter = ROOT.PlotUtils.MnvPlotter()
 parser = argparse.ArgumentParser(description='Script to make cross-section plots using the MINERvA Analysis Toolkit')
 parser.add_argument('in_file', help='Path to input file', type=str,nargs='?')
 parser.add_argument('out_dir', help='Path to output directory. Defaults to input directory', type=str,nargs='?')
+parser.add_argument('--closureTest',help='Input file corresponds to closure test',action='store_true')
 p = parser.parse_args()
 
 ## If in_file is not provided, exit
@@ -44,6 +45,13 @@ else:
 if not os.path.isdir(plotDir):
   print "Making plot directory {0}".format(plotDir)
   os.system( "mkdir %s" % plotDir )
+
+#############################################################################################################
+### Is this a closure test input? ###########################################################################
+#############################################################################################################
+
+## Prescription is slightly different for closure test input 
+is_closure_test = True if p.closureTest>0 else False
 
 #############################################################################################################
 ### Pull out relevant objects from input file ###############################################################
@@ -192,15 +200,19 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
 
   local_tHist_unfolded_evtRate_2g1p_exclusive.SetMarkerSize(0.5)
   local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetRangeUser(0,1500)
+  if is_closure_test:
+    local_tHist_unfolded_evtRate_2g1p_exclusive.SetMarkerColor(ROOT.kCyan-3)
+    local_tHist_unfolded_evtRate_2g1p_exclusive.SetLineColor(ROOT.kCyan-3)
   local_tHist_unfolded_evtRate_2g1p_exclusive.Draw()
 
-  local_tHist_genie_evtRate_2g1p_exclusive.SetMarkerColor(ROOT.kGreen+2)
-  local_tHist_genie_evtRate_2g1p_exclusive.SetLineColor(ROOT.kGreen+2)
-  local_tHist_genie_evtRate_2g1p_exclusive.Draw("SAME")
-  
-  local_tHist_nuwro_truth_2g1p_exclusive.SetMarkerColor(ROOT.kViolet)
-  local_tHist_nuwro_truth_2g1p_exclusive.SetLineColor(ROOT.kViolet)
-  local_tHist_nuwro_truth_2g1p_exclusive.Draw("SAME")
+  if not is_closure_test:
+    local_tHist_genie_evtRate_2g1p_exclusive.SetMarkerColor(ROOT.kGreen+2)
+    local_tHist_genie_evtRate_2g1p_exclusive.SetLineColor(ROOT.kGreen+2)
+    local_tHist_genie_evtRate_2g1p_exclusive.Draw("SAME")
+    
+    local_tHist_nuwro_truth_2g1p_exclusive.SetMarkerColor(ROOT.kViolet)
+    local_tHist_nuwro_truth_2g1p_exclusive.SetLineColor(ROOT.kViolet)
+    local_tHist_nuwro_truth_2g1p_exclusive.Draw("SAME")
 
   local_tHist_genie_evtRate_smeared_2g1p_exclusive.GetYaxis().SetTitleSize(0.05)
   local_tHist_genie_evtRate_smeared_2g1p_exclusive.GetXaxis().SetTitleSize(0.05)
@@ -214,9 +226,13 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
 
   legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
   legend.SetBorderSize(0);
-  legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive,"NuWro Fake Data","lep")
-  legend.AddEntry(local_tHist_nuwro_truth_2g1p_exclusive,"NuWro Truth","lep")
-  legend.AddEntry(local_tHist_genie_evtRate_2g1p_exclusive,"GENIE Prediction","lep")
-  legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive,"GENIE Prediction, smeared","lep")
+  if is_closure_test:
+    legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive,"GENIE Fake Data (closure test)","lep")
+    legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive,"GENIE Prediction","lep")
+  else:
+    legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive,"NuWro Fake Data","lep")
+    legend.AddEntry(local_tHist_nuwro_truth_2g1p_exclusive,"NuWro Truth","lep")
+    legend.AddEntry(local_tHist_genie_evtRate_2g1p_exclusive,"GENIE Prediction","lep")
+    legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive,"GENIE Prediction, smeared","lep")
   legend.Draw()
 
