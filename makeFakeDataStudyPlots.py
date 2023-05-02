@@ -162,13 +162,13 @@ with makeEnv_TCanvas('{0}/unfolded_corr_evtRate_2g1p_exclusive.png'.format(plotD
 with makeEnv_TCanvas('{0}/fakedatavsgenie_xSection.png'.format(plotDir)):
 
   local_tHist_unfolded_xSection_2g1p_exclusive_scaled = tHist_unfolded_xSection_2g1p_exclusive.Clone("local_tHist_unfolded_xSection_2g1p_exclusive")
-  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.Scale(1e38) 
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.Scale(1e38,"width") 
   local_tHist_xSection_mc_2g1p_exclusive_scaled = tHist_xSection_mc_2g1p_exclusive.Clone("local_tHist_xSection_mc_2g1p_exclusive")
-  local_tHist_xSection_mc_2g1p_exclusive_scaled.Scale(1e38) 
+  local_tHist_xSection_mc_2g1p_exclusive_scaled.Scale(1e38,"width") 
 
   local_tHist_unfolded_xSection_2g1p_exclusive_scaled.SetMarkerSize(0.5)
 
-  #local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetRangeUser(0,1500)
+  local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetRangeUser(0,2.8)
   local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetTitleSize(0.05)
   local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetXaxis().SetTitleSize(0.05)
   local_tHist_unfolded_xSection_2g1p_exclusive_scaled.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}}[10^{-38} cm^{2}/Atom/GeV]")
@@ -192,52 +192,60 @@ NuWroTruthFile = ROOT.TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7
 
 with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
 
-  local_tHist_unfolded_evtRate_2g1p_exclusive = tHist_unfolded_evtRate_2g1p_exclusive.Clone("local_tHist_unfolded_evtRate_2g1p_exclusive")
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive = histFile.Get("smeared_true_signal_2g1p_exclusive")
-  local_tHist_genie_evtRate_2g1p_exclusive = histFile.Get("prior_true_signal_2g1p_exclusive")
-  local_tHist_nuwro_truth_2g1p_exclusive = NuWroTruthFile.Get("nu_uBooNE_denom_2g1p")
-  local_tHist_nuwro_truth_2g1p_exclusive.Scale(6.7873/3.0041393)
+  ## Create local copies of all needed hists
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled = tHist_unfolded_evtRate_2g1p_exclusive.Clone("local_tHist_unfolded_evtRate_2g1p_exclusive")
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled = histFile.Get("smeared_true_signal_2g1p_exclusive")
+  local_tHist_genie_evtRate_2g1p_exclusive_scaled = histFile.Get("prior_true_signal_2g1p_exclusive")
+  local_tHist_nuwro_truth_2g1p_exclusive_scaled = NuWroTruthFile.Get("nu_uBooNE_denom_2g1p")
 
   for i in range(1,nBins+1):## Loop over bins
     cov_binContent = tHist_unfolded_cov_evtRate_2g1p_exclusive.GetBinContent(i,i)
-    local_tHist_unfolded_evtRate_2g1p_exclusive.SetBinError(i,math.sqrt(cov_binContent))
+    local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.SetBinError(i,math.sqrt(cov_binContent))
 
-  local_tHist_unfolded_evtRate_2g1p_exclusive.SetMarkerSize(0.5)
+  ## Scale and bin-width-normalize all hists (and POT normalize NuWro truth)
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.Scale(1e-3,"width")
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.Scale(1e-3,"width")
+  local_tHist_genie_evtRate_2g1p_exclusive_scaled.Scale(1e-3,"width")
+  local_tHist_nuwro_truth_2g1p_exclusive_scaled.Scale(1e-3,"width")
+  local_tHist_nuwro_truth_2g1p_exclusive_scaled.Scale(6.7873/3.0041393) ## POT normalization
+ 
+  ## Set plot formatting 
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.SetMarkerSize(0.5)
   if is_closure_test:
-    local_tHist_unfolded_evtRate_2g1p_exclusive.SetMarkerColor(ROOT.kCyan-3)
-    local_tHist_unfolded_evtRate_2g1p_exclusive.SetLineColor(ROOT.kCyan-3)
+    local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kCyan-3)
+    local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.SetLineColor(ROOT.kCyan-3)
 
-  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetRangeUser(0,1500)
-  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetTitleSize(0.05)
-  local_tHist_unfolded_evtRate_2g1p_exclusive.GetXaxis().SetTitleSize(0.05)
-  local_tHist_unfolded_evtRate_2g1p_exclusive.GetYaxis().SetTitle("# Events")
-  local_tHist_unfolded_evtRate_2g1p_exclusive.GetXaxis().SetTitle("True #pi^{0} momentum (GeV)")
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.GetYaxis().SetRangeUser(0,18)
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.GetYaxis().SetTitleSize(0.05)
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.GetXaxis().SetTitleSize(0.05)
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.GetYaxis().SetTitle("# Events [10^{3}/GeV]")
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.GetXaxis().SetTitle("True #pi^{0} momentum (GeV)")
 
-  local_tHist_unfolded_evtRate_2g1p_exclusive.Draw()
+  local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.Draw()
 
   if not is_closure_test:
-    local_tHist_genie_evtRate_2g1p_exclusive.SetMarkerColor(ROOT.kGreen+2)
-    local_tHist_genie_evtRate_2g1p_exclusive.SetLineColor(ROOT.kGreen+2)
-    local_tHist_genie_evtRate_2g1p_exclusive.Draw("SAME")
+    local_tHist_genie_evtRate_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kGreen+2)
+    local_tHist_genie_evtRate_2g1p_exclusive_scaled.SetLineColor(ROOT.kGreen+2)
+    local_tHist_genie_evtRate_2g1p_exclusive_scaled.Draw("SAME")
     
-    local_tHist_nuwro_truth_2g1p_exclusive.SetMarkerColor(ROOT.kViolet)
-    local_tHist_nuwro_truth_2g1p_exclusive.SetLineColor(ROOT.kViolet)
-    local_tHist_nuwro_truth_2g1p_exclusive.Draw("SAME")
+    local_tHist_nuwro_truth_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kViolet)
+    local_tHist_nuwro_truth_2g1p_exclusive_scaled.SetLineColor(ROOT.kViolet)
+    local_tHist_nuwro_truth_2g1p_exclusive_scaled.Draw("SAME")
 
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.SetLineColor(ROOT.kRed)
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.SetMarkerColor(ROOT.kRed)
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.SetMarkerSize(0.5)
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive.Draw("SAME")
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetLineColor(ROOT.kRed)
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kRed)
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetMarkerSize(0.5)
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.Draw("SAME")
 
   legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
   legend.SetBorderSize(0);
   if is_closure_test:
-    legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive,"GENIE Fake Data (closure test)","lep")
-    legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive,"GENIE Prediction","lep")
+    legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive_scaled,"GENIE Fake Data (closure test)","lep")
+    legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled,"GENIE Prediction","lep")
   else:
-    legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive,"NuWro Fake Data","lep")
-    legend.AddEntry(local_tHist_nuwro_truth_2g1p_exclusive,"NuWro Truth","lep")
-    legend.AddEntry(local_tHist_genie_evtRate_2g1p_exclusive,"GENIE Prediction","lep")
-    legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive,"GENIE Prediction, smeared","lep")
+    legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive_scaled,"NuWro Fake Data","lep")
+    legend.AddEntry(local_tHist_nuwro_truth_2g1p_exclusive_scaled,"NuWro Truth","lep")
+    legend.AddEntry(local_tHist_genie_evtRate_2g1p_exclusive_scaled,"GENIE Prediction","lep")
+    legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled,"GENIE Prediction, smeared","lep")
   legend.Draw()
 
