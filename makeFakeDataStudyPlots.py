@@ -176,7 +176,6 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_xSection.png'.format(plotDir)):
   legend.Draw()
 
 ## Import NuWro Truth
-#NuWroTruthFile = ROOT.TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_CV.SBNspec.root")
 NuWroTruthFile = ROOT.TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_v2_CV.SBNspec.root")
 
 with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
