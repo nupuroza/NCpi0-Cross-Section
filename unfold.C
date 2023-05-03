@@ -162,9 +162,19 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
 
   TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
   TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
-  // If this is a closure test, derive data_signal directly from smearcept matrix and prior_true_signal
+
+  // --------------------------------------------------------
+  // Derive reco-space generator prediction 
+  // --------------------------------------------------------
+
+  // Derive generator prediction in reco space directly from smearcept matrix and prior_true_signal
+  TMatrixD tMat_prior_reco_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+  TH1D tHist_prior_reco_signal = TMatrixDtoTH1D(tMat_prior_reco_signal,tHist_data_signal);
+
+  // If this is a closure test, data_signal should be generator prediction in reco space
   if(closureTest){
-    tMat_data_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+    //tMat_data_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+    tMat_data_signal = tMat_prior_reco_signal;
   }
 
   // ----------------------------------------------------------
@@ -288,6 +298,8 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   tHist2D_add_smear_matrix.Write();
   tHist_prior_true_signal.SetName(("prior_true_signal_"+sigDef).c_str());
   tHist_prior_true_signal.Write();
+  tHist_prior_reco_signal.SetName(("prior_reco_signal_"+sigDef).c_str());
+  tHist_prior_reco_signal.Write();
   tHist_smeared_true_signal.SetName(("smeared_true_signal_"+sigDef).c_str());
   tHist_smeared_true_signal.Write();
 

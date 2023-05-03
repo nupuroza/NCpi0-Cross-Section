@@ -249,3 +249,41 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
     legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled,"GENIE Prediction, smeared","lep")
   legend.Draw()
 
+with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded.png'.format(plotDir)):
+
+  ## Create local copies of all needed hists
+  local_mHist_evtRate_reco_2g1p_exclusive = histFile.Get("evtRate_2g1p_exclusive")
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled = local_mHist_evtRate_reco_2g1p_exclusive.GetCVHistoWithError()
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.Scale(1e-3,"width")
+
+  local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled = histFile.Get("prior_reco_signal_2g1p_exclusive")
+  local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.Scale(1e-3,"width")
+ 
+  ## Set plot formatting 
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.SetMarkerSize(0.5)
+  if is_closure_test:
+    local_tHist_evtRate_reco_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kCyan-3)
+    local_tHist_evtRate_reco_2g1p_exclusive_scaled.SetLineColor(ROOT.kCyan-3)
+
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.GetYaxis().SetRangeUser(0,4)
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.GetYaxis().SetTitleSize(0.05)
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.GetXaxis().SetTitleSize(0.05)
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.GetYaxis().SetTitle("# Events [10^{3}/GeV]")
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.GetXaxis().SetTitle("Reco #pi^{0} momentum (GeV)")
+
+  local_tHist_evtRate_reco_2g1p_exclusive_scaled.Draw()
+
+  local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.SetLineColor(ROOT.kRed)
+  local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kRed)
+  local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.SetMarkerSize(0.5)
+  local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.Draw("SAME")
+
+  legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
+  legend.SetBorderSize(0);
+  if is_closure_test:
+    legend.AddEntry(local_tHist_evtRate_reco_2g1p_exclusive_scaled,"GENIE Fake Data (closure test)","lep")
+  else:
+    legend.AddEntry(local_tHist_evtRate_reco_2g1p_exclusive_scaled,"NuWro Fake Data","lep")
+  legend.AddEntry(local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled,"GENIE Prediction","lep")
+  legend.Draw()
+
