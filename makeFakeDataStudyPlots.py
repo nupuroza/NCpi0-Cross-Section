@@ -106,7 +106,7 @@ ROOT.gStyle.SetNumberContours(200)
 
 with makeEnv_TCanvas('{0}/response_2g1p_exclusive.png'.format(plotDir)) as canvas:
   
-  local_tHist_Response = histFile.Get('Response')
+  local_tHist_Response = histFile.Get('Response_2g1p')
   local_tHist_Response.Draw("colz")
   local_tHist_Response.GetXaxis().SetTitle("True #pi^{0} momentum")
   local_tHist_Response.GetYaxis().SetTitle("Reconstructed #pi^{0} momentum")

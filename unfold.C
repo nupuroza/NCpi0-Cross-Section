@@ -72,7 +72,7 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   // Navigate to response matrix file in same directory as input hist file
   std::size_t last_slash_pos = filePath_in.find_last_of("/");
   std::string fileDir = filePath_in.substr(0,last_slash_pos);
-  TFile* file_in_response = new TFile((fileDir+"/response_"+sigDef+"_v3_d22_23.root").c_str(),"READ");
+  TFile* file_in_response = new TFile((fileDir+"/response_matrices_exclusive.root").c_str(),"READ");
  
   // Copy all contents of response matrix file to output file 
   TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
