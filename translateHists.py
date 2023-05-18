@@ -438,7 +438,7 @@ for sigDef in ["2g1p","2g0p"]:
     ### This is the actual CV
     #########################
 
-    for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background","Bkgd","reco",nBins_reco)]:
+    for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background","Bkgd","reco",nBins_reco),("effNum_reco","Signal","reco",nBins_reco)]:
 
       exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"{2}_{1}_CV_Dir/Sys{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label))
   

@@ -196,6 +196,8 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
   local_tHist_unfolded_evtRate_2g1p_exclusive_scaled = tHist_unfolded_evtRate_2g1p_exclusive.Clone("local_tHist_unfolded_evtRate_2g1p_exclusive")
   local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled = histFile.Get("smeared_true_signal_2g1p_exclusive")
   local_tHist_genie_evtRate_2g1p_exclusive_scaled = histFile.Get("prior_true_signal_2g1p_exclusive")
+  local_mHist_effDenom_2g1p_exclusive_scaled = histFile.Get("effDenom_2g1p_exclusive")
+  local_tHist_effDenom_2g1p_exclusive_scaled =local_mHist_effDenom_2g1p_exclusive_scaled.GetCVHistoWithError()
   local_tHist_nuwro_truth_2g1p_exclusive_scaled = NuWroTruthFile.Get("nu_uBooNE_denom_2g1p")
 
   for i in range(1,nBins+1):## Loop over bins
@@ -206,6 +208,7 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
   local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.Scale(1e-3,"width")
   local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.Scale(1e-3,"width")
   local_tHist_genie_evtRate_2g1p_exclusive_scaled.Scale(1e-3,"width")
+  local_tHist_effDenom_2g1p_exclusive_scaled.Scale(1e-3,"width")
   local_tHist_nuwro_truth_2g1p_exclusive_scaled.Scale(1e-3,"width")
   local_tHist_nuwro_truth_2g1p_exclusive_scaled.Scale(6.7873/3.0041393) ## POT normalization
  
@@ -223,17 +226,22 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
 
   local_tHist_unfolded_evtRate_2g1p_exclusive_scaled.Draw()
 
+  local_tHist_effDenom_2g1p_exclusive_scaled.SetLineColor(ROOT.kGreen+2)
+  local_tHist_effDenom_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kGreen+2)
+  local_tHist_effDenom_2g1p_exclusive_scaled.SetMarkerSize(0.5)
+  local_tHist_effDenom_2g1p_exclusive_scaled.Draw("SAME")
+
   if not is_closure_test:
-    local_tHist_genie_evtRate_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kGreen+2)
-    local_tHist_genie_evtRate_2g1p_exclusive_scaled.SetLineColor(ROOT.kGreen+2)
+    local_tHist_genie_evtRate_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kRed)
+    local_tHist_genie_evtRate_2g1p_exclusive_scaled.SetLineColor(ROOT.kRed)
     local_tHist_genie_evtRate_2g1p_exclusive_scaled.Draw("SAME")
     
     local_tHist_nuwro_truth_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kViolet)
     local_tHist_nuwro_truth_2g1p_exclusive_scaled.SetLineColor(ROOT.kViolet)
     local_tHist_nuwro_truth_2g1p_exclusive_scaled.Draw("SAME")
 
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetLineColor(ROOT.kRed)
-  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kRed)
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetLineColor(ROOT.kCyan-3)
+  local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kCyan-3)
   local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.SetMarkerSize(0.5)
   local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled.Draw("SAME")
 
@@ -245,6 +253,7 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate.png'.format(plotDir)):
   else:
     legend.AddEntry(local_tHist_unfolded_evtRate_2g1p_exclusive_scaled,"NuWro Fake Data","lep")
     legend.AddEntry(local_tHist_nuwro_truth_2g1p_exclusive_scaled,"NuWro Truth","lep")
+    legend.AddEntry(local_tHist_effDenom_2g1p_exclusive_scaled,"effDenom","lep")
     legend.AddEntry(local_tHist_genie_evtRate_2g1p_exclusive_scaled,"GENIE Prediction","lep")
     legend.AddEntry(local_tHist_genie_evtRate_smeared_2g1p_exclusive_scaled,"GENIE Prediction, smeared","lep")
   legend.Draw()
@@ -262,6 +271,10 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded.png'.format(plotDir)):
   local_tHist_hreco_2g1p_exclusive_scaled = histFile.Get("hreco_2g1p")
   local_tHist_hreco_2g1p_exclusive_scaled.Scale(1e-3,"width")
  
+  local_mHist_effNum_reco_2g1p_exclusive_scaled = histFile.Get("effNum_reco_2g1p_exclusive")
+  local_tHist_effNum_reco_2g1p_exclusive_scaled = local_mHist_effNum_reco_2g1p_exclusive_scaled.GetCVHistoWithError() 
+  local_tHist_effNum_reco_2g1p_exclusive_scaled.Scale(1e-3,"width")
+ 
   ## Set plot formatting 
   local_tHist_evtRate_reco_2g1p_exclusive_scaled.SetMarkerSize(0.5)
   if is_closure_test:
@@ -275,6 +288,11 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded.png'.format(plotDir)):
   local_tHist_evtRate_reco_2g1p_exclusive_scaled.GetXaxis().SetTitle("Reco #pi^{0} momentum (GeV)")
 
   local_tHist_evtRate_reco_2g1p_exclusive_scaled.Draw()
+
+  local_tHist_effNum_reco_2g1p_exclusive_scaled.SetLineColor(ROOT.kGreen+2)
+  local_tHist_effNum_reco_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kGreen+2)
+  local_tHist_effNum_reco_2g1p_exclusive_scaled.SetMarkerSize(0.5)
+  local_tHist_effNum_reco_2g1p_exclusive_scaled.Draw("SAME")
 
   local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.SetLineColor(ROOT.kRed)
   local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled.SetMarkerColor(ROOT.kRed)
@@ -294,5 +312,6 @@ with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded.png'.format(plotDir)):
     legend.AddEntry(local_tHist_evtRate_reco_2g1p_exclusive_scaled,"NuWro Fake Data","lep")
   legend.AddEntry(local_tHist_genie_evtRate_reco_2g1p_exclusive_scaled,"GENIE Prediction (derived)","lep")
   legend.AddEntry(local_tHist_hreco_2g1p_exclusive_scaled,"GENIE Prediction (raw)","lep")
+  legend.AddEntry(local_tHist_effNum_reco_2g1p_exclusive_scaled,"effNum_reco","lep")
   legend.Draw()
 
