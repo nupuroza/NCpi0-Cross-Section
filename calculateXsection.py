@@ -43,7 +43,7 @@ mHist_flux_integral = outFile.Get("integratedFlux")
 mHist_nTargets = outFile.Get("nTargets")
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDef in ["2g1p"]:
+for sigDef in ["2g1p","2g0p"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
   for sigDefexcl in ["exclusive"]:
 

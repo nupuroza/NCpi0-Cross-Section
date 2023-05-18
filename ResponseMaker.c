@@ -21,9 +21,16 @@ void ResponseMaker(std::string outDir){
     // -----------------------------------------------------
 
     // Despite being labeled as 2g1p, because this file is from an earlier stage of the selection, it is inclusive of 2g0p and can be used to derive both response 2g0p and 2g1p matrices
-    TTree * v = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
+    TTree * v_2g1p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
+    TTree * v_2g0p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
 
-    std::cout<<v->GetEntries()<<std::endl;
+    std::cout<<"Number of entries in 2g1p tuple: "<<v_2g1p->GetEntries()<<std::endl;
+    std::cout<<"Number of entries in 2g0p tuple: "<<v_2g0p->GetEntries()<<std::endl;
+
+    if (v_2g1p->GetEntries()!=v_2g0p->GetEntries()) {
+        std::cout << "The number of entries in the 2g1p and 2g0p input tuples are unequal and parts of this script won't work correctly, so I'm exiting..." << std::endl;
+        exit(1); // Terminate with a non-zero exit status
+    }
 
     // Prescription for calculating reconstructed pion momentum
     // In hive framework, this variable is aliased as "reco_pion_momentum"
@@ -45,8 +52,10 @@ void ResponseMaker(std::string outDir){
     // Prescription for calculating truth pion momentum (this is already stored in a branch)
     std::string true_var = "mctruth_exiting_pi0_mom";
 
-    TTreeFormula * reco_form = new TTreeFormula("recof",reco_var.c_str(), v);
-    TTreeFormula * true_form = new TTreeFormula("truef",true_var.c_str(), v);
+    TTreeFormula * reco_form_2g1p = new TTreeFormula("recof",reco_var.c_str(), v_2g1p);
+    TTreeFormula * reco_form_2g0p = new TTreeFormula("recof",reco_var.c_str(), v_2g0p);
+    TTreeFormula * true_form_2g1p = new TTreeFormula("truef",true_var.c_str(), v_2g1p);
+    TTreeFormula * true_form_2g0p = new TTreeFormula("truef",true_var.c_str(), v_2g0p);
 
     // Prescription for calculating event weight
     // -----------------------------------------
@@ -69,15 +78,14 @@ void ResponseMaker(std::string outDir){
     // Prescription for determining which events 
     // pass selection cuts
     // -----------------------------------------
-    TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v);
-    //TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v);
-    TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v); // Placeholder
+    TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
+    TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v_2g0p);
 
     // Prescription for normalizing selection 
     // and implementing some cuts
     // -----------------------------------------
-    TTreeFormula * norm_form_2g1p = new TTreeFormula("norm",(additional_weight_2g1p).c_str(), v);
-    TTreeFormula * norm_form_2g0p = new TTreeFormula("norm",(additional_weight_2g0p).c_str(), v);
+    TTreeFormula * norm_form_2g1p = new TTreeFormula("norm",(additional_weight_2g1p).c_str(), v_2g1p);
+    TTreeFormula * norm_form_2g0p = new TTreeFormula("norm",(additional_weight_2g0p).c_str(), v_2g0p);
 
     // -----------------------------------------------------
     // Construct response matrix 
@@ -102,42 +110,49 @@ void ResponseMaker(std::string outDir){
     mat_2g0p.Zero();
 
     // Loop through event tree; fill htrue, hreco, and response hists
-    for(int i=0; i<v->GetEntries();i++){
+    for(int i=0; i<v_2g1p->GetEntries();i++){
 
-        v->GetEntry(i);
+        v_2g1p->GetEntry(i);
+        v_2g0p->GetEntry(i);
 
         // Technically not necessary, but Mark says that this avoids some inconsistent obscure ROOT bug
-        reco_form->GetNdata();
-        true_form->GetNdata();
+        reco_form_2g1p->GetNdata();
+        true_form_2g1p->GetNdata();
         pass_form_2g1p->GetNdata();
-        pass_form_2g0p->GetNdata();
         norm_form_2g1p->GetNdata();
+
+        reco_form_2g0p->GetNdata();
+        true_form_2g0p->GetNdata();
+        pass_form_2g0p->GetNdata();
         norm_form_2g0p->GetNdata();
 
-        double r = reco_form->EvalInstance();
-        double t = true_form->EvalInstance();
+        double r_2g1p = reco_form_2g1p->EvalInstance();
+        double t_2g1p = true_form_2g1p->EvalInstance();
         double p_2g1p = pass_form_2g1p->EvalInstance();
-        double p_2g0p = pass_form_2g0p->EvalInstance();
         double w_2g1p = norm_form_2g1p->EvalInstance();
+
+        double r_2g0p = reco_form_2g0p->EvalInstance();
+        double t_2g0p = true_form_2g0p->EvalInstance();
+        double p_2g0p = pass_form_2g0p->EvalInstance();
         double w_2g0p = norm_form_2g0p->EvalInstance();
 
-        if(i%20000==0)std::cout<<i<<" "<<v->GetEntries()<<std::endl;
+        if(i%20000==0)std::cout<<i<<" "<<v_2g1p->GetEntries()<<std::endl;
     //    std::cout<<r<<"\t\t"<<t<<"\t\t"<<p<<std::endl;
 
         if(p_2g1p){
-            resp_2g1p->Fill(r,t,w_2g1p);
-            htrue_2g1p->Fill(t,w_2g1p);
-            hreco_2g1p->Fill(r,w_2g1p);
+            resp_2g1p->Fill(r_2g1p,t_2g1p,w_2g1p);
+            htrue_2g1p->Fill(t_2g1p,w_2g1p);
+            hreco_2g1p->Fill(r_2g1p,w_2g1p);
         }
         else if(p_2g0p){
-            resp_2g0p->Fill(r,t,w_2g0p);
-            htrue_2g0p->Fill(t,w_2g0p);
-            hreco_2g0p->Fill(r,w_2g0p);
+            resp_2g0p->Fill(r_2g0p,t_2g0p,w_2g0p);
+            htrue_2g0p->Fill(t_2g0p,w_2g0p);
+            hreco_2g0p->Fill(r_2g0p,w_2g0p);
         }
         else{
             //resp->Fill(-999,t,w);
-            htrue_2g1p->Fill(t,w_2g1p);
-            htrue_2g0p->Fill(t,w_2g0p);
+            htrue_2g1p->Fill(t_2g1p,w_2g1p);
+            htrue_2g0p->Fill(t_2g0p,w_2g0p);
         }
 
     }
@@ -179,8 +194,8 @@ void ResponseMaker(std::string outDir){
 
     // Write out response matrix TMatrices
     std::cout << "Writing response matrix TMatrices to output file" << std::endl;
-    mat_2g1p.Write("response_matrix");
-    mat_2g0p.Write("response_matrix");
+    mat_2g1p.Write("response_matrix_2g1p");
+    mat_2g0p.Write("response_matrix_2g0p");
     
     // Write out htrue and hreco
     std::cout << "Writing htrue and hreco TH1Ds to output file" << std::endl;

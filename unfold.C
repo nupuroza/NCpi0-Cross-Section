@@ -11,95 +11,11 @@
 
 
 // -----------------------------------------------------
-// Main method
+// Bit that should be evaluated separately once for each
+// signal definition (sigDef) that we care about
 // -----------------------------------------------------
-void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest)
+void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, bool closureTest, WienerSVDUnfolder::RegularizationMatrixType MY_REGULARIZATION, int NUM_ITERATIONS)
 {
-
-  // -----------------------------------------------------
-  // Specify Unfolder specs
-  // -----------------------------------------------------
-
-  std::string unfolding_spec = "";
-  using RMT = WienerSVDUnfolder::RegularizationMatrixType;
-  RMT MY_REGULARIZATION; 
-  int NUM_ITERATIONS = 0;
- 
-  if(useWienerSVD){
-    if(unfoldingConfig=="kIdentity"){
-      MY_REGULARIZATION = RMT::kIdentity;
-    }
-    else if(unfoldingConfig=="kFirstDerivative"){    
-      MY_REGULARIZATION = RMT::kFirstDeriv;
-    }
-    else if(unfoldingConfig== "kSecondDerivative"){
-      MY_REGULARIZATION = RMT::kSecondDeriv;
-    }
-    unfolding_spec = ("WSVD-"+unfoldingConfig).c_str();
-  }
-  else{
-    NUM_ITERATIONS = std::stoi(unfoldingConfig);
-    unfolding_spec = ("DAgostini-"+unfoldingConfig+"-iteration").c_str();
-  } 
- 
-  std::string sigDef = "2g1p_exclusive";
-
-  // -----------------------------------------------------
-  // Clone input file to ouput file
-  // -----------------------------------------------------
-
-  // If input file path includes ".root" suffix, strip that off
-  if(filePath_in.substr(filePath_in.length()-5,filePath_in.length())==".root"){
-    filePath_in = filePath_in.substr(0,filePath_in.length()-5);
-  }
-
-  TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
-  // A little hacky, but the best I figured out for how to handle the
-  // if/else and also the fact that ().c_str() returns a const char*
-  // -----------------------------------------------------------------
-  std::string output_file_path_base = filePath_in+"_unfolded_"+unfolding_spec;
-  std::string output_file_path_suffix = closureTest ? "_closureTest.root" : ".root";
-  std::string output_file_path = output_file_path_base + output_file_path_suffix;
-  std::cout << "DEBUG\toutput_file_path: " << output_file_path << std::endl;
-
-  file_in->Cp(output_file_path.c_str());
-  file_in->Close();
- 
-  // -----------------------------------------------------
-  // Pull in response matrix from response matrix file
-  // -----------------------------------------------------
-
-  // Navigate to response matrix file in same directory as input hist file
-  std::size_t last_slash_pos = filePath_in.find_last_of("/");
-  std::string fileDir = filePath_in.substr(0,last_slash_pos);
-  TFile* file_in_response = new TFile((fileDir+"/response_matrices_exclusive.root").c_str(),"READ");
- 
-  // Copy all contents of response matrix file to output file 
-  TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
-  file_in_response->cd();
-  TList* keys = gDirectory->GetListOfKeys();
-
-  for(int i=0; i<keys->GetEntries(); i++){
-    TKey* key = (TKey*)keys->At(i);
-    TObject* obj = key->ReadObj();
-    // This is a bit kludgy, and won't work if there is more than one TMatrix in the response matrix file
-    // But if the object to copy is a TMatrix, we need to be more explicit about its name, or it won't get
-    // copied over.
-    if (TString(obj->ClassName()) == "TMatrixT<double>") {
-      file_out->cd();
-      obj->Write("response_matrix");
-    }
-    else{
-      file_out->cd();
-      obj->Write();
-    }
-  }
-  
-  // We don't need this file open any more
-  file_in_response->Close();
-
-  // Everything needed can now be pulled from file_out
-  // -----------------------------------------------------
 
   // -----------------------------------------------------
   // Pull requisite unfolding ingredients from file
@@ -115,7 +31,7 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
 
   // Pull out response matrix 
-  TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get("response_matrix");
+  TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get("response_matrix_2g1p");
 
   // -----------------------------------------------------
   // Handle underflow/overflow bins and make sure all
@@ -304,6 +220,109 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   tHist_smeared_true_signal.Write();
 
   //file_out->Close();
+  return;
+}
+
+// -----------------------------------------------------
+// Main method
+// -----------------------------------------------------
+void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest)
+{
+
+  // -----------------------------------------------------
+  // Specify Unfolder specs
+  // -----------------------------------------------------
+
+  std::string unfolding_spec = "";
+  using RMT = WienerSVDUnfolder::RegularizationMatrixType;
+  RMT MY_REGULARIZATION; 
+  int NUM_ITERATIONS = 0;
+ 
+  if(useWienerSVD){
+    if(unfoldingConfig=="kIdentity"){
+      MY_REGULARIZATION = RMT::kIdentity;
+    }
+    else if(unfoldingConfig=="kFirstDerivative"){    
+      MY_REGULARIZATION = RMT::kFirstDeriv;
+    }
+    else if(unfoldingConfig== "kSecondDerivative"){
+      MY_REGULARIZATION = RMT::kSecondDeriv;
+    }
+    unfolding_spec = ("WSVD-"+unfoldingConfig).c_str();
+  }
+  else{
+    NUM_ITERATIONS = std::stoi(unfoldingConfig);
+    unfolding_spec = ("DAgostini-"+unfoldingConfig+"-iteration").c_str();
+  } 
+ 
+  // -----------------------------------------------------
+  // Clone input file to ouput file
+  // -----------------------------------------------------
+
+  // If input file path includes ".root" suffix, strip that off
+  if(filePath_in.substr(filePath_in.length()-5,filePath_in.length())==".root"){
+    filePath_in = filePath_in.substr(0,filePath_in.length()-5);
+  }
+
+  TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
+  // A little hacky, but the best I figured out for how to handle the
+  // if/else and also the fact that ().c_str() returns a const char*
+  // -----------------------------------------------------------------
+  std::string output_file_path_base = filePath_in+"_unfolded_"+unfolding_spec;
+  std::string output_file_path_suffix = closureTest ? "_closureTest.root" : ".root";
+  std::string output_file_path = output_file_path_base + output_file_path_suffix;
+  std::cout << "DEBUG\toutput_file_path: " << output_file_path << std::endl;
+
+  file_in->Cp(output_file_path.c_str());
+  file_in->Close();
+ 
+  // -----------------------------------------------------
+  // Pull in response matrix from response matrix file
+  // -----------------------------------------------------
+
+  // Navigate to response matrix file in same directory as input hist file
+  std::size_t last_slash_pos = filePath_in.find_last_of("/");
+  std::string fileDir = filePath_in.substr(0,last_slash_pos);
+  TFile* file_in_response = new TFile((fileDir+"/response_matrices_exclusive.root").c_str(),"READ");
+ 
+  // Copy all contents of response matrix file to output file 
+  TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
+  file_in_response->cd();
+  TList* keys = gDirectory->GetListOfKeys();
+
+  // Go through the contents of the file one-by-one
+  for(int i=0; i<keys->GetEntries(); i++){
+    TKey* key = (TKey*)keys->At(i);
+    TObject* obj = key->ReadObj();
+    // TMatrixD objects are a little trickier, so we find them by their names
+    // and then explicitly propagate the object names to the output file
+    if (TString(obj->ClassName()) == "TMatrixT<double>") {
+      TString objName = key->GetName();
+      if (objName == "response_matrix_2g1p") {
+        file_out->cd();
+        obj->Write("response_matrix_2g1p");
+      }
+      else if(objName == "response_matrix_2g0p") {
+        file_out->cd();
+        obj->Write("response_matrix_2g0p");
+      }
+    }
+    // The rest of the objects are much more straightforward to deal with
+    else{
+      file_out->cd();
+      obj->Write();
+    }
+  }
+  
+  // We don't need this file open any more
+  file_in_response->Close();
+
+  // Everything needed can now be pulled from file_out
+  // -----------------------------------------------------
+
+  execute_unfolding(file_out,"2g1p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
+  execute_unfolding(file_out,"2g0p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
+
   return;
 }
 
