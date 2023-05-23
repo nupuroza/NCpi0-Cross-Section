@@ -52,6 +52,10 @@ else:
 ### Make simple flux plots ##################################################################################
 #############################################################################################################
 
+plotter = ROOT.PlotUtils.MnvPlotter()
+plotter.SetROOT6Palette(54)
+ROOT.gStyle.SetNumberContours(200)
+
 for histCat in ["flux","flux_numu","flux_numubar","flux_nue","flux_nuebar"]:
 
   # Open a file for writing the output
@@ -101,6 +105,16 @@ for histCat in ["flux","flux_numu","flux_numubar","flux_nue","flux_nuebar"]:
       exec("tHist_{0}.Scale(10**-28)".format(histCat)) 
     exec("tHist_{0}.Scale(1.0,\"width\")".format(histCat))
     exec("tHist_{0}.Draw()".format(histCat))
+
+  with makeEnv_TCanvas('{0}/cov_{1}.png'.format(plotDir,histCat)) as canvas:
+  
+    exec("tmp = {0}.GetTotalErrorMatrix(True,True)".format(histCat))
+    tmp_truncated = tmp.GetSub(0,60,0,60)
+    tmp_truncated.Draw("colz")
+    #tmp.GetXaxis().SetTitle("E_{#nu} (GeV)")
+    #tmp.GetYaxis().SetTitle("E_{#nu} (GeV)")
+    canvas.canvas.SetLogz()
+
 
 #for histCat in ["integratedFlux","integratedFlux_numu","integratedFlux_numubar","integratedFlux_nue","integratedFlux_nuebar"]:
 #
