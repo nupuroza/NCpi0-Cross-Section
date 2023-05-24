@@ -31,7 +31,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
   TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
 
   // Pull out response matrix 
-  TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get("response_matrix_2g1p");
+  TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get(("response_matrix_"+sigDef).c_str());
 
   // -----------------------------------------------------
   // Handle underflow/overflow bins and make sure all
@@ -298,13 +298,13 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
     // and then explicitly propagate the object names to the output file
     if (TString(obj->ClassName()) == "TMatrixT<double>") {
       TString objName = key->GetName();
-      if (objName == "response_matrix_2g1p") {
+      if (objName == "response_matrix_2g1p_exclusive") {
         file_out->cd();
-        obj->Write("response_matrix_2g1p");
+        obj->Write("response_matrix_2g1p_exclusive");
       }
-      else if(objName == "response_matrix_2g0p") {
+      else if(objName == "response_matrix_2g0p_exclusive") {
         file_out->cd();
-        obj->Write("response_matrix_2g0p");
+        obj->Write("response_matrix_2g0p_exclusive");
       }
     }
     // The rest of the objects are much more straightforward to deal with

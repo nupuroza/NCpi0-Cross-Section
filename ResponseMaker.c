@@ -194,8 +194,8 @@ void ResponseMaker(std::string outDir){
 
     // Write out response matrix TMatrices
     std::cout << "Writing response matrix TMatrices to output file" << std::endl;
-    mat_2g1p.Write("response_matrix_2g1p");
-    mat_2g0p.Write("response_matrix_2g0p");
+    mat_2g1p.Write("response_matrix_2g1p_exclusive");
+    mat_2g0p.Write("response_matrix_2g0p_exclusive");
     
     // Write out htrue and hreco
     std::cout << "Writing htrue and hreco TH1Ds to output file" << std::endl;
