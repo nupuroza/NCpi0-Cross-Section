@@ -11,7 +11,7 @@ from customHistAndPlotMethods import writeHist
 ROOT.TH1.AddDirectory(False)
 
 #############################################################################################################
-### File Management #########################################################################################
+### Input File Locations ####################################################################################
 #############################################################################################################
 
 ## Data
@@ -45,7 +45,11 @@ inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 #detectorFilePath_2g1p_inclusive = 
 #detectorFile_2g1p_inclusive = ROOT.TFile(detectorFilePath_2g1p_inclusive)
 
-## Output file
+#############################################################################################################
+### User Args and Output File Location ######################################################################
+#############################################################################################################
+
+## Parse User Args 
 parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
 parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
 parser.add_argument('--test',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
@@ -63,6 +67,7 @@ if not os.path.isdir(p.output_dir):
   os.system( "mkdir %s" % p.output_dir )
 
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
+## @Leon -- this is the place where you can customize the output file name, maybe using a new arg like "tag"
 outFile = ROOT.TFile(outputFilePath,"recreate")
 
 #############################################################################################################
@@ -75,6 +80,10 @@ is_fake_data = True if p.fakedata>0 else False
 #############################################################################################################
 ### Create Reference Hists ##################################################################################
 #############################################################################################################
+
+## Note for future: If the 2g1p and 2g0p binning ever diverges (or 2gnp inclusive, for that matter) then
+## you will want to expand this set of referenceHists to have distinct referenceHist_2g1p_{true,reco} and
+## referenceHist_2g0p_{true,reco} (and maybe referenceHist_2gnp_{true,reco})
 
 ## Create reference Hist that will be a template for whatever input binning is being used
 ## Doesn't really matter which hist is used for this, as long as it has the correct binning
@@ -90,6 +99,11 @@ for i in range(1,nBins_true+1):
 histToBeCloned_reco = inFile_2g1p_inclusive.Get("inclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal")
 referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
 nBins_reco = referenceHist_reco.GetNbinsX()
+referenceHist_reco.SetTitle("")
+nBins_reco = referenceHist_reco.GetNbinsX()
+for i in range(1,nBins_reco+1):
+  referenceHist_reco.SetBinContent(i,-999.)
+  referenceHist_reco.SetBinError(i,0.)
 
 #############################################################################################################
 ### Systematic Universes ####################################################################################
@@ -180,7 +194,7 @@ if is_fake_data:
 
 ## From Mark's script
 
-fid_vol = 56408336.14 #cm^3 5cm
+fid_vol = 56408336.14 #cm^3
 density = 1.3954 #from MC https://files.slack.com/files-pri/T0LFJ3CE5-F01ER1SK6G4/screen_shot_2020-11-11_at_4.18.34_pm.png
 #At the temperature 89.2K  (https://lar.bnl.gov/properties/) is 1.3837 [g/cm3]
 avo = 6.02214e23
@@ -200,7 +214,6 @@ mHist_nTargets.SetName("nTargets")
 ## Populate error bands
 for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
   mHist_nTargets.AddVertErrorBandAndFillWithCV(systName,nUniverses)
-
 
 ## Steven Gardiner told us to use a 1% variation
 if not is_fake_data: ## this won't work for fake data
@@ -276,8 +289,6 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
   
     # Create the appropriate error band in the MnvH1D
     exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
-  
-    ## Cross section variations don't affect the flux, so leave it at that
   
   ## Loop over flux systematics
   for systName,universePrefix,nUniverses in FLUX_SYSTS:
