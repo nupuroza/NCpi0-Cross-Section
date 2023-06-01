@@ -1,4 +1,4 @@
-void makeXsecRatioErrorSummary(){
+void makeXsecRatioErrorSummary(std::string outDir){
 
     //******************* MC numbers **********************
     //                              comb    1p      0p
@@ -155,6 +155,6 @@ void makeXsecRatioErrorSummary(){
     latex.DrawLatex(.05,0.43,"MicroBooNE");
 
     // Save plot as image
-    c->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/errorSummary_xsec_ratio_panels.pdf","pdf");
+    c->SaveAs((outDir+"/errorSummary_xsec_ratio_panels.pdf").c_str(),"pdf");
 
 }
