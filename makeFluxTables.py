@@ -5,7 +5,7 @@ import ROOT
 import datetime as dt
 import argparse
 import os
-from customHistAndPlotMethods import makeEnv_TCanvas,localDrawErrorSummary
+from customHistAndPlotMethods import writeHist,makeEnv_TCanvas,localDrawErrorSummary
 
 ## Set ROOT to batch mode
 ROOT.gROOT.SetBatch()
@@ -108,13 +108,27 @@ for histCat in ["flux","flux_numu","flux_numubar","flux_nue","flux_nuebar"]:
 
   with makeEnv_TCanvas('{0}/cov_{1}.png'.format(plotDir,histCat)) as canvas:
   
-    exec("tmp = {0}.GetTotalErrorMatrix(True,True)".format(histCat))
+    exec("tmp = {0}.GetTotalErrorMatrix(True,False)".format(histCat))
     tmp_truncated = tmp.GetSub(0,60,0,60)
     tmp_truncated.Draw("colz")
     #tmp.GetXaxis().SetTitle("E_{#nu} (GeV)")
     #tmp.GetYaxis().SetTitle("E_{#nu} (GeV)")
     canvas.canvas.SetLogz()
 
+#############################################################################################################
+### Write covariance matrices to new output file ############################################################
+#############################################################################################################
+
+outFilePath_covMatrix = "{0}/covariance_matrices.root".format(plotDir)
+outFile_covMatrix = ROOT.TFile(outFilePath_covMatrix,"recreate")
+
+for histCat in ["flux","flux_numu","flux_numubar","flux_nue","flux_nuebar"]:
+
+  exec("covMatrix_{0} = {0}.GetTotalErrorMatrix(True,False)".format(histCat))
+  exec("covMatrix_{0}_truncated = covMatrix_{0}.GetSub(0,60,0,60)".format(histCat))
+  outFile_covMatrix.cd()
+  exec("covMatrix_{0}.Write(\"covariance_matrix_{0}\")".format(histCat))
+  exec("covMatrix_{0}_truncated.Write(\"covariance_matrix_{0}_truncated\")".format(histCat))
 
 #for histCat in ["integratedFlux","integratedFlux_numu","integratedFlux_numubar","integratedFlux_nue","integratedFlux_nuebar"]:
 #
