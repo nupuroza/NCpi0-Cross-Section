@@ -52,6 +52,8 @@ TMatrixD TH1DtoTMatrixD(const TH1D& input_hist, bool include_underflow, bool inc
 
 // Create TH2D from TMatrixD
 // `reference_hist` should have the desired binning, but will not itself be filled
+// DISCLAIMER: As implemented this evidently assumes you want to convert a square matrix
+// It is conceivably the case that you might want to make reference_hist a TH2D in the future
 TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist)
 {
   Int_t nBins = reference_hist.GetNbinsX();

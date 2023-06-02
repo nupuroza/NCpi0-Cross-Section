@@ -17,20 +17,23 @@
 void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, bool closureTest, WienerSVDUnfolder::RegularizationMatrixType MY_REGULARIZATION, int NUM_ITERATIONS)
 {
 
+  std::cout << "I'm inside execute_unfolding(). I'm running over " << sigDef << std::endl;
+
   // -----------------------------------------------------
   // Pull requisite unfolding ingredients from file
   // -----------------------------------------------------
 
-  // Pull out measured signal MnvH1D from input file
+  // Pull out measured signal MnvH1D from input file (evtRate is background-subtracted event rate)
   PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get(("evtRate_"+sigDef).c_str()); 
   TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
   // Extract covariance 
   TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
-  // Pull out predicted signal MnvH1D from input file //needs to be in true space; it's a reference true space
+  // Pull out predicted signal MnvH1D from input file // needs to be in true space, happens to also be the efficiency
+  // denominator in our xsec extraction
   PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get(("effDenom_"+sigDef).c_str());  
   TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
 
-  // Pull out response matrix 
+  // Pull out response matrix; adopt jargon of Unfolder tool, "smearcept" == "smearing + acceptance"
   TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get(("response_matrix_"+sigDef).c_str());
 
   // -----------------------------------------------------
@@ -51,11 +54,11 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
   double binVal_overflow_reco = tHist_data_signal.GetBinContent(nBins_reco+1);
   bool include_overflow_reco = binVal_overflow_reco > threshold ? 1 : 0;
 
-  // Check if underflow is zero for prior_true_signal (reco space)
+  // Check if underflow is zero for prior_true_signal (true space)
   double binVal_underflow_true = tHist_prior_true_signal.GetBinContent(0);
   bool include_underflow_true = binVal_underflow_true > threshold ? 1 : 0;
 
-  // Check if overflow is zero for prior_true_signal (reco space)
+  // Check if overflow is zero for prior_true_signal (true space)
   Int_t nBins_true = tHist_prior_true_signal.GetNbinsX();
   double binVal_overflow_true = tHist_prior_true_signal.GetBinContent(nBins_true+1);
   bool include_overflow_true = binVal_overflow_true > threshold ? 1 : 0;
@@ -80,7 +83,8 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
   TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
 
   // --------------------------------------------------------
-  // Derive reco-space generator prediction 
+  // Derive reco-space generator prediction -- needed for
+  // closure test but also generally useful to have later
   // --------------------------------------------------------
 
   // Derive generator prediction in reco space directly from smearcept matrix and prior_true_signal
@@ -95,6 +99,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
 
   // ----------------------------------------------------------
   // Print out number of rows and columns in each input matrix
+  // For debugging purposes; generally useful to keep around
   // ----------------------------------------------------------
 
   std::cout << "binVal_underflow_reco: " << binVal_underflow_reco << std::endl;
@@ -108,21 +113,19 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
 
   Int_t data_rows = tMat_data_signal.GetNrows();
   Int_t data_cols = tMat_data_signal.GetNcols();
-  std::cout << "data_rows: " << data_rows << "\t" << "data_cols: " << data_cols << std::endl;
+  std::cout << "folded_signal_rows (data): " << data_rows << "\t" << "folded_signal_cols (data): " << data_cols << std::endl;
 
   Int_t cov_final_rows = tMat_data_covmat_final.GetNrows();
   Int_t cov_final_cols = tMat_data_covmat_final.GetNcols();
-  std::cout << "cov_final_rows: " << cov_final_rows << "\t" << "cov_final_cols: " << cov_final_cols << std::endl;
-
-  Int_t smearcept_rows = tMat_smearcept_final.GetNrows();
-  Int_t smearcept_cols = tMat_smearcept_final.GetNcols();
-  std::cout << "smearcept_rows: " << smearcept_rows << "\t" << "smearcept_cols: " << smearcept_cols << std::endl;
-  std::cout << "tMat_smearcept_final.Print(): " << std::endl;
-  //tMat_smearcept_final.Print();
+  std::cout << "cov_final_rows (data): " << cov_final_rows << "\t" << "cov_final_cols (data): " << cov_final_cols << std::endl;
 
   Int_t mc_rows = tMat_prior_true_signal.GetNrows();
   Int_t mc_cols = tMat_prior_true_signal.GetNcols();
-  std::cout << "mc_rows: " << mc_rows << "\t" << "mc_cols: " << mc_cols << std::endl;
+  std::cout << "prior_true_signal_rows (mc): " << mc_rows << "\t" << "prior_true_signal_cols (mc): " << mc_cols << std::endl;
+
+  Int_t smearcept_rows = tMat_smearcept_final.GetNrows();
+  Int_t smearcept_cols = tMat_smearcept_final.GetNcols();
+  std::cout << "smearcept_rows (data:mc): " << smearcept_rows << "\t" << "smearcept_cols (data:mc): " << smearcept_cols << std::endl;
 
   // -----------------------------------------------------
   // Configure Unfolder and run 
@@ -250,6 +253,7 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
     }
     unfolding_spec = ("WSVD-"+unfoldingConfig).c_str();
   }
+  // If we're not using Wiener-SVD, then we're using D'Agostini
   else{
     NUM_ITERATIONS = std::stoi(unfoldingConfig);
     unfolding_spec = ("DAgostini-"+unfoldingConfig+"-iteration").c_str();
@@ -273,11 +277,12 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
   std::string output_file_path = output_file_path_base + output_file_path_suffix;
   std::cout << "DEBUG\toutput_file_path: " << output_file_path << std::endl;
 
-  file_in->Cp(output_file_path.c_str());
+  file_in->Cp(output_file_path.c_str()); // this is the point at which the output file is created
   file_in->Close();
  
   // -----------------------------------------------------
   // Pull in response matrix from response matrix file
+  // and copy contents to output file
   // -----------------------------------------------------
 
   // Navigate to response matrix file in same directory as input hist file
