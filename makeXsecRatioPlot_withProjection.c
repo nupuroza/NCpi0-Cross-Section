@@ -1,4 +1,4 @@
-void makeXsecRatioPlot_withProjection(){
+void makeXsecRatioPlot_withProjection(std::string outDir){
 
     //----------------------------------------------------
     //------------- XSEC NUMBERS -------------------------
@@ -350,6 +350,6 @@ void makeXsecRatioPlot_withProjection(){
     //----------------------------------------------------
 
     // Save plot as image
-    c0->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/xsec_ratio_panels_withProjection.pdf","pdf");
+    c0->SaveAs((outDir+"/xsec_ratio_panels_withProjection.pdf").c_str(),"pdf");
 
 }

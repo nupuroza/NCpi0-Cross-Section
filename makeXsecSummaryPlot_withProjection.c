@@ -1,4 +1,4 @@
-void makeXsecSummaryPlot_withProjection(){
+void makeXsecSummaryPlot_withProjection(std::string outDir){
 
     //***************** 2g1p ***********************
     double xs_2g1p = 0.444e-38;
@@ -315,7 +315,7 @@ void makeXsecSummaryPlot_withProjection(){
     latex.SetTextAlign(13);  //align at top
     latex.DrawLatex(.05,2.4,"MicroBooNE");
 
-    c->SaveAs("/uboone/data/users/finer/gLEE/NCPi0/2023-02_ratio-work/xSec_summary_panels_withProjection.pdf","pdf");
+    c->SaveAs((outDir+"/xSec_summary_panels_withProjection.pdf").c_str(),"pdf");
 
 
 }
