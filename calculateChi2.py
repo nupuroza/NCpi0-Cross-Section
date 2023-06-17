@@ -9,7 +9,7 @@ import numpy
 from array import *
 
 from plottingClasses import *
-from errorMaps import *
+from errorMaps_gLEE import *
 
 ## Set ROOT to batch mode
 ROOT.gROOT.SetBatch()

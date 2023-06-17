@@ -5,7 +5,7 @@ import ROOT
 import datetime as dt
 import argparse
 from plottingClasses import *
-from errorMaps import *
+from errorMaps_gLEE import *
 #from errorMaps_gLEE_GENIE_breakout import *
 #from errorMaps_gLEE_Detector_breakout import *
 
