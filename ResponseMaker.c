@@ -20,7 +20,6 @@ void ResponseMaker(std::string outDir){
     // Interface with gLEE tuple 
     // -----------------------------------------------------
 
-    // Despite being labeled as 2g1p, because this file is from an earlier stage of the selection, it is inclusive of 2g0p and can be used to derive both response 2g0p and 2g1p matrices
     TTree * v_2g1p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
     TTree * v_2g0p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
 
@@ -80,6 +79,7 @@ void ResponseMaker(std::string outDir){
     // -----------------------------------------
     TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
     TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v_2g0p);
+    //TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
 
     // Prescription for normalizing selection 
     // and implementing some cuts
@@ -108,6 +108,14 @@ void ResponseMaker(std::string outDir){
     mat_2g1p.Zero();
     TMatrixD mat_2g0p(reco_bins.size()+1,true_bins.size()+1);
     mat_2g0p.Zero();
+
+    // Number of true and misids for each reco id type. Unknown true ids are when norm_form_2g1p and norm_form_2g0p both evaluate (as w_2g1p and w_2g0p) to 0.
+    int N_true_2g1p = 0;
+    int N_false_2g1p = 0;
+    int N_unknown_2g1p = 0;
+    int N_true_2g0p = 0;
+    int N_false_2g0p = 0;
+    int N_unknown_2g0p = 0;
 
     // Loop through event tree; fill htrue, hreco, and response hists
     for(int i=0; i<v_2g1p->GetEntries();i++){
@@ -141,24 +149,49 @@ void ResponseMaker(std::string outDir){
 
         if(p_2g1p){
             resp_2g1p->Fill(r_2g1p,t_2g1p,w_2g1p);
-            htrue_2g1p->Fill(t_2g1p,w_2g1p);
             hreco_2g1p->Fill(r_2g1p,w_2g1p);
+	    if(w_2g1p != 0){
+		    if(w_2g0p != 0){
+			    printf("Both w_2g1p and w_2g0p are nonzero! Exiting.\n");
+			    exit(0);
+		    }
+		    N_true_2g1p++;
+	    }
+	    else if(w_2g0p != 0)
+		    N_false_2g1p++;
+	    else{
+		    N_unknown_2g1p++;
+	    }
         }
         else if(p_2g0p){
             resp_2g0p->Fill(r_2g0p,t_2g0p,w_2g0p);
-            htrue_2g0p->Fill(t_2g0p,w_2g0p);
             hreco_2g0p->Fill(r_2g0p,w_2g0p);
+	    if(w_2g0p != 0){
+		    if(w_2g1p != 0){
+			    printf("Both w_2g0p and w_2g1p are nonzero! Exiting.\n");
+			    exit(0);
+		    }
+		    N_true_2g0p++;
+	    }
+	    else if(w_2g1p != 0)
+		    N_false_2g0p++;
+	    else
+		    N_unknown_2g0p++;
         }
-        else{
-            //resp->Fill(-999,t,w);
-            htrue_2g1p->Fill(t_2g1p,w_2g1p);
-            htrue_2g0p->Fill(t_2g0p,w_2g0p);
-        }
+
+	htrue_2g1p->Fill(t_2g1p, w_2g1p);
+	htrue_2g0p->Fill(t_2g0p, w_2g0p);
 
     }
     std::cout << "Finished main loop; constructed htrue, hreco, and response hists for both 2g1p and 2g0p signal definitions." << std::endl;
+    printf("Correct 2g1p Identifications: %d\n", N_true_2g1p);
+    printf("False 2g1p Indentifications: %d\n", N_false_2g1p);
+    printf("Unknown 2g1p Identifications: %d\n", N_unknown_2g1p);
+    printf("Correct 2g0p Identifications: %d\n", N_true_2g0p);
+    printf("False 2g0p Identifications: %d\n", N_false_2g0p);
+    printf("Unknown 2g0p Identifiactions: %d\n", N_unknown_2g0p);
 
-    for(int i=0;i< hreco_2g1p->GetNbinsX()+2; i++){ // Both loops need to go to nbins+1 to capture the overflow
+    for(int i=0;i< hreco_2g1p->GetNbinsX()+2; i++){ // Both loops need to go to nbins+2 to capture the underflow and overflow
         for(int a=0; a<htrue_2g1p->GetNbinsX()+2; a++){ // It doesn't matter whether we loop over 2g1p or 2g0p to get the bin counts
             
             //2g1p  
