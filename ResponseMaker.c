@@ -60,26 +60,29 @@ void ResponseMaker(std::string outDir){
     // -----------------------------------------
 
     // Bit that's common to 2g1p and 2g0p
+    // 1. Scaling simulation POT to data POT. Simulation POT in denominator here. Data POT is in additional_weight.
+    // 2. Only select events with 20 photons during beam window and fewer than 20 photons in veto time window.
+    // 3. Remove events outside detector region.
+    // 4. Scale Monte Carlo runs to number of events captured in actual data runs.
     std::string additional_weight_common =
     "(\
-      (simple_pot_weight*6.7873e20/4.9669582e+21)\
+      (simple_pot_weight/4.9669582e+21)\
      *(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20)\
      *(MCFlux_NuPosX > (0.0-1.55) && MCFlux_NuPosX < (256.35-1.55) && MCFlux_NuPosY > (-116.5+0.97) && MCFlux_NuPosY < (116.5+0.97) && MCFlux_NuPosZ > 0.0+0.1 && MCFlux_NuPosZ < 1036.8+0.1)\
      *( (run_number >= 4952 && run_number <= 7770)*0.943100 + ( (run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number <= 18960) )*1.020139 )\
     )";
 
     // Bit that's unique to 2g1p
-    std::string additional_weight_2g1p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)";
+    std::string additional_weight_2g1p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)*6.7873e20";
 
     // Bit that's unique to 2g0p
-    std::string additional_weight_2g0p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==0)";
+    std::string additional_weight_2g0p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==0)*5.8930e20";
 
     // Prescription for determining which events 
     // pass selection cuts
     // -----------------------------------------
     TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
     TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v_2g0p);
-    //TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
 
     // Prescription for normalizing selection 
     // and implementing some cuts
