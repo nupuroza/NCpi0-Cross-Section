@@ -76,7 +76,7 @@ void ResponseMaker(std::string outDir){
     std::string additional_weight_2g1p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)*6.7873e20";
 
     // Bit that's unique to 2g0p
-    std::string additional_weight_2g0p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==0)*5.8930e20";
+    std::string additional_weight_2g0p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==0)*5.2950e20";
 
     // Prescription for determining which events 
     // pass selection cuts

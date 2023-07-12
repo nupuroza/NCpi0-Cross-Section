@@ -304,7 +304,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       exec("local_mHist_effNum_reco = histFile.Get(\"effNum_reco_{0}\")".format(sigDef))
       local_tHist_effNum_reco_scaled = local_mHist_effNum_reco.GetCVHistoWithError() 
       local_tHist_effNum_reco_scaled.Scale(1e-3,"width")
-     
+
       ## Set plot formatting 
       local_tHist_evtRate_reco_scaled.SetMarkerSize(0.5)
       if is_closure_test:

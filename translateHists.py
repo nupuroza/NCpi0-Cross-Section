@@ -214,7 +214,7 @@ writeHist(mHist_nTargets,outFile)
 ### Calculate POT ###########################################################################################
 #############################################################################################################
 POT_2g1p = 6.7873*10**20
-POT_2g0p = 5.8930*10**20
+POT_2g0p = 5.2950*10**20
 POT_scaling = POT_2g1p/POT_2g0p
 
 ## NuWro fake data POT (not needed yet, but included so all POTs are in the same place)
