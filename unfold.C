@@ -165,6 +165,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
   // Calculate smeared true signal distribution
   // -----------------------------------------------------
   
+  // Note: TMatrix axes are inverted from TH2D, so for tMat_add_smear_matrix, rows correspond to reco, and columns correspond to true (see unfold.C)
   TMatrixD* tMat_smeared_true_signal = new TMatrixD(*tMat_add_smear_matrix,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
 
   // -----------------------------------------------------

@@ -36,23 +36,36 @@ void ResponseMaker(std::string outDir){
     // Pmom_pi = sqrt(Ppix^2+Ppiy^2+Ppiz^2);
     // Ppix = Pgamma1_x+Pgamma2_x;
     // Pgamma_x = energy*dir_x;
-    std::string reco_var =
-    "sqrt(\
-      ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirx[(i_shr[1])] )\
-     *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirx[(i_shr[1])] )\
-      +\
-      ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_diry[(i_shr[1])] )\
-     *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_diry[(i_shr[1])] )\
-      +\
-      ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirz[(i_shr[1])] )\
-     *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirz[(i_shr[1])] )\
-    )/1000";
- 
+    // implied_dir is based on reco vertex and is used when a hadronic track is present (2g1p)
+    std::string reco_var_2g1p =
+        "sqrt(\
+        ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirx[(i_shr[1])] )\
+        *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirx[(i_shr[1])] )\
+        +\
+        ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_diry[(i_shr[1])] )\
+        *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_diry[(i_shr[1])] )\
+        +\
+        ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirz[(i_shr[1])] )\
+        *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_implied_dirz[(i_shr[1])] )\
+        )/1000";
+    
+    std::string reco_var_2g0p =
+        "sqrt(\
+        ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_dirx[(i_shr[1])] )\
+        *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_dirx[(i_shr[1])] )\
+        +\
+        ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_diry[(i_shr[1])] )\
+        *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_diry[(i_shr[1])] )\
+        +\
+        ( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_dirz[(i_shr[1])] )\
+        *( (1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486) * reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486) * reco_shower_dirz[(i_shr[1])] )\
+        )/1000";
+
     // Prescription for calculating truth pion momentum (this is already stored in a branch)
     std::string true_var = "mctruth_exiting_pi0_mom";
 
-    TTreeFormula * reco_form_2g1p = new TTreeFormula("recof",reco_var.c_str(), v_2g1p);
-    TTreeFormula * reco_form_2g0p = new TTreeFormula("recof",reco_var.c_str(), v_2g0p);
+    TTreeFormula * reco_form_2g1p = new TTreeFormula("recof",reco_var_2g1p.c_str(), v_2g1p);
+    TTreeFormula * reco_form_2g0p = new TTreeFormula("recof",reco_var_2g0p.c_str(), v_2g0p);
     TTreeFormula * true_form_2g1p = new TTreeFormula("truef",true_var.c_str(), v_2g1p);
     TTreeFormula * true_form_2g0p = new TTreeFormula("truef",true_var.c_str(), v_2g0p);
 
@@ -61,28 +74,32 @@ void ResponseMaker(std::string outDir){
 
     // Bit that's common to 2g1p and 2g0p
     // 1. Scaling simulation POT to data POT. Simulation POT in denominator here. Data POT is in additional_weight.
-    // 2. Only select events with 20 photons during beam window and fewer than 20 photons in veto time window.
-    // 3. Remove events outside detector region.
-    // 4. Scale Monte Carlo runs to number of events captured in actual data runs.
+    // 2. Remove events outside detector region.
+    // 3. Scale Monte Carlo runs to number of events captured in actual data runs.
+    // 4. Remove events with pi+/-
+    // 5. Remove events with exiting photons
     std::string additional_weight_common =
-    "(\
-      (simple_pot_weight/4.9669582e+21)\
-     *(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20)\
-     *(MCFlux_NuPosX > (0.0-1.55) && MCFlux_NuPosX < (256.35-1.55) && MCFlux_NuPosY > (-116.5+0.97) && MCFlux_NuPosY < (116.5+0.97) && MCFlux_NuPosZ > 0.0+0.1 && MCFlux_NuPosZ < 1036.8+0.1)\
-     *( (run_number >= 4952 && run_number <= 7770)*0.943100 + ( (run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number <= 18960) )*1.020139 )\
-    )";
+        "(\
+        (simple_pot_weight/4.9669582e+21)\
+        *(MCFlux_NuPosX > (0.0-1.55) && MCFlux_NuPosX < (256.35-1.55) && MCFlux_NuPosY > (-116.5+0.97) && MCFlux_NuPosY < (116.5+0.97) && MCFlux_NuPosZ > 0.0+0.1 && MCFlux_NuPosZ < 1036.8+0.1)\
+        *( (run_number >= 4952 && run_number <= 7770)*0.943100 + ( (run_number >= 8317 && run_number <=  13696) || (run_number >= 13697 && run_number <= 14116) || (run_number >= 14117 && run_number <= 18960) )*1.020139 )\
+        *(mctruth_num_exiting_pipm == 0)\
+        *(mctruth_num_exiting_photons == 0)\
+        )";
 
     // Bit that's unique to 2g1p
-    std::string additional_weight_2g1p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)*6.7873e20";
+    std::string additional_weight_2g1p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==1)*6.868e20";
 
     // Bit that's unique to 2g0p
-    std::string additional_weight_2g0p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==0)*5.2950e20";
+    std::string additional_weight_2g0p = additional_weight_common + "*(Sum$(mctruth_exiting_proton_energy-0.93827 > 0.05)==0)*6.868e20";
 
     // Prescription for determining which events 
     // pass selection cuts
     // -----------------------------------------
-    TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
-    TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v_2g0p);
+    // 1. Only select events with 20 photons during beam window and fewer than 20 photons in veto time window.
+    // 2. Combined topological, preselection, and BDT selection cuts.
+    TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20) && (simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
+    TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20) && (simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v_2g0p);
 
     // Prescription for normalizing selection 
     // and implementing some cuts
@@ -112,14 +129,6 @@ void ResponseMaker(std::string outDir){
     TMatrixD mat_2g0p(reco_bins.size()+1,true_bins.size()+1);
     mat_2g0p.Zero();
 
-    // Number of true and misids for each reco id type. Unknown true ids are when norm_form_2g1p and norm_form_2g0p both evaluate (as w_2g1p and w_2g0p) to 0.
-    int N_true_2g1p = 0;
-    int N_false_2g1p = 0;
-    int N_unknown_2g1p = 0;
-    int N_true_2g0p = 0;
-    int N_false_2g0p = 0;
-    int N_unknown_2g0p = 0;
-
     // Loop through event tree; fill htrue, hreco, and response hists
     for(int i=0; i<v_2g1p->GetEntries();i++){
 
@@ -148,69 +157,45 @@ void ResponseMaker(std::string outDir){
         double w_2g0p = norm_form_2g0p->EvalInstance();
 
         if(i%20000==0)std::cout<<i<<" "<<v_2g1p->GetEntries()<<std::endl;
-    //    std::cout<<r<<"\t\t"<<t<<"\t\t"<<p<<std::endl;
+        //    std::cout<<r<<"\t\t"<<t<<"\t\t"<<p<<std::endl;
 
+        // Fill 2D response histogram and reco histogram if event passes selection cut with weight determined by additional_weight (truth level signal weight).
+        // Background events that pass selection cut will be filled with weight of 0.
         if(p_2g1p){
             resp_2g1p->Fill(r_2g1p,t_2g1p,w_2g1p);
             hreco_2g1p->Fill(r_2g1p,w_2g1p);
-	    if(w_2g1p != 0){
-		    if(w_2g0p != 0){
-			    printf("Both w_2g1p and w_2g0p are nonzero! Exiting.\n");
-			    exit(0);
-		    }
-		    N_true_2g1p++;
-	    }
-	    else if(w_2g0p != 0)
-		    N_false_2g1p++;
-	    else{
-		    N_unknown_2g1p++;
-	    }
         }
         else if(p_2g0p){
             resp_2g0p->Fill(r_2g0p,t_2g0p,w_2g0p);
             hreco_2g0p->Fill(r_2g0p,w_2g0p);
-	    if(w_2g0p != 0){
-		    if(w_2g1p != 0){
-			    printf("Both w_2g0p and w_2g1p are nonzero! Exiting.\n");
-			    exit(0);
-		    }
-		    N_true_2g0p++;
-	    }
-	    else if(w_2g1p != 0)
-		    N_false_2g0p++;
-	    else
-		    N_unknown_2g0p++;
         }
-
-	htrue_2g1p->Fill(t_2g1p, w_2g1p);
-	htrue_2g0p->Fill(t_2g0p, w_2g0p);
-
+        
+        // Always fill true histograms with true momentum value and signal weight (0 if not signal).
+        htrue_2g1p->Fill(t_2g1p, w_2g1p);
+        htrue_2g0p->Fill(t_2g0p, w_2g0p);
     }
     std::cout << "Finished main loop; constructed htrue, hreco, and response hists for both 2g1p and 2g0p signal definitions." << std::endl;
-    printf("Correct 2g1p Identifications: %d\n", N_true_2g1p);
-    printf("False 2g1p Indentifications: %d\n", N_false_2g1p);
-    printf("Unknown 2g1p Identifications: %d\n", N_unknown_2g1p);
-    printf("Correct 2g0p Identifications: %d\n", N_true_2g0p);
-    printf("False 2g0p Identifications: %d\n", N_false_2g0p);
-    printf("Unknown 2g0p Identifiactions: %d\n", N_unknown_2g0p);
-
+    
+    // Normalize response histogram and fill response matrix with the same values.
     for(int i=0;i< hreco_2g1p->GetNbinsX()+2; i++){ // Both loops need to go to nbins+2 to capture the underflow and overflow
         for(int a=0; a<htrue_2g1p->GetNbinsX()+2; a++){ // It doesn't matter whether we loop over 2g1p or 2g0p to get the bin counts
-            
+
             //2g1p  
-            double eff_2g1p = resp_2g1p->GetBinContent(i,a)/htrue_2g1p->GetBinContent(a);
+            double eff_2g1p = resp_2g1p->GetBinContent(i,a)/htrue_2g1p->GetBinContent(a); // Divide each response bin by corresponding true bin.
             resp_2g1p->SetBinContent(i,a, eff_2g1p); // Resets content of Response TH2D so there is consistency
-            mat_2g1p(i,a) = resp_2g1p->GetBinContent(i,a); 
+            mat_2g1p(i,a) = resp_2g1p->GetBinContent(i,a); // NOTE: TMatrix uses (row, column) for indices, so while (i, a) corresponds to (xbin, ybin) in resp_2g1p, it is reversed in mat_2g1p.
+                                                           // Also, matrices have their "origin" at the top left, while 2D histograms have theirs at the bottom left.
 
             //2g0p  
-            double eff_2g0p = resp_2g0p->GetBinContent(i,a)/htrue_2g0p->GetBinContent(a);
+            double eff_2g0p = resp_2g0p->GetBinContent(i,a)/htrue_2g0p->GetBinContent(a); // Divide each response bin by corresponding true bin.
             resp_2g0p->SetBinContent(i,a, eff_2g0p); // Resets content of Response TH2D so there is consistency
-            mat_2g0p(i,a) = resp_2g0p->GetBinContent(i,a); 
+            mat_2g0p(i,a) = resp_2g0p->GetBinContent(i,a); // NOTE: TMatrix uses (row, column) for indices, so while (i, a) corresponds to (xbin, ybin) in resp_2g0p, it is reversed in mat_2g0p.
+                                                           // Also, matrices have their "origin" at the top left, while 2D histograms have theirs at the bottom left. 
 
         }
     }
     std::cout << "Constructed response TMatrices." << std::endl;
-    
+
     // -----------------------------------------------------
     // Construct output file 
     // -----------------------------------------------------
@@ -232,7 +217,7 @@ void ResponseMaker(std::string outDir){
     std::cout << "Writing response matrix TMatrices to output file" << std::endl;
     mat_2g1p.Write("response_matrix_2g1p_exclusive");
     mat_2g0p.Write("response_matrix_2g0p_exclusive");
-    
+
     // Write out htrue and hreco
     std::cout << "Writing htrue and hreco TH1Ds to output file" << std::endl;
     htrue_2g1p->GetXaxis()->SetTitle("True Var");

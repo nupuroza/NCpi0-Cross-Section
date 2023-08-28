@@ -179,6 +179,7 @@ for sigDefnp in ["2g1p","2g0p"]:
 ### Make fake data study comparison plots ###################################################################
 #############################################################################################################
 
+NuWroTruthScaled = ROOT.TFile(plotDir+"NuWroTruthScaled.root", "RECREATE")
 #for sigDef in ["2g1p","2g0p","2gnp"]:
 for sigDefnp in ["2g1p","2g0p"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
@@ -218,8 +219,8 @@ for sigDefnp in ["2g1p","2g0p"]:
       legend.Draw()
     
     ## Import NuWro Truth
-    NuWroTruthFile = ROOT.TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_v2_CV.SBNspec.root")
-    
+    NuWroTruthFile = ROOT.TFile("/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_v6_CV.SBNspec.root")
+        
     with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_{1}.png'.format(plotDir,sigDef)):
     
       ## Create local copies of all needed hists
@@ -235,13 +236,20 @@ for sigDefnp in ["2g1p","2g0p"]:
         local_tHist_unfolded_evtRate_scaled.SetBinError(i,math.sqrt(cov_binContent))
     
       ## Scale and bin-width-normalize all hists (and POT normalize NuWro truth)
+      if sigDefnp == "2g1p":
+        local_tHist_nuwro_truth_scaled.Scale(6.868/3.0041393)
+        NuWroTruthScaled.cd()
+        local_tHist_nuwro_truth_scaled.Write("NuWro_Scaled_2g1p")
+      elif sigDefnp == "2g0p":
+        local_tHist_nuwro_truth_scaled.Scale(6.868/3.0041393)
+        NuWroTruthScaled.cd()
+        local_tHist_nuwro_truth_scaled.Write("NuWro_Scaled_2g0p")
       local_tHist_unfolded_evtRate_scaled.Scale(1e-3,"width")
       local_tHist_genie_evtRate_smeared_scaled.Scale(1e-3,"width")
       local_tHist_genie_evtRate_scaled.Scale(1e-3,"width")
       local_tHist_effDenom_scaled.Scale(1e-3,"width")
       local_tHist_nuwro_truth_scaled.Scale(1e-3,"width")
-      local_tHist_nuwro_truth_scaled.Scale(6.7873/3.0041393) ## POT normalization
-     
+           
       ## Set plot formatting 
       local_tHist_unfolded_evtRate_scaled.SetMarkerSize(0.5)
       if is_closure_test:
@@ -253,41 +261,63 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tHist_unfolded_evtRate_scaled.GetXaxis().SetTitleSize(0.05)
       local_tHist_unfolded_evtRate_scaled.GetYaxis().SetTitle("# Events [10^{3}/GeV]")
       local_tHist_unfolded_evtRate_scaled.GetXaxis().SetTitle("True #pi^{{0}} momentum (GeV) [{0}]".format(sigDef))
+      local_tHist_unfolded_evtRate_scaled.SetLineColor(ROOT.kBlue+2)
+      local_tHist_unfolded_evtRate_scaled.SetFillStyle(0)
+      local_tHist_unfolded_evtRate_scaled.SetLineWidth(1)
     
       local_tHist_unfolded_evtRate_scaled.Draw()
     
       local_tHist_effDenom_scaled.SetLineColor(ROOT.kGreen+2)
       local_tHist_effDenom_scaled.SetMarkerColor(ROOT.kGreen+2)
       local_tHist_effDenom_scaled.SetMarkerSize(0.5)
-      local_tHist_effDenom_scaled.Draw("SAME")
+      #local_tHist_effDenom_scaled.Draw("SAME")
     
       if not is_closure_test:
         local_tHist_genie_evtRate_scaled.SetMarkerColor(ROOT.kRed)
         local_tHist_genie_evtRate_scaled.SetLineColor(ROOT.kRed)
-        local_tHist_genie_evtRate_scaled.Draw("SAME")
+        local_tHist_genie_evtRate_scaled.SetFillColor(ROOT.kRed)
+        local_tHist_genie_evtRate_scaled.SetFillStyle(3545)
+        local_tHist_genie_evtRate_scaled.Draw("SAME E2")
         
         local_tHist_nuwro_truth_scaled.SetMarkerColor(ROOT.kViolet)
         local_tHist_nuwro_truth_scaled.SetLineColor(ROOT.kViolet)
-        local_tHist_nuwro_truth_scaled.Draw("SAME")
+        local_tHist_nuwro_truth_scaled.SetFillColor(ROOT.kViolet)
+        local_tHist_nuwro_truth_scaled.SetFillStyle(3554)
+        local_tHist_nuwro_truth_scaled.SetLineWidth(1)
+        local_tHist_nuwro_truth_scaled.Draw("SAME E2")
     
       local_tHist_genie_evtRate_smeared_scaled.SetLineColor(ROOT.kCyan-3)
       local_tHist_genie_evtRate_smeared_scaled.SetMarkerColor(ROOT.kCyan-3)
       local_tHist_genie_evtRate_smeared_scaled.SetMarkerSize(0.5)
-      local_tHist_genie_evtRate_smeared_scaled.Draw("SAME")
+      #local_tHist_genie_evtRate_smeared_scaled.Draw("SAME")
     
       legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
       legend.SetBorderSize(0);
       if is_closure_test:
-        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"GENIE Fake Data (closure test)","lep")
-        legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Prediction","lep")
+        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"GENIE Reconstruction Unfolded","lep")
+        legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Truth","lep")
       else:
-        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"NuWro Fake Data","lep")
-        legend.AddEntry(local_tHist_nuwro_truth_scaled,"NuWro Truth","lep")
-        legend.AddEntry(local_tHist_effDenom_scaled,"effDenom","lep")
-        legend.AddEntry(local_tHist_genie_evtRate_scaled,"GENIE Prediction","lep")
-        legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Prediction, smeared","lep")
+        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"NuWro Fake Data Unfolded","lep")
+        legend.AddEntry(local_tHist_nuwro_truth_scaled,"NuWro Truth","f")
+        #legend.AddEntry(local_tHist_effDenom_scaled,"effDenom","lep")
+        legend.AddEntry(local_tHist_genie_evtRate_scaled,"GENIE Truth","f")
+        #legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Truth, smeared","lep")
       legend.Draw()
     
+    with makeEnv_TCanvas('{0}/nuwro_evtRate_{1}.png'.format(plotDir,sigDef)):
+        local_tHist_nuwro_truth_scaled.Draw("HIST")
+        #local_tHist_nuwro_truth_scaled.GetYaxis().SetRangeUser(0,18)
+        local_tHist_nuwro_truth_scaled.GetYaxis().SetTitleSize(0.05)
+        local_tHist_nuwro_truth_scaled.GetXaxis().SetTitleSize(0.05)
+        local_tHist_nuwro_truth_scaled.GetYaxis().SetTitle("# Events [10^{3}/GeV]")
+        local_tHist_nuwro_truth_scaled.GetXaxis().SetTitle("True #pi^{{0}} momentum (GeV) [{0}]".format(sigDef))
+        local_tHist_unfolded_evtRate_scaled.Draw("SAME")
+        legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
+        legend.SetBorderSize(0);
+        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"NuWro Fake Data Unfolded","lep")
+        legend.AddEntry(local_tHist_nuwro_truth_scaled,"Real NuWro Truth","f")
+        legend.Draw()
+
     with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded_{1}.png'.format(plotDir,sigDef)):
     
       ## Create local copies of all needed hists
@@ -311,18 +341,18 @@ for sigDefnp in ["2g1p","2g0p"]:
         local_tHist_evtRate_reco_scaled.SetMarkerColor(ROOT.kCyan-3)
         local_tHist_evtRate_reco_scaled.SetLineColor(ROOT.kCyan-3)
     
-      local_tHist_evtRate_reco_scaled.GetYaxis().SetRangeUser(0,4)
-      local_tHist_evtRate_reco_scaled.GetYaxis().SetTitleSize(0.05)
-      local_tHist_evtRate_reco_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_evtRate_reco_scaled.GetYaxis().SetTitle("# Events [10^{3}/GeV]")
-      local_tHist_evtRate_reco_scaled.GetXaxis().SetTitle("Reco #pi^{{0}} momentum (GeV) [{0}]".format(sigDef))
+      local_tHist_genie_evtRate_reco_scaled.GetYaxis().SetRangeUser(0,4)
+      local_tHist_genie_evtRate_reco_scaled.GetYaxis().SetTitleSize(0.05)
+      local_tHist_genie_evtRate_reco_scaled.GetXaxis().SetTitleSize(0.05)
+      local_tHist_genie_evtRate_reco_scaled.GetYaxis().SetTitle("# Events [10^{3}/GeV]")
+      local_tHist_genie_evtRate_reco_scaled.GetXaxis().SetTitle("Reco #pi^{{0}} momentum (GeV) [{0}]".format(sigDef))
     
-      local_tHist_evtRate_reco_scaled.Draw()
+      #local_tHist_evtRate_reco_scaled.Draw()
     
       local_tHist_effNum_reco_scaled.SetLineColor(ROOT.kGreen+2)
       local_tHist_effNum_reco_scaled.SetMarkerColor(ROOT.kGreen+2)
       local_tHist_effNum_reco_scaled.SetMarkerSize(0.5)
-      local_tHist_effNum_reco_scaled.Draw("SAME")
+      local_tHist_effNum_reco_scaled.Draw()
     
       local_tHist_genie_evtRate_reco_scaled.SetLineColor(ROOT.kRed)
       local_tHist_genie_evtRate_reco_scaled.SetMarkerColor(ROOT.kRed)
@@ -338,10 +368,12 @@ for sigDefnp in ["2g1p","2g0p"]:
       legend.SetBorderSize(0);
       if is_closure_test:
         legend.AddEntry(local_tHist_evtRate_reco_scaled,"GENIE Fake Data (closure test)","lep")
-      else:
-        legend.AddEntry(local_tHist_evtRate_reco_scaled,"NuWro Fake Data","lep")
-      legend.AddEntry(local_tHist_genie_evtRate_reco_scaled,"GENIE Prediction (derived)","lep")
-      legend.AddEntry(local_tHist_hreco_scaled,"GENIE Prediction (raw)","lep")
-      legend.AddEntry(local_tHist_effNum_reco_scaled,"effNum_reco","lep")
+      #else:
+#        legend.AddEntry(local_tHist_evtRate_reco_scaled,"NuWro Fake Data","lep")
+      legend.AddEntry(local_tHist_genie_evtRate_reco_scaled,"GENIE Truth Folded","lep")
+      legend.AddEntry(local_tHist_hreco_scaled,"GENIE Reconstructed (from ResponseMaker)","lep")
+      legend.AddEntry(local_tHist_effNum_reco_scaled,"GENIE Reconstructed (from variation_spectra)","lep")
       legend.Draw()
-    
+   
+
+NuWroTruthScaled.Close()

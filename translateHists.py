@@ -22,7 +22,7 @@ dataFilePath_2g0p = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMe
 dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 
 ## NuWro fake data
-dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_CV.SBNspec.root"
+dataFilePath_NuWroFakeData =  "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_v6_CV.SBNspec.root"
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
@@ -35,10 +35,10 @@ inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 inFilePath_2g0p_inclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
-inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
+inFilePath_2g1p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
-inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
+inFilePath_2g0p_exclusive = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
 inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
 # File with detector systematics
@@ -213,15 +213,16 @@ writeHist(mHist_nTargets,outFile)
 #############################################################################################################
 ### Calculate POT ###########################################################################################
 #############################################################################################################
-POT_2g1p = 6.7873*10**20
-POT_2g0p = 5.2950*10**20
+## 2g1p and 2g0p POT equalized in newest variation spectra files.
+POT_2g1p = 6.868e20
+POT_2g0p = 6.868e20
 POT_scaling = POT_2g1p/POT_2g0p
 
-## NuWro fake data POT (not needed yet, but included so all POTs are in the same place)
-POT_fakedata = 3.0041393*10**20
+## NuWro fake data POT
+POT_fakedata = 3.0041393e20
 
 ## For 2gnp, scale 2g0p POT to 2g1p POT before combining samples
-POT_2gnp = 5.8447*10**20
+POT_2gnp = 6.868e20
 
 for sigDef in ["2g0p","2g1p","2gnp"]:
   ## Put scalar into TH1D
@@ -473,7 +474,7 @@ for sigDef in ["2g1p","2g0p"]:
             # Populate corresponding hist in error band with bin content
             exec("mHist_{0}_{1}_{2}.GetVertErrorBand(systName).GetHist(i).SetBinContent(j,binVal)".format(histCat,sigDef,sigDefexcl))
   
-      ## Loop over detector systematics
+      ## Loop over detector systematics (not in fake data file)
       for systName,universePrefix,nUniverses in DETECTOR_SYSTS:
   
         # Create the appropriate error band in the MnvH1D
