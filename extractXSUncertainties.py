@@ -85,39 +85,3 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
 
       print "-----------------------------------------"
 
-#############################################################################################################
-### Pull out systematic uncertainties for xsec ratio ########################################################
-#############################################################################################################
-
-print "xsec_ratio"
-print "-----------------------------------------"
-
-# Grab relevant histogram
-xsec_ratio = histFile.Get("xSecRatio")
-# Total and stat errors first
-tHist_totalError = xsec_ratio.GetCVHistoWithError()
-tHist_statError = xsec_ratio.GetCVHistoWithStatError()
-cv_val = tHist_totalError.GetBinContent(1)
-err_val_total = tHist_totalError.GetBinError(1)/cv_val
-err_val_stat = tHist_statError.GetBinError(1)/cv_val
-print "cv_val: {0}".format(cv_val)
-print "err_val_total: {0}".format(err_val_total)
-print "err_val_stat: {0}".format(err_val_stat)
-for err_to_keep in error_bands:
-  # Make a copy of the hist that we'll pop error bands out of
-  exec("local_xsec_only_{0} = xsec_ratio.Clone(\"local_xsec_only_{0}\")".format(err_to_keep))
-  # These are the error bands we'll pop
-  local_err_list = list(error_bands)
-  # We want to pop all but a single error band
-  local_err_list.remove(err_to_keep)
-  # Loop over error bands to pop
-  for err_to_remove in local_err_list:
-    for error_band in error_bands[err_to_remove]:
-      exec("local_xsec_only_{0}.PopVertErrorBand(\"{1}\")".format(err_to_keep,error_band))
-  # Now there should only be one error band left. Pull out CV and read off error 
-  exec("tHist = local_xsec_only_{0}.GetCVHistoWithError(False)".format(err_to_keep))
-  err_val = tHist.GetBinError(1)/cv_val
-  print "err_to_keep: {1}\t{2}".format(cv_val,err_to_keep,err_val)
-
-print "-----------------------------------------"
-
