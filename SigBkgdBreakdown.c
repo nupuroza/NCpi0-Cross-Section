@@ -84,14 +84,14 @@ void SigBkgdBreakdown(std::string out_dir = "/uboone/data/users/ltong/gLEE/NCPi0
     // All events outside the fiducial volume are classified as dirt regardless of their interaction type.
     // A few NC delta radiative events also result in pi+/- production. These are negligible but excluded from the pi+/- backgrounds.
     // 2g0p signal misids are events matching the 2g1p signal definition in the selected 2g0p data and vice versa.
-    std::vector<std::string> nams_bkgd = {"NC #Delta Radiative", "CC #nu_{#mu} 1#pi^{0}", "CC #nu_{e}/#bar{#nu_{e}} 1#pi^{0}", "Dirt (Outside TPC)", "NC #pi^{+}/#pi^{-} 1#pi^{0}", "Other NC #pi^{+}/#pi^{-}"};
+    std::vector<std::string> nams_bkgd = {"Dirt (Outside TPC)", "CC #nu_{#mu} 1#pi^{0}", "NC #pi^{+}/#pi^{-} 1#pi^{0}", "Other NC #pi^{+}/#pi^{-}", "NC >1#pi^{0}", "NC #eta#rightarrow#gamma#gamma"};
     std::vector<std::string> cutdef_bkgd = {
-        "mctruth_cc_or_nc == 1 && mctruth_is_delta_radiative == 1 &&" + fiducial_volume,
-        "mctruth_cc_or_nc == 0 && mctruth_nu_pdg == 14 && mctruth_num_exiting_pi0 == 1 &&" + fiducial_volume,
-        "mctruth_cc_or_nc == 0 && (mctruth_nu_pdg == 12 || mctruth_nu_pdg == -12) && mctruth_num_exiting_pi0 == 1 &&" + fiducial_volume,
         "!" + fiducial_volume,
-        "mctruth_cc_or_nc == 1 && mctruth_num_exiting_pipm > 0 && mctruth_num_exiting_pi0 == 1 && mctruth_is_delta_radiative == 0 &&" + fiducial_volume,
-        "mctruth_cc_or_nc == 1 && mctruth_num_exiting_pipm > 0 && mctruth_num_exiting_pi0 != 1 && mctruth_is_delta_radiative == 0 &&" + fiducial_volume
+        "mctruth_cc_or_nc == 0 && mctruth_nu_pdg == 14 && mctruth_num_exiting_pi0 == 1 &&" + fiducial_volume,
+        "mctruth_cc_or_nc == 1 && mctruth_num_exiting_pipm > 0 && mctruth_num_exiting_pi0 == 1 &&" + fiducial_volume,
+        "mctruth_cc_or_nc == 1 && mctruth_num_exiting_pipm > 0 && mctruth_num_exiting_pi0 != 1 &&" + fiducial_volume,
+        "mctruth_cc_or_nc == 1 && mctruth_num_exiting_pi0 > 1 && mctruth_num_exiting_pipm == 0 &&" + fiducial_volume,
+        "mctruth_cc_or_nc == 1 && Sum$(mctruth_daughters_pdg == 221) > 0 && Sum$(mctruth_daughters_pdg == 22 && mctruth_daughters_status_code == 1) == 2 &&" + fiducial_volume
     };
     std::vector<std::string> nams_bkgd_2g1p = {"NC 1#pi^{0} 2g0p signal misid", "BNB Other"};
     nams_bkgd_2g1p.insert(nams_bkgd_2g1p.begin(), nams_bkgd.begin(), nams_bkgd.end());
@@ -113,7 +113,7 @@ void SigBkgdBreakdown(std::string out_dir = "/uboone/data/users/ltong/gLEE/NCPi0
     std::string bkgd_def_2g0p = "!" + sig_def_2g0p;
 
     // Color used for each background category
-    std::vector<int> cols_bkgd = {kOrange, kBlue, kViolet, kOrange - 7, kCyan + 3, kCyan, kRed, kGray};
+    std::vector<int> cols_bkgd = {kOrange - 7, kBlue, kCyan, kMagenta, kYellow - 9, kCyan + 3, kRed, kGray};
 
     // Create THStack and legend objects for signal plots
     THStack *stk_2g1p_sig = new THStack();
@@ -157,7 +157,7 @@ void SigBkgdBreakdown(std::string out_dir = "/uboone/data/users/ltong/gLEE/NCPi0
     stk_2g1p_sig->SetMaximum(stk_2g1p_sig->GetMaximum()*1.4);
     stk_2g1p_sig->GetXaxis()->SetTitle(x_label.c_str());
     stk_2g1p_sig->GetYaxis()->SetTitle("Events");
-    stk_2g1p_sig->SetTitle("2g1p Exclusive Signal Breakdown");
+    stk_2g1p_sig->SetTitle("GENIE 2g1p Exclusive Signal Breakdown");
     l_sig_2g1p->Draw();
     c -> Print((out_dir + "/2g1p_exclusive_signal_breakdown.png").c_str());
     c -> Clear();
@@ -165,7 +165,7 @@ void SigBkgdBreakdown(std::string out_dir = "/uboone/data/users/ltong/gLEE/NCPi0
     stk_2g0p_sig->SetMaximum(stk_2g0p_sig->GetMaximum()*1.4);
     stk_2g0p_sig->GetXaxis()->SetTitle(x_label.c_str());
     stk_2g0p_sig->GetYaxis()->SetTitle("Events");
-    stk_2g0p_sig->SetTitle("2g0p Exclusive Signal Breakdwon");
+    stk_2g0p_sig->SetTitle("GENIE 2g0p Exclusive Signal Breakdwon");
     l_sig_2g0p->Draw();
     c -> Print((out_dir + "/2g0p_exclusive_signal_breakdown.png").c_str());
 
@@ -226,7 +226,7 @@ void SigBkgdBreakdown(std::string out_dir = "/uboone/data/users/ltong/gLEE/NCPi0
     stk_2g1p_bkgd->SetMaximum(stk_2g1p_bkgd->GetMaximum()*1.4);
     stk_2g1p_bkgd->GetXaxis()->SetTitle(x_label.c_str());
     stk_2g1p_bkgd->GetYaxis()->SetTitle("Events");
-    stk_2g1p_bkgd->SetTitle("2g1p Exclusive Background Breakdown");
+    stk_2g1p_bkgd->SetTitle("GENIE 2g1p Exclusive Background Neutrino Interaction");
     l_bkgd_2g1p->Draw();
     c -> Print((out_dir + "/2g1p_exclusive_background_breakdown.png").c_str());
     c -> Clear();
@@ -234,7 +234,7 @@ void SigBkgdBreakdown(std::string out_dir = "/uboone/data/users/ltong/gLEE/NCPi0
     stk_2g0p_bkgd->SetMaximum(stk_2g0p_bkgd->GetMaximum()*1.4);
     stk_2g0p_bkgd->GetXaxis()->SetTitle(x_label.c_str());
     stk_2g0p_bkgd->GetYaxis()->SetTitle("Events");
-    stk_2g0p_bkgd->SetTitle("2g0p Exclusive Background Breakdwon");
+    stk_2g0p_bkgd->SetTitle("GENIE 2g0p Exclusive Background Neutrino Interaction");
     l_bkgd_2g0p->Draw();
     c -> Print((out_dir + "/2g0p_exclusive_background_breakdown.png").c_str());
 
