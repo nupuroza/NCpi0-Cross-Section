@@ -3,6 +3,7 @@
 import ROOT
 import argparse
 import os
+import math
 from customHistAndPlotMethods import writeHist
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
@@ -41,11 +42,14 @@ outFile = ROOT.TFile(outFilePath, "UPDATE")
 ## Get xsec ingredients that are common to all calculations
 mHist_flux_integral = outFile.Get("integratedFlux")
 mHist_nTargets = outFile.Get("nTargets")
+mHist_POT_data = outFile.Get("POT_data")
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDef in ["2g1p","2g0p"]:
+for sigDefnp in ["2g1p","2g0p"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
   for sigDefexcl in ["exclusive"]:
+
+    sigDef = sigDefnp + "_" + sigDefexcl
 
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue
@@ -53,19 +57,34 @@ for sigDef in ["2g1p","2g0p"]:
     else:
       
       ## Get xsec ingredients that are unique to this sigDef/sigDefexcl
-      exec("mHist_POT_{0} = outFile.Get(\"POT_{0}\")".format(sigDef))
-      exec("tHist_evtRate_unfolded_{0}_{1} = outFile.Get(\"unfolded_evtRate_{0}_{1}\")".format(sigDef,sigDefexcl))
-      exec("mHist_evtRate_unfolded_{0}_{1} = ROOT.MnvH1D(tHist_evtRate_unfolded_{0}_{1})".format(sigDef,sigDefexcl))
-      exec("mHist_eff_{0}_{1} = outFile.Get(\"eff_{0}_{1}\")".format(sigDef,sigDefexcl))
+      tHist_unfolded_cov_evtRate = outFile.Get("unfolded_cov_evtRate_" + sigDef)
+      tHist_evtRate_unfolded = outFile.Get("unfolded_evtRate_" + sigDef)
+      mHist_xSection_mc = outFile.Get("xSection_mc_" + sigDef)
+      tHist2D_add_smear_matrix = outFile.Get("add_smear_matrix_" + sigDef)
+      nBins = tHist_evtRate_unfolded.GetNbinsX()
+      for i in range(0, nBins+2):## Loop over bins
+        cov_binContent = tHist_unfolded_cov_evtRate.GetBinContent(i,i)
+        tHist_evtRate_unfolded.SetBinError(i,math.sqrt(cov_binContent))
 
       ## Calculate cross section
-      exec("mHist_xSection_{0}_{1} = mHist_evtRate_unfolded_{0}_{1}.Clone(\"unfolded_xSection_{0}_{1}\")".format(sigDef,sigDefexcl))
+      tHist_xSection_data = tHist_evtRate_unfolded.Clone("unfolded_xSection_" + sigDef)
       ## The efficiency should *not* be divided out here because it is already corrected for in the unfolding through the smearcept matrix
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_flux_integral)".format(sigDef,sigDefexcl))
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_POT_{0})".format(sigDef,sigDefexcl)) # Remove units of per POT
-      exec("mHist_xSection_{0}_{1}.Divide(mHist_xSection_{0}_{1},mHist_nTargets)".format(sigDef,sigDefexcl))
+      tHist_xSection_data.Divide(tHist_xSection_data,mHist_flux_integral)
+      tHist_xSection_data.Divide(tHist_xSection_data,mHist_POT_data) # Remove units of per POT
+      tHist_xSection_data.Divide(tHist_xSection_data,mHist_nTargets)
+
+      ## Smear mc cross section
+      tMat_xSection_mc_with_flows = ROOT.TMatrixD(nBins + 2, 1, mHist_xSection_mc.GetArray())
+      tMat_add_smear_matrix_with_flows = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist2D_add_smear_matrix.GetArray())
+      tMat_xSection_mc = tMat_xSection_mc_with_flows.GetSub(1, nBins, 0, 0)
+      tMat_add_smear_matrix = tMat_add_smear_matrix_with_flows.GetSub(1, nBins, 1, nBins)
+      tMat_smeared_xSection_mc = ROOT.TMatrixD(tMat_add_smear_matrix, ROOT.TMatrixD.kMult, tMat_xSection_mc)
+      tHist_smeared_xSection_mc = mHist_xSection_mc.Clone("smeared_xSection_mc_" + sigDef)
+      for i in range(nBins):
+        tHist_smeared_xSection_mc.SetBinContent(i + 1, tMat_smeared_xSection_mc[i][0])
 
       ## Write xsec to output file
-      exec("writeHist(mHist_xSection_{0}_{1},outFile)".format(sigDef,sigDefexcl))
+      writeHist(tHist_xSection_data,outFile)
+      writeHist(tHist_smeared_xSection_mc, outFile)
 
 outFile.Close()

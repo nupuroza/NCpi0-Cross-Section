@@ -2,333 +2,556 @@
 #include "TH1D.h"
 #include "TFile.h"
 #include "TH2D.h"
+#include "TRandom.h"
 #include "PlotUtils/MnvH1D.h"
-
 #include "MatrixConverters.h"
-
 #include "../stv-analysis-new/WienerSVDUnfolder.hh"
 #include "../stv-analysis-new/DAgostiniUnfolder.hh"
+
 
 
 // -----------------------------------------------------
 // Bit that should be evaluated separately once for each
 // signal definition (sigDef) that we care about
 // -----------------------------------------------------
-void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, bool closureTest, WienerSVDUnfolder::RegularizationMatrixType MY_REGULARIZATION, int NUM_ITERATIONS)
+void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, bool closureTest, WienerSVDUnfolder::RegularizationMatrixType MY_REGULARIZATION, int NUM_ITERATIONS, double *MSB, double *MV, double *MSE, double *MSE_weighted, double *true_MSB, double *true_MSE, double *true_MSE_weighted, bool calculateTrueBias)
 {
 
-  std::cout << "I'm inside execute_unfolding(). I'm running over " << sigDef << std::endl;
+    std::cout << "I'm inside execute_unfolding(). I'm running over " << sigDef << std::endl;
 
-  // -----------------------------------------------------
-  // Pull requisite unfolding ingredients from file
-  // -----------------------------------------------------
+    // -----------------------------------------------------
+    // Pull requisite unfolding ingredients from file
+    // -----------------------------------------------------
 
-  // Pull out measured signal MnvH1D from input file (evtRate is background-subtracted event rate)
-  PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get(("evtRate_"+sigDef).c_str()); 
-  TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
-  // Extract covariance 
-  TMatrixD tMat_data_covmat = mHist_data_signal_folded->GetTotalErrorMatrix();
-  // Pull out predicted signal MnvH1D from input file // needs to be in true space, happens to also be the efficiency
-  // denominator in our xsec extraction
-  PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get(("effDenom_"+sigDef).c_str());  
-  TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError();
+    std::string sigDefnp = sigDef.substr(0, sigDef.length()-10);
+    // Pull out measured signal MnvH1D from input file (evtRate is background-subtracted event rate)
+    PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get(("evtRate_"+sigDef).c_str()); 
+    TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
+    // Extract covariance, including MC statistical uncertainty.
+    // Signal MC statistical uncertainty represents statistical uncertainty on efficiency. Rigorous treatment would probably require bootstrapping technique since some of the uncertainty comes from the number of true events, but the effect is probably small. See Slack message from Ben Bogart. (???)
+    PlotUtils::MnvH1D *mHist_fakedata_mc = (PlotUtils::MnvH1D*)file_out->Get(("fakedata_mc_"+sigDef).c_str());
+    TMatrixD tMat_data_covmat = mHist_fakedata_mc->GetTotalErrorMatrix(true);
+    // Pull out predicted signal MnvH1D from input file // needs to be in true space, happens to also be the efficiency
+    // denominator in our xsec extraction
+    PlotUtils::MnvH1D *mHist_prior_true_signal = (PlotUtils::MnvH1D*)file_out->Get(("effDenom_"+sigDef).c_str());  
+    TH1D tHist_prior_true_signal = mHist_prior_true_signal->GetCVHistoWithStatError(); 
+    // Pull out NuWro truth for smearing.
+    TH1D *tHist_nuwro_true_signal = (TH1D*) file_out -> Get(("nu_uBooNE_denom_" + sigDefnp).c_str());
+    // Pull out response matrix; adopt jargon of Unfolder tool, "smearcept" == "smearing + acceptance"
+    TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get(("response_matrix_"+sigDef).c_str());
+    // Pull out selected data for data statistical uncertainties.
+    PlotUtils::MnvH1D *mHist_data_selected = (PlotUtils::MnvH1D*) file_out -> Get(("data_selected_" + sigDefnp).c_str());
 
-  // Pull out response matrix; adopt jargon of Unfolder tool, "smearcept" == "smearing + acceptance"
-  TMatrixD* tMat_smearcept = (TMatrixD*)file_out->Get(("response_matrix_"+sigDef).c_str());
+    // -----------------------------------------------------
+    // Handle underflow/overflow bins and make sure all
+    // inputs are self-consistent 
+    // -----------------------------------------------------
 
-  // -----------------------------------------------------
-  // Handle underflow/overflow bins and make sure all
-  // inputs are self-consistent 
-  // -----------------------------------------------------
+    // Decide whether to include or exclude underflow/overflow
+    // Think about a good tolerance to compare the bin content against
+    double threshold = 10e-6;
 
-  // Decide whether to include or exclude underflow/overflow
-  // Think about a good tolerance to compare the bin content against
-  double threshold = 10e-6;
+    // Check if underflow is zero for data_signal (reco space)
+    double binVal_underflow_reco = tHist_data_signal.GetBinContent(0);
+    bool include_underflow_reco = binVal_underflow_reco > threshold ? 1 : 0;
 
-  // Check if underflow is zero for data_signal (reco space)
-  double binVal_underflow_reco = tHist_data_signal.GetBinContent(0);
-  bool include_underflow_reco = binVal_underflow_reco > threshold ? 1 : 0;
+    // Check if overflow is zero for data_signal (reco space)
+    Int_t nBins_reco = tHist_data_signal.GetNbinsX();
+    double binVal_overflow_reco = tHist_data_signal.GetBinContent(nBins_reco+1);
+    bool include_overflow_reco = binVal_overflow_reco > threshold ? 0 : 0;
 
-  // Check if overflow is zero for data_signal (reco space)
-  Int_t nBins_reco = tHist_data_signal.GetNbinsX();
-  double binVal_overflow_reco = tHist_data_signal.GetBinContent(nBins_reco+1);
-  bool include_overflow_reco = binVal_overflow_reco > threshold ? 1 : 0;
+    // Check if underflow is zero for prior_true_signal (true space)
+    double binVal_underflow_true = tHist_prior_true_signal.GetBinContent(0);
+    bool include_underflow_true = binVal_underflow_true > threshold ? 1 : 0;
 
-  // Check if underflow is zero for prior_true_signal (true space)
-  double binVal_underflow_true = tHist_prior_true_signal.GetBinContent(0);
-  bool include_underflow_true = binVal_underflow_true > threshold ? 1 : 0;
+    // Check if overflow is zero for prior_true_signal (true space)
+    Int_t nBins_true = tHist_prior_true_signal.GetNbinsX();
+    double binVal_overflow_true = tHist_prior_true_signal.GetBinContent(nBins_true+1);
+    bool include_overflow_true = binVal_overflow_true > threshold ? 0 : 0;
 
-  // Check if overflow is zero for prior_true_signal (true space)
-  Int_t nBins_true = tHist_prior_true_signal.GetNbinsX();
-  double binVal_overflow_true = tHist_prior_true_signal.GetBinContent(nBins_true+1);
-  bool include_overflow_true = binVal_overflow_true > threshold ? 1 : 0;
+    //-------------------------------------------------------------
+    // Deal with reducing the matrix scope first so that if needed
+    // the correct reduced smearcept matrix is used in closure test
+    //-------------------------------------------------------------
 
-  //-------------------------------------------------------------
-  // Deal with reducing the matrix scope first so that if needed
-  // the correct reduced smearcept matrix is used in closure test
-  //-------------------------------------------------------------
+    // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
+    // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
+    Int_t lowerBound = include_underflow_reco ? 0 : 1;
+    Int_t upperBound = include_overflow_reco ? nBins_reco+1 : nBins_reco;
+    TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
+    TMatrixD tMat_smearcept_final = tMat_smearcept->GetSub(lowerBound, upperBound, lowerBound, upperBound);   
 
-  // If either include_underflow_reco or include_overflow_reco is false, replace tMat_data_covmat with tMat_data_covmat->GetSub(x1,x2,y1,y2);
-  // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
-  Int_t lowerBound = include_underflow_reco ? 0 : 1;
-  Int_t upperBound = include_overflow_reco ? nBins_reco+1 : nBins_reco;
-  TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
-  TMatrixD tMat_smearcept_final = tMat_smearcept->GetSub(lowerBound, upperBound, lowerBound, upperBound);   
+    // --------------------------------------------------------
+    // Then convert other unfolding ingredients into matrices
+    // --------------------------------------------------------
 
-  // --------------------------------------------------------
-  // Then convert other unfolding ingredients into matrices
-  // --------------------------------------------------------
+    TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
+    TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
+    TMatrixD tMat_nuwro_true_signal = TH1DtoTMatrixD(*tHist_nuwro_true_signal, include_underflow_true, include_overflow_true);
 
-  TMatrixD tMat_prior_true_signal = TH1DtoTMatrixD(tHist_prior_true_signal, include_underflow_true, include_overflow_true);
-  TMatrixD tMat_data_signal = TH1DtoTMatrixD(tHist_data_signal, include_underflow_reco, include_overflow_reco);
+    // --------------------------------------------------------
+    // Derive reco-space generator prediction -- needed for
+    // closure test but also generally useful to have later
+    // --------------------------------------------------------
 
-  // --------------------------------------------------------
-  // Derive reco-space generator prediction -- needed for
-  // closure test but also generally useful to have later
-  // --------------------------------------------------------
+    // Derive generator prediction in reco space directly from smearcept matrix and prior_true_signal
+    TMatrixD tMat_folded_true_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+    TH1D tHist_folded_true_signal = TMatrixDtoTH1D(tMat_folded_true_signal,tHist_data_signal);
+    PlotUtils::MnvH1D *mHist_prior_reco_signal = (PlotUtils::MnvH1D*)file_out->Get(("effNum_reco_"+sigDef).c_str());  
+    TH1D tHist_prior_reco_signal = mHist_prior_reco_signal->GetCVHistoWithStatError();
+    // This one always closes. Use in emergency to show closure.
+    //TH1D tHist_prior_reco_signal = tHist_folded_true_signal;
+    TMatrixD tMat_prior_reco_signal_initial = TMatrixD(nBins_reco + 2, 1, tHist_prior_reco_signal.GetArray());
+    TMatrixD tMat_prior_reco_signal = tMat_prior_reco_signal_initial.GetSub(1, nBins_reco, 0, 0);
 
-  // Derive generator prediction in reco space directly from smearcept matrix and prior_true_signal
-  TMatrixD tMat_prior_reco_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
-  TH1D tHist_prior_reco_signal = TMatrixDtoTH1D(tMat_prior_reco_signal,tHist_data_signal);
+    // If this is a closure test, data_signal should be generator prediction in reco space
+    if(closureTest){
+        tMat_data_signal = tMat_prior_reco_signal;
+        for(int i = 0; i < nBins_reco; i++)    
+            tMat_data_covmat_final[i][i] += mHist_fakedata_mc -> GetBinContent(i + 1);
+    }
+    else{
+        for(int i = 0; i < nBins_reco; i++)
+            tMat_data_covmat_final[i][i] += 3/(1/mHist_data_selected -> GetBinContent(i + 1) + 2/mHist_fakedata_mc -> GetBinContent(i + 1));
+    }
 
-  // If this is a closure test, data_signal should be generator prediction in reco space
-  if(closureTest){
-    //tMat_data_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
-    tMat_data_signal = tMat_prior_reco_signal;
-  }
+    // ----------------------------------------------------------
+    // Print out number of rows and columns in each input matrix
+    // For debugging purposes; generally useful to keep around
+    // ----------------------------------------------------------
 
-  // ----------------------------------------------------------
-  // Print out number of rows and columns in each input matrix
-  // For debugging purposes; generally useful to keep around
-  // ----------------------------------------------------------
+    std::cout << "binVal_underflow_reco: " << binVal_underflow_reco << std::endl;
+    std::cout << "include_underflow_reco: " << include_underflow_reco << std::endl;
+    std::cout << "binVal_overflow_reco: " << binVal_overflow_reco << std::endl;
+    std::cout << "include_overflow_reco: " << include_overflow_reco << std::endl;
+    std::cout << "binVal_underflow_true: " << binVal_underflow_true << std::endl;
+    std::cout << "include_underflow_true: " << include_underflow_true << std::endl;
+    std::cout << "binVal_overflow_true: " << binVal_overflow_true << std::endl;
+    std::cout << "include_overflow_true: " << include_overflow_true << std::endl;
 
-  std::cout << "binVal_underflow_reco: " << binVal_underflow_reco << std::endl;
-  std::cout << "include_underflow_reco: " << include_underflow_reco << std::endl;
-  std::cout << "binVal_overflow_reco: " << binVal_overflow_reco << std::endl;
-  std::cout << "include_overflow_reco: " << include_overflow_reco << std::endl;
-  std::cout << "binVal_underflow_true: " << binVal_underflow_true << std::endl;
-  std::cout << "include_underflow_true: " << include_underflow_true << std::endl;
-  std::cout << "binVal_overflow_true: " << binVal_overflow_true << std::endl;
-  std::cout << "include_overflow_true: " << include_overflow_true << std::endl;
+    Int_t data_rows = tMat_data_signal.GetNrows();
+    Int_t data_cols = tMat_data_signal.GetNcols();
+    std::cout << "folded_signal_rows (data): " << data_rows << "\t" << "folded_signal_cols (data): " << data_cols << std::endl;
 
-  Int_t data_rows = tMat_data_signal.GetNrows();
-  Int_t data_cols = tMat_data_signal.GetNcols();
-  std::cout << "folded_signal_rows (data): " << data_rows << "\t" << "folded_signal_cols (data): " << data_cols << std::endl;
+    Int_t cov_final_rows = tMat_data_covmat_final.GetNrows();
+    Int_t cov_final_cols = tMat_data_covmat_final.GetNcols();
+    std::cout << "cov_final_rows (data): " << cov_final_rows << "\t" << "cov_final_cols (data): " << cov_final_cols << std::endl;
 
-  Int_t cov_final_rows = tMat_data_covmat_final.GetNrows();
-  Int_t cov_final_cols = tMat_data_covmat_final.GetNcols();
-  std::cout << "cov_final_rows (data): " << cov_final_rows << "\t" << "cov_final_cols (data): " << cov_final_cols << std::endl;
+    Int_t mc_rows = tMat_prior_true_signal.GetNrows();
+    Int_t mc_cols = tMat_prior_true_signal.GetNcols();
+    std::cout << "prior_true_signal_rows (mc): " << mc_rows << "\t" << "prior_true_signal_cols (mc): " << mc_cols << std::endl;
 
-  Int_t mc_rows = tMat_prior_true_signal.GetNrows();
-  Int_t mc_cols = tMat_prior_true_signal.GetNcols();
-  std::cout << "prior_true_signal_rows (mc): " << mc_rows << "\t" << "prior_true_signal_cols (mc): " << mc_cols << std::endl;
+    Int_t smearcept_rows = tMat_smearcept_final.GetNrows();
+    Int_t smearcept_cols = tMat_smearcept_final.GetNcols();
+    std::cout << "smearcept_rows (data:mc): " << smearcept_rows << "\t" << "smearcept_cols (data:mc): " << smearcept_cols << std::endl;
 
-  Int_t smearcept_rows = tMat_smearcept_final.GetNrows();
-  Int_t smearcept_cols = tMat_smearcept_final.GetNcols();
-  std::cout << "smearcept_rows (data:mc): " << smearcept_rows << "\t" << "smearcept_cols (data:mc): " << smearcept_cols << std::endl;
+    // -----------------------------------------------------
+    // Configure Unfolder and run 
+    // -----------------------------------------------------
 
-  // -----------------------------------------------------
-  // Configure Unfolder and run 
-  // -----------------------------------------------------
+    // Instantiate an object derived from the Unfolder base class
+    Unfolder* unfolder; 
+    if(useWienerSVD){
+        unfolder = new WienerSVDUnfolder( true, MY_REGULARIZATION );
+    } 
+    else{
+        unfolder = new DAgostiniUnfolder( NUM_ITERATIONS );
+    }
 
-  // Instantiate an object derived from the Unfolder base class
-  Unfolder* unfolder; 
-  if(useWienerSVD){
-    unfolder = new WienerSVDUnfolder( true, MY_REGULARIZATION );
-  } 
-  else{
-    unfolder = new DAgostiniUnfolder( NUM_ITERATIONS );
-  }
+    std::cout << "data signal" << std::endl;
+    tMat_data_signal.Print();
+    std::cout << "covmat final" << std::endl;
+    tMat_data_covmat_final.Print();
+    std::cout << "smearcept final" << std::endl;
+    tMat_smearcept_final.Print();
+    std::cout << "prior true signal" << std::endl;
+    tMat_prior_true_signal.Print();
 
-  // Perform the unfolding
-  UnfoldedMeasurement result = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final,
-    tMat_smearcept_final, tMat_prior_true_signal );
+    // Perform the unfolding
+    UnfoldedMeasurement result = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final,
+            tMat_smearcept_final, tMat_prior_true_signal );
 
-  // -----------------------------------------------------
-  // Extract output from Unfolder; write to output file 
-  // -----------------------------------------------------
+    std::cout << "Finished unfolding" << std::endl;
 
-  // Output is struct with these data members
-  //std::unique_ptr< TMatrixD > unfolded_signal_;
-  //std::unique_ptr< TMatrixD > cov_matrix_;
-  //std::unique_ptr< TMatrixD > unfolding_matrix_;
-  //std::unique_ptr< TMatrixD > err_prop_matrix_;
-  //std::unique_ptr< TMatrixD > add_smear_matrix_;
+    // -----------------------------------------------------
+    // Extract output from Unfolder; write to output file 
+    // -----------------------------------------------------
 
-  //Pull out unfolded signal and covariance from results
-  auto tMat_data_signal_unfolded = result.unfolded_signal_.get();
-  auto tMat_unfolded_covariance = result.cov_matrix_.get();
-  auto tMat_errprop_matrix = result.err_prop_matrix_.get();
-  auto tMat_add_smear_matrix = result.add_smear_matrix_.get();
+    // Output is struct with these data members
+    //std::unique_ptr< TMatrixD > unfolded_signal_;
+    //std::unique_ptr< TMatrixD > cov_matrix_;
+    //std::unique_ptr< TMatrixD > unfolding_matrix_;
+    //std::unique_ptr< TMatrixD > err_prop_matrix_;
+    //std::unique_ptr< TMatrixD > add_smear_matrix_;
 
-  // -----------------------------------------------------
-  // Calculate smeared true signal distribution
-  // -----------------------------------------------------
-  
-  // Note: TMatrix axes are inverted from TH2D, so for tMat_add_smear_matrix, rows correspond to reco, and columns correspond to true (see unfold.C)
-  TMatrixD* tMat_smeared_true_signal = new TMatrixD(*tMat_add_smear_matrix,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+    //Pull out unfolded signal and covariance from results
+    auto tMat_data_signal_unfolded = result.unfolded_signal_.get();
+    auto tMat_unfolded_covariance = result.cov_matrix_.get();
+    auto tMat_errprop_matrix = result.err_prop_matrix_.get();
+    auto tMat_add_smear_matrix = result.add_smear_matrix_.get();
 
-  // -----------------------------------------------------
-  // Convert unfolder outputs back to hists 
-  // -----------------------------------------------------
+    // Refold the unfolded data
 
-  // Convert outputs into TH1D/TH2D  
-  TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal);
-  TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
-  TH2D tHist2D_covariance = TMatrixDtoTH2D(tMat_data_covmat_final, tHist_data_signal);
-  TH2D tHist2D_add_smear_matrix = TMatrixDtoTH2D(*tMat_add_smear_matrix, tHist_prior_true_signal);
-  TH1D tHist_smeared_true_signal = TMatrixDtoTH1D(*tMat_smeared_true_signal, tHist_prior_true_signal);
+    TMatrixD refolded_true_signal(tMat_smearcept_final, TMatrixD::EMatrixCreatorsOp2::kMult, *tMat_data_signal_unfolded);
 
-  // -----------------------------------------------------
-  // 
+    // Calculate bias using (11.76) of Cowan 1998, where derivative corresponds to error matrix (see Steven Gardiner's PRD).
+    // Then calculate mean squared bias, mean variance, mean squared error (11.79), and mean squared error weighted (11.80).
+    TMatrixD* bias = new TMatrixD(smearcept_cols, 1);
+    *MSB = 0;
+    *MV = 0;
+    *MSE = 0;
+    *MSE_weighted = 0;
+    for(int t = 0; t < smearcept_cols; ++t){
+        double curr_bias = 0;
+        for(int r = 0; r < smearcept_rows; ++r)
+            curr_bias += tMat_errprop_matrix -> operator()(t, r)*(refolded_true_signal(r, 0) - tMat_data_signal(r, 0));
+        (*bias)(t, 0) = curr_bias;
+        double curr_MSB = curr_bias*curr_bias/smearcept_cols;
+        *MSB += curr_MSB;
+        double curr_MV = tMat_unfolded_covariance -> operator()(t, t)/smearcept_cols;
+        *MV += curr_MV;
+        double curr_MSE = curr_MV + curr_MSB;
+        *MSE += curr_MSE;
+        *MSE_weighted += curr_MSE/tMat_data_signal_unfolded -> operator()(t, 0);
+    }
 
-  // OOF, I think this is a whole piece that still needs to get sorted out... Maybe it's not so bad?
-  // Definitely we're not set up yet to do the unfolding in every systematic universe simultaneously,
-  // but the covariance that get spit out of the unfolder is correct and the diagonal errors can be given
-  // back to the CV hist...
- 
-  //for(Int_t i=1; i<nBins_true+1; i++)
-  //{    
-  //double a = tHist_data_signal_unfolded.GetBinError(i);
-  //double b = tHist2D_unfolded_covariance.GetBinError(i,i);
-  //tHist_data_signal_unfolded.SetBinError(i,b);
-  //double c = tHist_data_signal_unfolded.GetBinError(i);
-  //std::cout << "tHist_before: " << a << "\t" << "tHist_after: " << c << "\t" << "cov: " << b << std::endl;  
-  //}
+    // If required, calculate true bias using statistical fluctuations on reco data.
+    TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal);
 
-  // 
-  // -----------------------------------------------------
+    if(calculateTrueBias){
+        TMatrixD *tMat_old_data_signal = (TMatrixD*) tMat_data_signal.Clone("tMat_old_data_signal");
+        TMatrixD tMat_cum_signal_unfolded(mc_rows, 1);
+        tMat_cum_signal_unfolded = 0;
+        TRandom randomGenerator;
+        double it = 1024;
+        double max = -DBL_MAX;
+        double min = DBL_MAX;
+        std::string sigDef_title;
+        if(sigDef == "2g1p_exclusive")
+            sigDef_title = "2g1p Exclusive";
+        else if(sigDef == "2g0p_exclusive")
+            sigDef_title = "2g0p Exclusive";
+        TH1D* firstHist = nullptr;
+        TCanvas ch(("Unfolded Poisson Data " + sigDef_title).c_str(), ("Unfolded Poisson Data" + sigDef_title).c_str());
+        ch.cd();
+        TLegend legend(0.5,0.65,0.845,0.85, "");
+        legend.SetTextSize(0.025);
+        legend.SetBorderSize(0);
+        legend.SetFillStyle(0);
+        for(int i = 0; i < it; i++){
+            for(int r = 0; r < data_rows; r++)
+                tMat_data_signal(r, 0) = randomGenerator.Poisson(tMat_old_data_signal -> operator()(r, 0));
+            UnfoldedMeasurement result2 = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final,
+                    tMat_smearcept_final, tMat_prior_true_signal );
+            TMatrixD tMat_signal_unfolded = *result2.unfolded_signal_.get();
+            TH1D tHist_signal_unfolded = TMatrixDtoTH1D(tMat_signal_unfolded, tHist_prior_true_signal);
+            if(tHist_signal_unfolded.GetMaximum() > max){
+                max = tHist_signal_unfolded.GetMaximum();
+            }
+            if(tHist_signal_unfolded.GetMinimum() < min){
+                min = tHist_signal_unfolded.GetMinimum();
+            }
+            tHist_signal_unfolded.SetLineWidth(1);
+            tHist_signal_unfolded.SetLineColor(kGray);
+            tHist_signal_unfolded.SetFillStyle(0);
+            if(i==0){
+                tHist_signal_unfolded.SetTitle((sigDef_title + " Unfolded Poisson Data").c_str());
+                tHist_signal_unfolded.GetXaxis() -> SetTitle("True #pi^{0} momentum (GeV)");
+                tHist_signal_unfolded.GetYaxis() -> SetTitle("Events");
+                firstHist = dynamic_cast<TH1D*>(tHist_signal_unfolded.DrawCopy("HIST"));
+            }else{
+                tHist_signal_unfolded.DrawCopy("HIST SAME");
+            }
+            tMat_cum_signal_unfolded += tMat_signal_unfolded;
+        }
+        tHist_data_signal_unfolded.SetLineWidth(2);
+        tHist_data_signal_unfolded.SetFillStyle(0);
+        tHist_data_signal_unfolded.SetLineColor(kBlue);
+        if(tHist_data_signal_unfolded.GetMaximum() > max)
+            max = tHist_data_signal_unfolded.GetMaximum();
+        if(tHist_data_signal_unfolded.GetMinimum() < min)
+            min = tHist_data_signal_unfolded.GetMinimum();
+        tHist_data_signal_unfolded.DrawCopy("HIST SAME");
+        firstHist -> SetMaximum(max*1.01);
+        firstHist -> SetMinimum((min > 0) ? 0 : min*1.01);
+        tMat_cum_signal_unfolded *= (1.0/it);
+        TH1D tHist_cum_signal_unfolded = TMatrixDtoTH1D(tMat_cum_signal_unfolded, tHist_prior_true_signal);
+        tHist_cum_signal_unfolded.SetLineWidth(2);
+        tHist_cum_signal_unfolded.SetLineColor(kBlack);
+        tHist_cum_signal_unfolded.SetFillStyle(0);
+        tHist_cum_signal_unfolded.SetMaximum(max);
+        tHist_cum_signal_unfolded.SetMinimum(min);
+        tHist_cum_signal_unfolded.Draw("HIST SAME");
+        legend.AddEntry(&tHist_data_signal_unfolded, "Unfolded data", "l");
+        legend.AddEntry(&tHist_cum_signal_unfolded, "Mean unfolded Poisson fluctuation", "l");
+        legend.AddEntry(firstHist, "Unfolded Poisson fluctuation around data", "l");
+        legend.Draw();
+        std::string sigDefnp;
+        if(sigDef == "2g1p_exclusive")
+            sigDefnp = "2g1p";
+        else if(sigDef == "2g0p_exclusive")
+            sigDefnp = "2g0p";
+        TMatrixD true_bias(tMat_cum_signal_unfolded, TMatrixD::EMatrixCreatorsOp2::kMinus, tMat_nuwro_true_signal);
+        *true_MSB = 0;
+        *true_MSE = 0;
+        *true_MSE_weighted = 0;
+        for(int t = 0; t < smearcept_cols; ++t){
+            double curr_bias = true_bias(t, 0);
+            double curr_MSB = curr_bias*curr_bias/smearcept_cols;
+            *true_MSB += curr_MSB;
+            double curr_MV = tMat_unfolded_covariance -> operator()(t, t)/smearcept_cols;
+            double curr_MSE = curr_MV + curr_MSB;
+            *true_MSE += curr_MSE;
+            *true_MSE_weighted += curr_MSE/tMat_data_signal_unfolded -> operator()(t, 0);
+        }
+        file_out -> cd(); 
+        tHist_cum_signal_unfolded.SetName(("expected_unfolded_evtRate_"+sigDef).c_str());
+        tHist_cum_signal_unfolded.Write();
+        TH1D tHist_true_bias = TMatrixDtoTH1D(true_bias, tHist_prior_true_signal);
+        tHist_true_bias.SetName(("true_bias_" + sigDef).c_str());
+        tHist_true_bias.Write();
+        ch.Write();
+        ch.SaveAs((sigDef + "_unfolded_poisson_data_1_iterations_1024_poisson_unfoldings.png").c_str());
+    }
 
-  // Construct MnvH1D
-  PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
-  mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
-    
-  // -----------------------------------------------------
-  // Write unfolded results to output file
-  // -----------------------------------------------------
+    // -----------------------------------------------------
+    // Calculate smeared true signal distribution
+    // -----------------------------------------------------
 
-  mHist_data_signal_unfolded.SetName(("unfolded_evtRate_"+sigDef).c_str());
-  mHist_data_signal_unfolded.Write();   
-  tHist2D_unfolded_covariance.SetName(("unfolded_cov_evtRate_"+sigDef).c_str());
-  tHist2D_unfolded_covariance.Write();
-  tHist2D_covariance.SetName(("cov_evtRate_"+sigDef).c_str());
-  tHist2D_covariance.Write();
+    // Note: TMatrix axes are inverted from TH2D, so for tMat_add_smear_matrix, rows correspond to reco, and columns correspond to true (see unfold.C)
+    TMatrixD* tMat_smeared_true_signal = new TMatrixD(*tMat_add_smear_matrix,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+    TMatrixD* tMat_smeared_nuwro_signal = new TMatrixD(*tMat_add_smear_matrix, TMatrixD::EMatrixCreatorsOp2::kMult, tMat_nuwro_true_signal);
 
-  tHist2D_add_smear_matrix.SetName(("add_smear_matrix_"+sigDef).c_str());
-  tHist2D_add_smear_matrix.Write();
-  tHist_prior_true_signal.SetName(("prior_true_signal_"+sigDef).c_str());
-  tHist_prior_true_signal.Write();
-  tHist_prior_reco_signal.SetName(("prior_reco_signal_"+sigDef).c_str());
-  tHist_prior_reco_signal.Write();
-  tHist_smeared_true_signal.SetName(("smeared_true_signal_"+sigDef).c_str());
-  tHist_smeared_true_signal.Write();
+    // -----------------------------------------------------
+    // Convert unfolder outputs back to hists 
+    // -----------------------------------------------------
 
-  //file_out->Close();
-  return;
+    // Convert outputs into TH1D/TH2D   
+    TH2D tHist2D_unfolded_covariance = TMatrixDtoTH2D(*tMat_unfolded_covariance, tHist_prior_true_signal);
+    TH2D tHist2D_covariance = TMatrixDtoTH2D(tMat_data_covmat_final, tHist_data_signal);
+    TH2D tHist2D_errprop_matrix = TMatrixDtoTH2D(*tMat_errprop_matrix, tHist_prior_true_signal);
+    TH2D tHist2D_add_smear_matrix = TMatrixDtoTH2D(*tMat_add_smear_matrix, tHist_prior_true_signal);
+    TH1D tHist_smeared_true_signal = TMatrixDtoTH1D(*tMat_smeared_true_signal, tHist_prior_true_signal);
+    TH1D tHist_smeared_nuwro_signal = TMatrixDtoTH1D(*tMat_smeared_nuwro_signal, tHist_prior_true_signal);
+    TH1D tHist_bias = TMatrixDtoTH1D(*bias, tHist_prior_true_signal);
+
+    // -----------------------------------------------------
+    // 
+
+    // OOF, I think this is a whole piece that still needs to get sorted out... Maybe it's not so bad?
+    // Definitely we're not set up yet to do the unfolding in every systematic universe simultaneously,
+    // but the covariance that get spit out of the unfolder is correct and the diagonal errors can be given
+    // back to the CV hist...
+
+    //for(Int_t i=1; i<nBins_true+1; i++)
+    //{    
+    //double a = tHist_data_signal_unfolded.GetBinError(i);
+    //double b = tHist2D_unfolded_covariance.GetBinError(i,i);
+    //tHist_data_signal_unfolded.SetBinError(i,b);
+    //double c = tHist_data_signal_unfolded.GetBinError(i);
+    //std::cout << "tHist_before: " << a << "\t" << "tHist_after: " << c << "\t" << "cov: " << b << std::endl;  
+    //}
+
+    // 
+    // -----------------------------------------------------
+
+    // Construct MnvH1D
+    PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
+    mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
+
+    // -----------------------------------------------------
+    // Write unfolded results to output file
+    // -----------------------------------------------------
+
+    tHist_data_signal_unfolded = mHist_data_signal_unfolded.GetCVHistoWithError();
+    tHist_data_signal_unfolded.SetName(("unfolded_evtRate_"+sigDef).c_str());
+    tHist_data_signal_unfolded.Write();   
+    tHist2D_unfolded_covariance.SetName(("unfolded_cov_evtRate_"+sigDef).c_str());
+    tHist2D_unfolded_covariance.Write();
+    tHist2D_covariance.SetName(("cov_evtRate_"+sigDef).c_str());
+    tHist2D_covariance.Write();
+    tHist2D_errprop_matrix.SetName(("errprop_matrix_"+sigDef).c_str());
+    tHist2D_errprop_matrix.Write();
+    tHist2D_add_smear_matrix.SetName(("add_smear_matrix_"+sigDef).c_str());
+    tHist2D_add_smear_matrix.Write();
+    tHist_prior_true_signal.SetName(("prior_true_signal_"+sigDef).c_str());
+    tHist_prior_true_signal.Write();
+    tHist_prior_reco_signal.SetName(("prior_reco_signal_"+sigDef).c_str());
+    tHist_prior_reco_signal.Write();
+    tHist_folded_true_signal.SetName(("folded_true_signal_" + sigDef).c_str());
+    tHist_folded_true_signal.Write();
+    tHist_smeared_true_signal.SetName(("smeared_true_signal_"+sigDef).c_str());
+    tHist_smeared_true_signal.Write();
+    tHist_smeared_nuwro_signal.SetName(("smeared_nuwro_signal_" + sigDef).c_str());
+    tHist_smeared_nuwro_signal.Write();
+    tHist_bias.SetName(("bias_"+sigDef).c_str());
+    tHist_bias.Write();
+
+    //file_out->Close();
+    return;
 }
 
 // -----------------------------------------------------
 // Main method
 // -----------------------------------------------------
-void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest)
+void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest, bool writeCumStats = false, bool calculateTrueBias = false)
 {
 
-  // -----------------------------------------------------
-  // Specify Unfolder specs
-  // -----------------------------------------------------
+    gROOT -> SetBatch(kTRUE);
+    gStyle -> SetOptStat(0);
+    // -----------------------------------------------------
+    // Specify Unfolder specs
+    // -----------------------------------------------------
 
-  std::string unfolding_spec = "";
-  using RMT = WienerSVDUnfolder::RegularizationMatrixType;
-  RMT MY_REGULARIZATION; 
-  int NUM_ITERATIONS = 0;
- 
-  if(useWienerSVD){
-    if(unfoldingConfig=="kIdentity"){
-      MY_REGULARIZATION = RMT::kIdentity;
+    std::string unfolding_spec = "";
+    using RMT = WienerSVDUnfolder::RegularizationMatrixType;
+    RMT MY_REGULARIZATION; 
+    int NUM_ITERATIONS = 0;
+
+    if(useWienerSVD){
+        if(unfoldingConfig=="kIdentity"){
+            MY_REGULARIZATION = RMT::kIdentity;
+        }
+        else if(unfoldingConfig=="kFirstDerivative"){    
+            MY_REGULARIZATION = RMT::kFirstDeriv;
+        }
+        else if(unfoldingConfig== "kSecondDerivative"){
+            MY_REGULARIZATION = RMT::kSecondDeriv;
+        }
+        unfolding_spec = ("WSVD-"+unfoldingConfig).c_str();
     }
-    else if(unfoldingConfig=="kFirstDerivative"){    
-      MY_REGULARIZATION = RMT::kFirstDeriv;
-    }
-    else if(unfoldingConfig== "kSecondDerivative"){
-      MY_REGULARIZATION = RMT::kSecondDeriv;
-    }
-    unfolding_spec = ("WSVD-"+unfoldingConfig).c_str();
-  }
-  // If we're not using Wiener-SVD, then we're using D'Agostini
-  else{
-    NUM_ITERATIONS = std::stoi(unfoldingConfig);
-    unfolding_spec = ("DAgostini-"+unfoldingConfig+"-iteration").c_str();
-  } 
- 
-  // -----------------------------------------------------
-  // Clone input file to ouput file
-  // -----------------------------------------------------
-
-  // If input file path includes ".root" suffix, strip that off
-  if(filePath_in.substr(filePath_in.length()-5,filePath_in.length())==".root"){
-    filePath_in = filePath_in.substr(0,filePath_in.length()-5);
-  }
-
-  TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
-  // A little hacky, but the best I figured out for how to handle the
-  // if/else and also the fact that ().c_str() returns a const char*
-  // -----------------------------------------------------------------
-  std::string output_file_path_base = filePath_in+"_unfolded_"+unfolding_spec;
-  std::string output_file_path_suffix = closureTest ? "_closureTest.root" : ".root";
-  std::string output_file_path = output_file_path_base + output_file_path_suffix;
-  std::cout << "DEBUG\toutput_file_path: " << output_file_path << std::endl;
-
-  file_in->Cp(output_file_path.c_str()); // this is the point at which the output file is created
-  file_in->Close();
- 
-  // -----------------------------------------------------
-  // Pull in response matrix from response matrix file
-  // and copy contents to output file
-  // -----------------------------------------------------
-
-  // Navigate to response matrix file in same directory as input hist file
-  std::size_t last_slash_pos = filePath_in.find_last_of("/");
-  std::string fileDir = filePath_in.substr(0,last_slash_pos);
-  TFile* file_in_response = new TFile((fileDir+"/response_matrices_exclusive.root").c_str(),"READ");
- 
-  // Copy all contents of response matrix file to output file 
-  TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
-  file_in_response->cd();
-  TList* keys = gDirectory->GetListOfKeys();
-
-  // Go through the contents of the file one-by-one
-  for(int i=0; i<keys->GetEntries(); i++){
-    TKey* key = (TKey*)keys->At(i);
-    TObject* obj = key->ReadObj();
-    // TMatrixD objects are a little trickier, so we find them by their names
-    // and then explicitly propagate the object names to the output file
-    if (TString(obj->ClassName()) == "TMatrixT<double>") {
-      TString objName = key->GetName();
-      if (objName == "response_matrix_2g1p_exclusive") {
-        file_out->cd();
-        obj->Write("response_matrix_2g1p_exclusive");
-      }
-      else if(objName == "response_matrix_2g0p_exclusive") {
-        file_out->cd();
-        obj->Write("response_matrix_2g0p_exclusive");
-      }
-    }
-    // The rest of the objects are much more straightforward to deal with
+    // If we're not using Wiener-SVD, then we're using D'Agostini
     else{
-      file_out->cd();
-      obj->Write();
+        NUM_ITERATIONS = std::stoi(unfoldingConfig);
+        unfolding_spec = ("DAgostini-"+unfoldingConfig+"-iteration").c_str();
+    } 
+
+    // -----------------------------------------------------
+    // Clone input file to ouput file
+    // -----------------------------------------------------
+
+    // If input file path includes ".root" suffix, strip that off
+    if(filePath_in.substr(filePath_in.length()-5,filePath_in.length())==".root"){
+        filePath_in = filePath_in.substr(0,filePath_in.length()-5);
     }
-  }
-  
-  // We don't need this file open any more
-  file_in_response->Close();
 
-  // Everything needed can now be pulled from file_out
-  // -----------------------------------------------------
+    TFile* file_in = new TFile((filePath_in+".root").c_str(),"READ");
+    // A little hacky, but the best I figured out for how to handle the
+    // if/else and also the fact that ().c_str() returns a const char*
+    // -----------------------------------------------------------------
+    std::string output_file_path_base = filePath_in+"_unfolded_"+unfolding_spec;
+    std::string output_file_path_suffix = closureTest ? "_closureTest.root" : ".root";
+    std::string output_file_path = output_file_path_base + output_file_path_suffix;
+    std::cout << "DEBUG\toutput_file_path: " << output_file_path << std::endl;
 
-  execute_unfolding(file_out,"2g1p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
-  execute_unfolding(file_out,"2g0p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
+    file_in->Cp(output_file_path.c_str()); // this is the point at which the output file is created
+    file_in->Close();
 
-  return;
+    // -----------------------------------------------------
+    // Pull in response matrix from response matrix file
+    // and copy contents to output file
+    // -----------------------------------------------------
+
+    // Navigate to response matrix file in same directory as input hist file
+    std::size_t last_slash_pos = filePath_in.find_last_of("/");
+    std::string fileDir = filePath_in.substr(0,last_slash_pos);
+    TFile* file_in_response = new TFile((fileDir+"/response_matrices_exclusive.root").c_str(),"READ");
+
+    // Copy all contents of response matrix file to output file 
+    TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
+    file_in_response->cd();
+    TList* keys = gDirectory->GetListOfKeys();
+
+    // Go through the contents of the file one-by-one
+    for(int i=0; i<keys->GetEntries(); i++){
+        TKey* key = (TKey*)keys->At(i);
+        TObject* obj = key->ReadObj();
+        // TMatrixD objects are a little trickier, so we find them by their names
+        // and then explicitly propagate the object names to the output file
+        if (TString(obj->ClassName()) == "TMatrixT<double>") {
+            TString objName = key->GetName();
+            if (objName == "response_matrix_2g1p_exclusive") {
+                file_out->cd();
+                obj->Write("response_matrix_2g1p_exclusive");
+            }
+            else if(objName == "response_matrix_2g0p_exclusive") {
+                file_out->cd();
+                obj->Write("response_matrix_2g0p_exclusive");
+            }
+        }
+        // The rest of the objects are much more straightforward to deal with
+        else{
+            file_out->cd();
+            obj->Write();
+        }
+    }
+
+    // We don't need this file open any more
+    file_in_response->Close();
+
+    // Everything needed can now be pulled from file_out
+    // -----------------------------------------------------
+
+    double MSB_2g1p, MV_2g1p, MSE_2g1p, MSE_weighted_2g1p, true_MSB_2g1p, true_MSE_2g1p, true_MSE_weighted_2g1p, MSB_2g0p, MV_2g0p, MSE_2g0p, MSE_weighted_2g0p, true_MSB_2g0p, true_MSE_2g0p, true_MSE_weighted_2g0p;
+
+    execute_unfolding(file_out,"2g1p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS, &MSB_2g1p, &MV_2g1p, &MSE_2g1p, &MSE_weighted_2g1p, &true_MSB_2g1p, &true_MSE_2g1p, &true_MSE_weighted_2g1p, calculateTrueBias);
+    execute_unfolding(file_out,"2g0p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS, &MSB_2g0p, &MV_2g0p, &MSE_2g0p, &MSE_weighted_2g0p, &true_MSB_2g0p, &true_MSE_2g0p, &true_MSE_weighted_2g0p, calculateTrueBias);
+
+    // Write statistical information to statistical file
+
+    FILE *fStats;
+    fStats = fopen((output_file_path_base + "_stats.txt").c_str(), "w");
+    fprintf(fStats, "2g1p\n");
+    fprintf(fStats, "Mean Variance: %lf\n", MV_2g1p);
+    fprintf(fStats, "Mean Squared Bias: %lf\n", MSB_2g1p);
+    fprintf(fStats, "Mean Squared Error: %lf\n", MSE_2g1p);
+    fprintf(fStats, "Mean Squared Error, Weighted: %lf\n", MSE_weighted_2g1p);
+    if(calculateTrueBias){
+        fprintf(fStats, "True Mean Squared Bias: %lf\n", true_MSB_2g1p);
+        fprintf(fStats, "True Mean Squared Error: %lf\n", true_MSE_2g1p);
+        fprintf(fStats, "True Mean Squared Error, Weighted: %lf\n", true_MSE_weighted_2g1p);
+    }
+    fprintf(fStats, "\n2g0p\n");
+    fprintf(fStats, "Mean Variance: %lf\n", MV_2g0p);
+    fprintf(fStats, "Mean Squared Bias: %lf\n", MSB_2g0p);
+    fprintf(fStats, "Mean Squared Error: %lf\n", MSE_2g0p);
+    fprintf(fStats, "Mean Squared Error, Weighted: %lf\n", MSE_weighted_2g0p);
+    if(calculateTrueBias){
+        fprintf(fStats, "True Mean Squared Bias: %lf\n", true_MSB_2g0p);
+        fprintf(fStats, "True Mean Squared Error: %lf\n", true_MSE_2g0p);
+        fprintf(fStats, "True Mean Squared Error, Weighted: %lf\n", true_MSE_weighted_2g0p);
+    }
+    fclose(fStats);
+
+    if(writeCumStats){
+        FILE *fCumStats_2g1p;
+        fCumStats_2g1p = fopen((filePath_in+"_unfolded_stats_2g1p.txt").c_str(), "a+");
+        char placeholder;
+        if(fscanf(fCumStats_2g1p, "%c", &placeholder) == EOF){
+            fprintf(fCumStats_2g1p, "%s\t%s\t%s\t%s\t%s", "Iterations", "Mean Variance", "Mean Squared Bias", "Mean Squared Error", "Mean Squared Error, Weighted");
+            if(calculateTrueBias)
+                fprintf(fCumStats_2g1p, "\t%s\t%s\t%s", "True Mean Squared Bias", "True Mean Squared Error", "True Mean Squared Error, Weighted");
+            fprintf(fCumStats_2g1p, "\n");
+        }
+        fprintf(fCumStats_2g1p, "%d\t%lf\t%lf\t\t%lf\t\t%lf", NUM_ITERATIONS, MV_2g1p, MSB_2g1p, MSE_2g1p, MSE_weighted_2g1p);
+        if(calculateTrueBias)
+            fprintf(fCumStats_2g1p, "\t\t%lf\t\t%lf\t\t%lf", true_MSB_2g1p, true_MSE_2g1p, true_MSE_weighted_2g1p);
+        fprintf(fCumStats_2g1p, "\n");
+
+        FILE *fCumStats_2g0p;
+        fCumStats_2g0p = fopen((filePath_in+"_unfolded_stats_2g0p.txt").c_str(), "a+");
+        if(fscanf(fCumStats_2g0p, "%c", &placeholder) == EOF){
+            fprintf(fCumStats_2g0p, "%s\t%s\t%s\t%s\t%s", "Iterations", "Mean Variance", "Mean Squared Bias", "Mean Squared Error", "Mean Squared Error, Weighted");
+            if(calculateTrueBias)
+                fprintf(fCumStats_2g0p, "\t%s\t%s\t%s", "True Mean Squared Bias", "True Mean Squared Error", "True Mean Squared Error, Weighted");
+            fprintf(fCumStats_2g0p, "\n");
+        }
+        fprintf(fCumStats_2g0p, "%d\t%lf\t%lf\t\t%lf\t\t%lf", NUM_ITERATIONS, MV_2g0p, MSB_2g0p, MSE_2g0p, MSE_weighted_2g0p);
+        if(calculateTrueBias)
+            fprintf(fCumStats_2g0p, "\t\t%lf\t\t%lf\t\t%lf", true_MSB_2g0p, true_MSE_2g0p, true_MSE_weighted_2g0p);
+        fprintf(fCumStats_2g0p, "\n");
+    }
+
+    return;
 }
 

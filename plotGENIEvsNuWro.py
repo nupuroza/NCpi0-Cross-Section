@@ -2,16 +2,21 @@ import ROOT
 import argparse
 import os
 from customHistAndPlotMethods import makeEnv_TCanvas
+from calculateChi2 import *
 
 ## Plots GENIE and NuWro signal, background, and combined 2g1p and 2g0p reco distributions with associated errors.
 
-## Default output directory for Leon. Feel free to change it locally. 
+## Default GENIE input file and output directory for Leon. Feel free to change it locally. in_file_path must point to output from translatehists.py for proper errors.
+in_file_path = "/uboone/data/users/ltong/gLEE/NCPi0/2024-03-06_fixed-minmax-nuwro/2024-03-06_out.root"
 out_dir = "/uboone/data/users/ltong/gLEE/NCPi0/GENIEvsNuWro"
 
-## Use first argument from command line as out_dir if provided.
+## Use command line arguments for input and output if provided.
 parser = argparse.ArgumentParser(description='Script to plot GENIE and NuWro signal, background, and combined 2g1p and 2g0p reco distributions with associated errors')
+parser.add_argument('in_file_path', help='Path to input directory', type=str,nargs='?')
 parser.add_argument('out_dir', help='Path to ouput directory', type=str,nargs='?')
 p = parser.parse_args()
+if p.in_file_path > 0:
+  in_file_path = p.in_file_path
 if p.out_dir > 0:
   out_dir = p.out_dir
 
@@ -27,34 +32,61 @@ ROOT.gROOT.SetBatch()
 ROOT.TH1.AddDirectory(False)
 
 ## GENIE and NuWro paths and files
-fGENIE_2g1p_exclusive_path = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
-fGENIE_2g0p_exclusive_path = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
-fNuWro_path = "/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Apr2023_v6_CV.SBNspec.root"
-fGENIE_2g1p_exclusive = ROOT.TFile(fGENIE_2g1p_exclusive_path, "read")
-fGENIE_2g0p_exclusive = ROOT.TFile(fGENIE_2g0p_exclusive_path, "read")
-fNuWro = ROOT.TFile(fNuWro_path, "read")
+in_file = ROOT.TFile(in_file_path, "read")
 
 ## Retrieve GENIE and NuWro reco signal, background, and fake data histograms. GENIE "fakedata" is simply the sum of its reco signal and background histograms
-GENIE_2g1p_exclusive_signal = fGENIE_2g1p_exclusive.Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal")
-GENIE_2g0p_exclusive_signal = fGENIE_2g0p_exclusive.Get("exclusive_2g0p_CV_Dir/Sys2g0p_numerator_reco_Signal")
-GENIE_2g1p_exclusive_background = fGENIE_2g1p_exclusive.Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Bkgd")
-GENIE_2g0p_exclusive_background = fGENIE_2g0p_exclusive.Get("exclusive_2g0p_CV_Dir/Sys2g0p_numerator_reco_Bkgd")
-GENIE_2g1p_exclusive_fakedata = GENIE_2g1p_exclusive_signal + GENIE_2g1p_exclusive_background
-GENIE_2g0p_exclusive_fakedata = GENIE_2g0p_exclusive_signal + GENIE_2g0p_exclusive_background
-NuWro_2g1p_exclusive_signal = fNuWro.Get("nu_uBooNE_breakdown_2g1psig")
-NuWro_2g0p_exclusive_signal = fNuWro.Get("nu_uBooNE_breakdown_2g0psig")
-NuWro_2g1p_exclusive_background = fNuWro.Get("nu_uBooNE_breakdown_2g1pbkg")
-NuWro_2g0p_exclusive_background = fNuWro.Get("nu_uBooNE_breakdown_2g0pbkg")
-NuWro_2g1p_exclusive_fakedata = fNuWro.Get("nu_uBooNE_fakedata_2g1p")
-NuWro_2g0p_exclusive_fakedata = fNuWro.Get("nu_uBooNE_fakedata_2g0p")
+mHist_GENIE_2g1p_exclusive_signal = in_file.Get("effNum_reco_2g1p_exclusive")
+mHist_GENIE_2g0p_exclusive_signal = in_file.Get("effNum_reco_2g0p_exclusive")
+mHist_GENIE_2g1p_exclusive_background = in_file.Get("background_2g1p_exclusive")
+mHist_GENIE_2g0p_exclusive_background = in_file.Get("background_2g0p_exclusive")
+mHist_GENIE_2g1p_exclusive_fakedata = mHist_GENIE_2g1p_exclusive_signal.Clone("fakedata_2g1p_exclusive")
+mHist_GENIE_2g1p_exclusive_fakedata.Add(mHist_GENIE_2g1p_exclusive_background)
+mHist_GENIE_2g0p_exclusive_fakedata = mHist_GENIE_2g0p_exclusive_signal.Clone("fakedata_2g0p_exclusive")
+mHist_GENIE_2g0p_exclusive_fakedata.Add(mHist_GENIE_2g0p_exclusive_background)
+mHist_GENIE_2g1p_exclusive_folded = mHist_GENIE_2g1p_exclusive_signal.Clone("folded_2g1p_exclusive")
+mHist_GENIE_2g0p_exclusive_folded = mHist_GENIE_2g0p_exclusive_signal.Clone("folded_2g0p_exclusive")
+GENIE_2g1p_exclusive_signal = mHist_GENIE_2g1p_exclusive_signal.GetCVHistoWithError()
+GENIE_2g0p_exclusive_signal = mHist_GENIE_2g0p_exclusive_signal.GetCVHistoWithError()
+GENIE_2g1p_exclusive_background = mHist_GENIE_2g1p_exclusive_background.GetCVHistoWithError()
+GENIE_2g0p_exclusive_background = mHist_GENIE_2g0p_exclusive_background.GetCVHistoWithError()
+GENIE_2g1p_exclusive_fakedata = mHist_GENIE_2g1p_exclusive_fakedata.GetCVHistoWithError()
+GENIE_2g0p_exclusive_fakedata = mHist_GENIE_2g0p_exclusive_fakedata.GetCVHistoWithError()
+GENIE_2g1p_exclusive_folded = mHist_GENIE_2g1p_exclusive_folded.GetCVHistoWithError()
+GENIE_2g0p_exclusive_folded = mHist_GENIE_2g0p_exclusive_folded.GetCVHistoWithError()
+NuWro_2g1p_exclusive_signal = in_file.Get("nu_uBooNE_breakdown_2g1psig")
+NuWro_2g0p_exclusive_signal = in_file.Get("nu_uBooNE_breakdown_2g0psig")
+NuWro_2g1p_exclusive_background = in_file.Get("nu_uBooNE_breakdown_2g1pbkg")
+NuWro_2g0p_exclusive_background = in_file.Get("nu_uBooNE_breakdown_2g0pbkg")
+NuWro_2g1p_exclusive_fakedata = in_file.Get("nu_uBooNE_fakedata_2g1p")
+NuWro_2g0p_exclusive_fakedata = in_file.Get("nu_uBooNE_fakedata_2g0p")
+
+## Scale NuWro histograms to GENIE POT
+#for np in ["2g1p", "2g0p"]:
+#    for datatype in ["signal", "background", "fakedata"]:
+#        exec("NuWro_{0}_exclusive_{1}.Scale(6.868/3.0041393)".format(np, datatype))
+
+mHist_NuWro_2g1p_exclusive_folded = in_file.Get("evtRate_2g1p_exclusive")
+mHist_NuWro_2g0p_exclusive_folded = in_file.Get("evtRate_2g0p_exclusive")
+NuWro_2g1p_exclusive_folded = mHist_NuWro_2g1p_exclusive_folded.GetCVHistoWithError()
+NuWro_2g0p_exclusive_folded = mHist_NuWro_2g0p_exclusive_folded.GetCVHistoWithError()
 
 ## Loop over all plots to be made
 for np in ["2g1p", "2g0p"]:
-    for datatype in ["signal", "background", "fakedata"]:
+    for datatype in ["signal", "background", "fakedata", "folded"]:
         with makeEnv_TCanvas(out_dir + "/{0}_exclusive_{1}.png".format(np, datatype)) as canvas:
 
             ## Clone GENIE histograms with different variable names to the same variable within the for loop for conciseness of code
             exec("local_GENIE_exclusive = GENIE_{0}_exclusive_{1}.Clone(\"local_Sys{0}_numerator_reco_{1}\")".format(np, datatype))
+
+            ## Convert datatype to words used in plot titles 
+            if datatype == "signal":
+                DT = "Signal"
+            elif datatype == "background":
+                DT = "Background"
+            elif datatype == "fakedata":
+                DT = "Selected Data"
+            elif datatype == "folded":
+                DT = "NuWro Selected Data - GENIE Background"
 
             ## Set GENIE histogram Draw properties
             local_GENIE_exclusive.SetLineColor(ROOT.kRed)
@@ -62,9 +94,11 @@ for np in ["2g1p", "2g0p"]:
             local_GENIE_exclusive.SetFillColor(ROOT.kRed)
             local_GENIE_exclusive.SetFillStyle(0)
             local_GENIE_exclusive.SetLineWidth(2)
-            local_GENIE_exclusive.GetXaxis().SetTitle("Reco #pi^{{0}} momentum (GeV) [{0}]".format(np))
-            local_GENIE_exclusive.GetYaxis().SetTitle("# Reco {0} Events".format(datatype))
+            local_GENIE_exclusive.SetTitle("{0} Exclusive {1}".format(np, DT))
+            local_GENIE_exclusive.GetXaxis().SetTitle("Reco #pi^{0} momentum (GeV)")
+            local_GENIE_exclusive.GetYaxis().SetTitle("# Reco {0} Events".format(DT))
             local_GENIE_exclusive.SetFillStyle(0)
+            ROOT.gStyle.SetOptStat(0)
 
             ## Get content and error of GENIE bin with max y value
             GENIE_maxybin = local_GENIE_exclusive.GetMaximumBin()
@@ -73,15 +107,6 @@ for np in ["2g1p", "2g0p"]:
 
             ## Clone NuWro histograms with different variable names to the same variable within the for loop for conciseness of code
             exec("local_NuWro_exclusive = NuWro_{0}_exclusive_{1}.Clone(\"local_nu_uBooNE_reco_{1}_{0}\")".format(np, datatype))
-
-            ## Scale NuWro histograms to GENIE POT. 2g1p and 2g0p treated separately due to having different POT historically.
-            if np == "2g1p":
-                local_NuWro_exclusive.Scale(6.868/3.0041393)
-            elif np == "2g0p":
-                local_NuWro_exclusive.Scale(6.868/3.0041393)
-            else:
-                print("Only 2g1p and 2g0p configurations are supported.")
-                exit(0)
 
             ## Set NuWro histogram Draw properties. Plotted on same canvas as GENIE histogram, so doesn't need own titles.
             local_NuWro_exclusive.SetLineWidth(2)
@@ -109,5 +134,25 @@ for np in ["2g1p", "2g0p"]:
             legend = ROOT.TLegend(0.555, 0.5, 0.90, 0.7)
             legend.SetBorderSize(0)
             legend.AddEntry(local_GENIE_exclusive, "GENIE")
-            legend.AddEntry(local_NuWro_exclusive, "NuWro")
+            legend.AddEntry(local_NuWro_exclusive, "NuWro Fake Data")
             legend.Draw()
+
+            ## Calculate and draw Chi^2
+            ## Statistical uncertainties probably incorrect. (!!!)
+            #exec("local_covhist_exclusive = in_file.Get(\"cov_evtRate_{0}_exclusive\")".format(np))
+            exec("local_covmat_exclusive = mHist_GENIE_{0}_exclusive_{1}.GetTotalErrorMatrix()".format(np, datatype))
+            if datatype == "folded":
+                exec("local_covmat_exclusive += mHist_NuWro_{0}_exclusive_folded.GetTotalErrorMatrix(False)".format(np))
+            nbins = local_GENIE_exclusive.GetNbinsX()
+            local_covmat_exclusive = local_covmat_exclusive.GetSub(1, nbins, 1, nbins)
+            #local_covmat_exclusive = ROOT.TMatrixD(nbins, nbins)
+            #for row in range(0, nbins):
+            #    for col in range(0, nbins):
+            #        local_covmat_exclusive[row][col] = local_covhist_exclusive.GetBinContent(row + 1, col + 1)
+            chi2 = calculateChi2(local_GENIE_exclusive, local_NuWro_exclusive, local_covmat_exclusive, False)
+            #pt = ROOT.TPaveText()
+            pt = ROOT.TPaveText(0.555, 0.75, 0.90, 0.90, "NDC")
+            pt.SetBorderSize(0)
+            pt.SetFillColorAlpha(0, 0)
+            pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2, local_GENIE_exclusive.GetNbinsX()))
+            pt.Draw()
