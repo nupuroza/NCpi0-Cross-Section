@@ -431,7 +431,8 @@ for sigDefnp in ["2g1p","2g0p"]:
       # Prescription for determining minimum and maximum y values from individual histograms.
       truth_max = local_tHist_nuwro_truth_scaled.GetMaximum()
       truth_smeared_max = local_tHist_smeared_nuwro_truth_scaled.GetMaximum()
-      reco_maxbin = local_tHist_unfolded_evtRate_scaled.GetMaximumBin() local_tHist_unfolded_evtRate_scaled.GetBinContent(reco_maxbin)
+      reco_maxbin = local_tHist_unfolded_evtRate_scaled.GetMaximumBin()
+      local_tHist_unfolded_evtRate_scaled.GetBinContent(reco_maxbin)
       reco_max = local_tHist_unfolded_evtRate_scaled.GetBinContent(reco_maxbin)
       reco_max += local_tHist_unfolded_evtRate_scaled.GetBinError(reco_maxbin)
       truth_smeared_min = local_tHist_smeared_nuwro_truth_scaled.GetMinimum()
