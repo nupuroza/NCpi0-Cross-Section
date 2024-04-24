@@ -66,7 +66,7 @@ TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist)
     {
       for(Int_t j=0; j<input_mat.GetNcols(); j++)
       {
-	      output_hist.SetBinContent(i+1, j+1, input_mat(i, j));
+	      output_hist.SetBinContent(i+1, j+1, input_mat(j, i));
       }
     }
   return output_hist;

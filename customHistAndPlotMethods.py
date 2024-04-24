@@ -2,7 +2,7 @@ import ROOT,os
 
 class makeEnv_TCanvas(object):
 
-  def __init__(self,plotName,logy=False):
+  def __init__(self,plotName, logy=False):
     self.plotName = plotName
     self.logy = logy
 

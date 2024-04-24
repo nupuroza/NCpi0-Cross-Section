@@ -257,7 +257,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(nBins, nBins)
       for i in range(1, nBins+1):
         for j in range(1, nBins+1):
-          exec("local_tMat_unfolded_cov_evtRate[i-1][j-1] = tHist_unfolded_cov_evtRate_{0}.GetBinContent(i, j)".format(sigDef))
+          exec("local_tMat_unfolded_cov_evtRate[i-1][j-1] = tHist_unfolded_cov_evtRate_{0}.GetBinContent(j, i)".format(sigDef))
       chi2_NuWro = calculateChi2(local_tHist_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
       chi2_NuWro_smeared = calculateChi2(local_tHist_smeared_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
       chi2_GENIE = calculateChi2(local_tHist_genie_evtRate_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
