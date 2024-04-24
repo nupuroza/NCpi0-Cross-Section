@@ -408,7 +408,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       ptall.Draw()
 
       # Draw the legend
-      legend = ROOT.TLegend(0.55,0.7,0.8,0.85, "")
+      legend = ROOT.TLegend(0.42,0.7,0.845,0.9, "")
       legend.SetBorderSize(0);
       legend.AddEntry(local_tHist_unfolded_xSection_scaled,"NuWro Fake Data","lep")
       if is_test:
@@ -416,10 +416,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       legend.AddEntry(local_tHist_smeared_xSection_mc_scaled, "GENIE Prediction, Smeared", "f")
       legend.Draw()
 
-      if is_test:
-        pt = ROOT.TPaveText(0.5, 0.5, 0.845, 0.7, "NDC")
-      else:
-        pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
+      pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
       pt.SetBorderSize(0)
       pt.SetFillColorAlpha(0, 0)
       pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
