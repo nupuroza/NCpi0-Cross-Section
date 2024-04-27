@@ -28,8 +28,8 @@ void ResponseMaker(std::string outDir){
     // Copy variation spectra files from SBNfit to own directory in order to update cross section universes to only account for differences in response.
     TFile *spectrain_2g1p = new TFile("/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root", "read");
     TFile *spectrain_2g0p = new TFile("/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root", "read");
-    std::string spectraout_2g1p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SSBNfit_variation_spectra_exclusive_2g1p.root";
-    std::string spectraout_2g0p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SSBNfit_variation_spectra_exclusive_2g0p.root";
+    std::string spectraout_2g1p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root";
+    std::string spectraout_2g0p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root";
     spectrain_2g1p -> Cp(spectraout_2g1p_path.c_str());
     spectrain_2g0p -> Cp(spectraout_2g0p_path.c_str());
     spectrain_2g1p -> Close();
@@ -286,39 +286,54 @@ void ResponseMaker(std::string outDir){
             TMatrixD *resp_2g0p_mat = new TMatrixD(nbins_reco + 2, nbins_true + 2, resp_2g0p_hist -> GetArray());
             TMatrixD *true_2g1p_mat = new TMatrixD(nbins_true + 2, 1, htrue_resp_2g1p -> GetArray());
             TMatrixD *true_2g0p_mat = new TMatrixD(nbins_true + 2, 1, htrue_resp_2g0p -> GetArray());
-            TMatrixD *mreco_resp_2g1p = new TMatrixD(*resp_2g1p_mat, TMatrixD::kMult, *true_2g1p_mat);
-            TMatrixD *mreco_resp_2g0p = new TMatrixD(*resp_2g0p_mat, TMatrixD::kMult, *true_2g0p_mat);
+            TMatrixD *reco_resp_2g1p_mat = new TMatrixD(*resp_2g1p_mat, TMatrixD::kMult, *true_2g1p_mat);
+            TMatrixD *reco_resp_2g0p_mat = new TMatrixD(*resp_2g0p_mat, TMatrixD::kMult, *true_2g0p_mat);
             // Prescribe names of histograms to be replaced.
             std::string hreco_resp_2g1p_name;
             std::string hreco_resp_2g0p_name;
             std::string htrue_resp_2g1p_name;
             std::string htrue_resp_2g0p_name;
+            std::string heffNum_truth_resp_2g1p_name;
+            std::string heffNum_truth_resp_2g0p_name;
             if(vert_error_band_name == "All_UBGenie" || vert_error_band_name == "RPA_CCQE_UBGenie"){
                 hreco_resp_2g1p_name = "Sys2g1p_numerator_reco_universe_" + std::to_string(histnum + 1) + "_Signal";
                 hreco_resp_2g0p_name = "Sys2g0p_numerator_reco_universe_" + std::to_string(histnum + 1) + "_Signal";
                 htrue_resp_2g1p_name = "Sys2g1p_denominator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
                 htrue_resp_2g0p_name = "Sys2g0p_denominator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
+                heffNum_truth_resp_2g1p_name = "Sys2g1p_numerator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
+                heffNum_truth_resp_2g0p_name = "Sys2g0p_numerator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
             }
             else{
                 hreco_resp_2g1p_name = "Sys2g1p_numerator_reco_minmax_" + std::to_string(histnum + 1) + "_Signal";
                 hreco_resp_2g0p_name = "Sys2g0p_numerator_reco_minmax_" + std::to_string(histnum + 1) + "_Signal";
                 htrue_resp_2g1p_name = "Sys2g1p_denominator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
                 htrue_resp_2g0p_name = "Sys2g0p_denominator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
+                heffNum_truth_resp_2g1p_name = "Sys2g1p_numerator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
+                heffNum_truth_resp_2g0p_name = "Sys2g0p_numerator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
             }
             // Convert new reco distributions back to histograms for writing.
             TH1D *hreco_resp_2g1p = new TH1D(hreco_resp_2g1p_name.c_str(), hreco_resp_2g1p_name.c_str(), nbins_reco, &reco_bins[0]);
             TH1D *hreco_resp_2g0p = new TH1D(hreco_resp_2g0p_name.c_str(), hreco_resp_2g0p_name.c_str(), nbins_reco, &reco_bins[0]);
             for(int bin = 0; bin < nbins_reco + 2; bin++){
-                hreco_resp_2g1p -> SetBinContent(bin, (*mreco_resp_2g1p)(bin, 0));
-                hreco_resp_2g0p -> SetBinContent(bin, (*mreco_resp_2g0p)(bin, 0));
+                hreco_resp_2g1p -> SetBinContent(bin, (*reco_resp_2g1p_mat)(bin, 0));
+                hreco_resp_2g0p -> SetBinContent(bin, (*reco_resp_2g0p_mat)(bin, 0));
             }
-            // Cd to the correct directory and overwrite existing reco distributions with updated ones and existing truth distributions with CV distributions.
+            // Get the new efficiency numerator truth distributions for use in calculating the efficiency.
+            TH1D *heffNum_truth_resp_2g1p = resp_2g1p_hist -> ProjectionX(heffNum_truth_resp_2g1p_name.c_str());
+            TH1D *heffNum_truth_resp_2g0p = resp_2g0p_hist -> ProjectionX(heffNum_truth_resp_2g0p_name.c_str());
+            for(int bin = 0; bin < nbins_true + 2; bin++){
+                heffNum_truth_resp_2g1p -> SetBinContent(bin, heffNum_truth_resp_2g1p -> GetBinContent(bin)*htrue_resp_2g1p -> GetBinContent(bin));
+                heffNum_truth_resp_2g0p -> SetBinContent(bin, heffNum_truth_resp_2g0p -> GetBinContent(bin)*htrue_resp_2g0p -> GetBinContent(bin));
+            }
+            // Cd to the correct directory and overwrite existing distributions.
             systcat_2g1p_dir -> cd();
             hreco_resp_2g1p -> Write(hreco_resp_2g1p_name.c_str(), TObject::kWriteDelete);
             htrue_resp_2g1p -> Write(htrue_resp_2g1p_name.c_str(), TObject::kWriteDelete);
+            heffNum_truth_resp_2g1p -> Write(heffNum_truth_resp_2g1p_name.c_str(), TObject::kWriteDelete);
             systcat_2g0p_dir -> cd();
             hreco_resp_2g0p -> Write(hreco_resp_2g0p_name.c_str(), TObject::kWriteDelete);
             htrue_resp_2g0p -> Write(htrue_resp_2g0p_name.c_str(), TObject::kWriteDelete);
+            heffNum_truth_resp_2g0p -> Write(heffNum_truth_resp_2g0p_name.c_str(), TObject::kWriteDelete);
         }
         systcat_2g1p_dir -> Write();
         systcat_2g0p_dir -> Write();

@@ -28,7 +28,6 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     PlotUtils::MnvH1D *mHist_data_signal_folded = (PlotUtils::MnvH1D*)file_out->Get(("evtRate_"+sigDef).c_str()); 
     TH1D tHist_data_signal = mHist_data_signal_folded->GetCVHistoWithStatError();
     // Extract covariance, including MC statistical uncertainty.
-    // Signal MC statistical uncertainty represents statistical uncertainty on efficiency. Rigorous treatment would probably require bootstrapping technique since some of the uncertainty comes from the number of true events, but the effect is probably small. See Slack message from Ben Bogart. (???)
     PlotUtils::MnvH1D *mHist_fakedata_mc = (PlotUtils::MnvH1D*)file_out->Get(("fakedata_mc_"+sigDef).c_str());
     TMatrixD tMat_data_covmat = mHist_fakedata_mc->GetTotalErrorMatrix(true);
     // Pull out predicted signal MnvH1D from input file // needs to be in true space, happens to also be the efficiency
