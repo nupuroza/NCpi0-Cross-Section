@@ -27,4 +27,4 @@ def calculateChi2(mc_hist, data_hist, cov_matrix, cov_matrix_includes_stats):
     # Calculate chi2 using Eq. 18 of paper.
     chi2_temp = ROOT.TMatrixD(diff_mat, ROOT.TMatrixD.kTransposeMult, inv_cov_matrix)
     chi2 = ROOT.TMatrixD(chi2_temp, ROOT.TMatrixD.kMult, diff_mat)
-    return chi2(0, 0)
+    return chi2(0, 0), cov_matrix

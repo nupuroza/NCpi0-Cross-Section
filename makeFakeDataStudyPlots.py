@@ -261,10 +261,10 @@ for sigDefnp in ["2g1p","2g0p"]:
       for i in range(1, nBins+1):
         for j in range(1, nBins+1):
           exec("local_tMat_unfolded_cov_evtRate[i-1][j-1] = tHist_unfolded_cov_evtRate_{0}.GetBinContent(j, i)".format(sigDef))
-      chi2_NuWro = calculateChi2(local_tHist_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
-      chi2_NuWro_smeared = calculateChi2(local_tHist_smeared_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
-      chi2_GENIE = calculateChi2(local_tHist_genie_evtRate_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
-      chi2_GENIE_smeared = calculateChi2(local_tHist_genie_evtRate_smeared_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)
+      chi2_NuWro = calculateChi2(local_tHist_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_NuWro_smeared = calculateChi2(local_tHist_smeared_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_GENIE = calculateChi2(local_tHist_genie_evtRate_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_GENIE_smeared = calculateChi2(local_tHist_genie_evtRate_smeared_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
     
       ## Scale and bin-width-normalize all hists (and POT normalize NuWro truth)
       local_tHist_unfolded_evtRate_scaled.Scale(1e-3,"width")
@@ -506,23 +506,28 @@ for sigDefnp in ["2g1p","2g0p"]:
      
       exec("local_mHist_effNum_reco = histFile.Get(\"effNum_reco_{0}\")".format(sigDef))
       local_tHist_effNum_reco_scaled = local_mHist_effNum_reco.GetCVHistoWithError()
+      local_tMat_cov_effNum_reco = local_mHist_effNum_reco.GetTotalErrorMatrix(True)
 
       # Get folded covariance matrix to compare folded distributions. Remove underflow and overflow bins for now.
       # Does this make sense? See ref C's comments on Ben Bogart's numu CC paper. (???)
       # On the one hand, the fake data should not have signal systematic uncertainties prior to unfolding since it's "data".
       # On the other hand, do we want the covariance matrix we're unfolding to be different from the one we use for our reco distributions?
+      # Currently subtracting signal systematic component of the folded covariance matrix.
       exec("local_tMat_cov_evtRate = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
       local_tMat_cov_evtRate = local_tMat_cov_evtRate.GetSub(1, nBins, 1, nBins)
+      local_tMat_cov_effNum_reco = local_tMat_cov_effNum_reco.GetSub(1, nBins, 1, nBins)
+      local_tMat_cov_reco_evtRate = ROOT.TMatrixD(nBins, nBins)
+      local_tMat_cov_reco_evtRate.Minus(local_tMat_cov_evtRate, local_tMat_cov_effNum_reco)
       
       # Set errors to square root of diagonal of folded covariance matrix.
       for i in range(nBins):
-        local_tHist_effNum_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_cov_evtRate[i][i]))
-        local_tHist_evtRate_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_cov_evtRate[i][i]))
+        local_tHist_effNum_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
+        local_tHist_evtRate_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
 
       # Calculate chi2 before scaling.
-      chi2_effNum_hreco = calculateChi2(local_tHist_hreco_scaled, local_tHist_effNum_reco_scaled, local_tMat_cov_evtRate, True)
-      chi2_effNum_genie_evtRate = calculateChi2(local_tHist_genie_evtRate_reco_scaled, local_tHist_effNum_reco_scaled, local_tMat_cov_evtRate, True)
-      chi2_evtRate_reco_effNum = calculateChi2(local_tHist_effNum_reco_scaled, local_tHist_evtRate_reco_scaled, local_tMat_cov_evtRate, True)
+      chi2_effNum_hreco = calculateChi2(local_tHist_hreco_scaled, local_tHist_effNum_reco_scaled, local_tMat_cov_reco_evtRate, True)[0]
+      chi2_effNum_genie_evtRate = calculateChi2(local_tHist_genie_evtRate_reco_scaled, local_tHist_effNum_reco_scaled, local_tMat_cov_reco_evtRate, True)[0]
+      chi2_evtRate_reco_effNum = calculateChi2(local_tHist_effNum_reco_scaled, local_tHist_evtRate_reco_scaled, local_tMat_cov_reco_evtRate, True)[0]
 
       local_tHist_evtRate_reco_scaled.Scale(1e-2,"width")
       local_tHist_genie_evtRate_reco_scaled.Scale(1e-2,"width")
@@ -624,15 +629,17 @@ for sigDefnp in ["2g1p","2g0p"]:
     with makeEnv_TCanvas('{0}/nuwro_evtRate_folded_{1}.png'.format(plotDir, sigDef)):
       # The only difference between NuWro fake data and NuWro reco signal is the background, so we extract and only use the background uncertainty.
       local_tHist_nuwro_signal_scaled = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "sig")
+      local_tHist_nuwro_background = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "bkg")
       exec("local_mHist_background = mHist_background_{0}.Clone(\"local_mHist_background\")".format(sigDef))
       local_tHist_evtRate_reco_scaled = local_mHist_evtRate_reco.GetCVHistoWithError()
-      local_tMat_background_covMat = local_mHist_background.GetTotalErrorMatrix(True)
-      
-      # Bug: The data statistical uncertainty should be on the background, not the remaining signal. (!!!)
-      for i in range(1, nBins + 1):
-        local_tHist_evtRate_reco_scaled.SetBinError(i, math.sqrt(local_tMat_background_covMat[i][i]))
+      local_tHist_background = local_mHist_background.GetCVHistoWithError()
+      local_tMat_background_covMat = local_mHist_background.GetTotalErrorMatrix(True) 
       local_tMat_background_covMat = local_tMat_background_covMat.GetSub(1, nBins, 1, nBins)
-      chi2_evtRate_reco_nuwro_signal = calculateChi2(local_tHist_nuwro_signal_scaled, local_tHist_evtRate_reco_scaled, local_tMat_background_covMat, False)
+
+      # Update covariance with data statistical uncertainties and set error bars to the diagonal.
+      chi2_evtRate_reco_nuwro_signal, local_tMat_background_covMat = calculateChi2(local_tHist_nuwro_background, local_tHist_background, local_tMat_background_covMat, False)
+      for i in range(nBins):
+        local_tHist_evtRate_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_background_covMat[i][i]))
       
       # Scale and set max y.
       local_tHist_nuwro_signal_scaled.Scale(1e-2, "width")

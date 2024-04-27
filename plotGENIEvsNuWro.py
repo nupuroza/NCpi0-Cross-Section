@@ -149,7 +149,7 @@ for np in ["2g1p", "2g0p"]:
             #for row in range(0, nbins):
             #    for col in range(0, nbins):
             #        local_covmat_exclusive[row][col] = local_covhist_exclusive.GetBinContent(row + 1, col + 1)
-            chi2 = calculateChi2(local_GENIE_exclusive, local_NuWro_exclusive, local_covmat_exclusive, False)
+            chi2 = calculateChi2(local_GENIE_exclusive, local_NuWro_exclusive, local_covmat_exclusive, False)[0]
             #pt = ROOT.TPaveText()
             pt = ROOT.TPaveText(0.555, 0.75, 0.90, 0.90, "NDC")
             pt.SetBorderSize(0)
