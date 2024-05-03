@@ -155,10 +155,11 @@ for sigDefnp in ["2g1p", "2g0p"]:
       local_mHist_eff.SetTitle(sigDefnp + " Exclusive Efficiency")
       local_mHist_eff.GetXaxis().SetTitle("True #pi^{0} Momentum")
       local_mHist_eff.GetYaxis().SetTitle("Efficiency")
-      local_mHist_eff.DrawCopy("HIST")
       local_mHist_eff.SetFillStyle(3545)
       local_mHist_eff.SetFillColor(local_mHist_eff.GetLineColor())
-      local_mHist_eff.Draw("E2 SAME")
+      local_mHist_eff.DrawCopy("E2")
+      local_mHist_eff.SetFillColorAlpha(ROOT.kWhite, 0.00)
+      local_mHist_eff.Draw("HIST SAME")
     
     with makeEnv_TCanvas('{0}/add_smear_matrix_{1}.png'.format(plotDir, sigDef)) as canvas:
       local_tHist_add_smear_matrix = histFile.Get("add_smear_matrix_{0}".format(sigDef))
