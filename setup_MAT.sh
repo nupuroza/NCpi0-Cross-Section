@@ -1,5 +1,5 @@
 ## Set up UPS
-source /cvmfs/uboone.opensciencegrid.org/products/setup_uboone.sh
+source /cvmfs/uboone.opensciencegrid.org/products/setup_uboone_mcc9.sh
 
 ## Set up compatible versions of ROOT and cmake
 setup root v6_12_06a -q e15:prof
