@@ -54,7 +54,7 @@ TMatrixD TH1DtoTMatrixD(const TH1D& input_hist, bool include_underflow, bool inc
 // `reference_hist` should have the desired binning, but will not itself be filled
 // DISCLAIMER: As implemented this evidently assumes you want to convert a square matrix
 // It is conceivably the case that you might want to make reference_hist a TH2D in the future
-TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist)
+TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist, bool include_underflow)
 {
   Int_t nBins = reference_hist.GetNbinsX();
   Double_t binEdges[nBins+1];
@@ -62,11 +62,12 @@ TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist)
       binEdges[i] = reference_hist.GetBinLowEdge(i+1);
   }
   TH2D output_hist("","",nBins,binEdges,nBins,binEdges);
+  Int_t offset = include_underflow ? 0 : 1;
   for(Int_t i=0; i<input_mat.GetNrows(); i++)
     {
       for(Int_t j=0; j<input_mat.GetNcols(); j++)
       {
-	      output_hist.SetBinContent(i+1, j+1, input_mat(j, i));
+	      output_hist.SetBinContent(i + offset, j + offset, input_mat(j, i));
       }
     }
   return output_hist;
@@ -74,7 +75,7 @@ TH2D TMatrixDtoTH2D(const TMatrixD& input_mat, const TH1D& reference_hist)
 
 // Create TH1D from TMatrixD
 // `reference_hist` should have the desired binning, but will not itself be filled
-TH1D TMatrixDtoTH1D(const TMatrixD& input_mat, const TH1D& reference_hist)
+TH1D TMatrixDtoTH1D(const TMatrixD& input_mat, const TH1D& reference_hist, bool include_underflow)
 {
   Int_t nBins = reference_hist.GetNbinsX();
   Double_t binEdges[nBins+1];
@@ -82,9 +83,10 @@ TH1D TMatrixDtoTH1D(const TMatrixD& input_mat, const TH1D& reference_hist)
       binEdges[i] = reference_hist.GetBinLowEdge(i+1);
   }
   TH1D output_hist("","",nBins,binEdges);
+  Int_t offset = include_underflow ? 0 : 1;
   for(Int_t i=0; i<input_mat.GetNrows(); i++)
     {
-      output_hist.SetBinContent(i+1, input_mat.operator()(i, 0));
+      output_hist.SetBinContent(i + offset, input_mat.operator()(i, 0));
     }
   return output_hist;
 }

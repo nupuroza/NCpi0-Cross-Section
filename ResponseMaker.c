@@ -173,7 +173,6 @@ void ResponseMaker(std::string outDir){
 
     // Loop through event tree; fill htrue, hreco, and response hists
     for(int i=0; i<v_2g1p->GetEntries();i++){
-    //for(int i = 0; i < 20000; i++){
 
         v_2g1p->GetEntry(i);
         v_2g0p->GetEntry(i);
@@ -282,6 +281,7 @@ void ResponseMaker(std::string outDir){
                     resp_2g0p_hist -> SetBinContent(a, i, eff_2g0p);
                 }}
             // Convert histograms to matrices and multiply to obtain new reco universes.
+            // htrue_(2g1p/2g0p)_resp -> GetArray() has one more element than true_(2g1p/2g0p)_mat (an extra overflow bin), but it will simply be ignored, which is the desired behavior.
             TMatrixD *resp_2g1p_mat = new TMatrixD(nbins_reco + 2, nbins_true + 2, resp_2g1p_hist -> GetArray());
             TMatrixD *resp_2g0p_mat = new TMatrixD(nbins_reco + 2, nbins_true + 2, resp_2g0p_hist -> GetArray());
             TMatrixD *true_2g1p_mat = new TMatrixD(nbins_true + 2, 1, htrue_resp_2g1p -> GetArray());

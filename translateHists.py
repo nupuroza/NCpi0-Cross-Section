@@ -5,7 +5,8 @@ import ROOT
 import datetime as dt
 import argparse
 import os
-from customHistAndPlotMethods import writeHist
+from customHistAndPlotMethods import *
+import numpy as np
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
@@ -80,19 +81,30 @@ is_fake_data = True if p.fakedata>0 else False
 #############################################################################################################
 
 ## Create reference Hist that will be a template for whatever input binning is being used
-## Doesn't really matter which hist is used for this, as long as it has the correct binning
-histToBeCloned_true = inFile_2g1p_inclusive.Get("inclusive_2g1p_CV_Dir/Sys2g1p_numerator_truth_Signal")
-referenceHist_true = histToBeCloned_true.Clone("referenceHist_true")
-referenceHist_true.SetTitle("")
-nBins_true = referenceHist_true.GetNbinsX()
+## Overflow bin included as last extremely wide last bin.
+## Remove this from refrenceHist so overflow content goes in actual overflow bin.
+histToBeCloned_true = inFile_2g1p_exclusive.Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_truth_Signal")
+nBins_true = histToBeCloned_true.GetNbinsX() - 1
+lowEdges_true = []
+for i in range(1, nBins_true + 2):
+  lowEdges_true.append(histToBeCloned_true.GetXaxis().GetBinLowEdge(i))
+lowEdges_true = np.asarray(lowEdges_true)
+referenceHist_truth = ROOT.TH1D("referenceHist_truth", "", nBins_true, lowEdges_true)
 for i in range(0,nBins_true+2):
-  referenceHist_true.SetBinContent(i,-999.)
-  referenceHist_true.SetBinError(i,0.)
+  referenceHist_truth.SetBinContent(i,-999.)
+  referenceHist_truth.SetBinError(i,0.)
 
 ## Create a distinct reco space reference hist, as reco and true may have different binnings
-histToBeCloned_reco = inFile_2g1p_inclusive.Get("inclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal")
-referenceHist_reco = histToBeCloned_reco.Clone("referenceHist_reco")
-nBins_reco = referenceHist_reco.GetNbinsX()
+histToBeCloned_reco = inFile_2g1p_exclusive.Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal")
+nBins_reco = histToBeCloned_reco.GetNbinsX() - 1
+lowEdges_reco = []
+for i in range(1, nBins_reco + 2):
+  lowEdges_reco.append(histToBeCloned_reco.GetXaxis().GetBinLowEdge(i))
+lowEdges_reco = np.asarray(lowEdges_reco)
+referenceHist_reco = ROOT.TH1D("referenceHist_reco", "", nBins_reco, lowEdges_reco)
+for i in range(0,nBins_reco+2):
+  referenceHist_reco.SetBinContent(i,-999.)
+  referenceHist_reco.SetBinError(i,0.)
 
 #############################################################################################################
 ### Systematic Universes ####################################################################################
@@ -193,7 +205,7 @@ n_targets = density*fid_vol*avo/molar_mass
 print "Number of targets: {0}".format(n_targets)
 
 ## Put scalar into TH1D
-tHist_nTargets = referenceHist_true.Clone("tHist_nTargets")
+tHist_nTargets = referenceHist_truth.Clone("tHist_nTargets")
 for i in range(0,nBins_true+2):
   tHist_nTargets.SetBinContent(i,n_targets)
 
@@ -231,7 +243,7 @@ POT_scaling = POT_data/POT_mc
 
 for data_type in ["mc","data", "scaling"]:
   ## Put scalar into TH1D
-  exec("tHist_POT_{0} = referenceHist_true.Clone(\"tHist_POT_{0}\")".format(data_type))
+  exec("tHist_POT_{0} = referenceHist_truth.Clone(\"tHist_POT_{0}\")".format(data_type))
   for i in range(0,nBins_true+2):
     exec("tHist_POT_{0}.SetBinContent(i,POT_{0})".format(data_type))
   ## Create MnvH1D from TH1D
@@ -320,7 +332,7 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
 
   ## Put scalar integrated flux into TH1D
   # Note that this hist has the binninng of the analysis, not the binning of the flux
-  exec("tHist_flux_{0}_integral = referenceHist_true.Clone(\"tHist_flux_{0}_integral\")".format(nuSpec))
+  exec("tHist_flux_{0}_integral = referenceHist_truth.Clone(\"tHist_flux_{0}_integral\")".format(nuSpec))
   for i in range(0,nBins_true+2):
     exec("tHist_flux_{0}_integral.SetBinContent(i,flux_integral_CV)".format(nuSpec))
   
@@ -413,10 +425,11 @@ for sigDef in ["2g1p","2g0p"]:
     ## CV
     # Pull out the TH1D
     exec("tHist_effDenom_{0}_{1}_CV = inFile_{0}_{1}.Get(\"{1}_{0}_CV_Dir/Sys{0}_denominator_truth_Signal\")".format(sigDef,sigDefexcl))
+    # Rebin the TH1D to place the overflow in the overflow bin.
+    exec("tHist_effDenom_{0}_{1}_CV = Rebin(tHist_effDenom_{0}_{1}_CV, referenceHist_truth, \"effDenom_{0}_{1}\")".format(sigDef, sigDefexcl))
     # Copy this into an MnvH1D (no systs yet)
     exec("mHist_effDenom_{0}_{1} = ROOT.PlotUtils.MnvH1D(tHist_effDenom_{0}_{1}_CV)".format(sigDef,sigDefexcl))
-    # Rename new hist object
-    exec("mHist_effDenom_{0}_{1}.SetName(\"effDenom_{0}_{1}\")".format(sigDef,sigDefexcl))
+    # Clear the title.
     exec("mHist_effDenom_{0}_{1}.SetTitle(\"\")".format(sigDef,sigDefexcl))
     
 
@@ -469,6 +482,8 @@ for sigDef in ["2g1p","2g0p"]:
     for histCat, label, truereco, nBins in [("effNum","Signal","truth",nBins_true),("background","Bkgd","reco",nBins_reco),("effNum_reco","Signal","reco",nBins_reco)]:
 
       exec("tHist_{0}_{1}_{2}_CV = inFile_{1}_{2}.Get(\"{2}_{1}_CV_Dir/Sys{1}_numerator_{3}_{4}\")".format(histCat,sigDef,sigDefexcl,truereco,label))
+      # Rebin the TH1D to place the overflow in the overflow bin.
+      exec("tHist_{0}_{1}_{2}_CV = Rebin(tHist_{0}_{1}_{2}_CV, referenceHist_{3}, \"{0}_{1}_{2}\")".format(histCat, sigDef, sigDefexcl, truereco))
   
       ## Pull out the value and save as a scalar
       ## This is the actual CV in this bin for the analysis
@@ -478,8 +493,7 @@ for sigDef in ["2g1p","2g0p"]:
       
       # Copy this into an MnvH1D (no systs yet)
       exec("mHist_{0}_{1}_{2} = ROOT.PlotUtils.MnvH1D(tHist_{0}_{1}_{2}_CV)".format(histCat,sigDef,sigDefexcl))
-      # Rename new hist object
-      exec("mHist_{0}_{1}_{2}.SetName(\"{0}_{1}_{2}\")".format(histCat,sigDef,sigDefexcl))
+      # Clear the title.
       exec("mHist_{0}_{1}_{2}.SetTitle(\"\")".format(histCat,sigDef,sigDefexcl))
   
       ## Loop over cross section and flux systematics

@@ -40,3 +40,66 @@ def writeHist(hist,outFile):
   print 'Writing {0} to output file'.format(hist.GetName())
   hist.Write()
 
+## Function to rebin a TH1D according to a reference histogram.
+## If hist_to_rebin has more bins than referenceHist, the first extra bin will become the overflow bin
+## (this is actually the main purpose of this function).
+def Rebin(hist_to_rebin, referenceHist, newname = ""):
+  newHist = referenceHist.Clone(newname)
+  for i in range(newHist.GetNbinsX() + 2):
+    newHist.SetBinContent(i, hist_to_rebin.GetBinContent(i))
+    newHist.SetBinError(i, hist_to_rebin.GetBinError(i))
+  return newHist
+
+## Function to draw a histogram with its overflow bin.
+def DrawWithOverflow(hist, canvas, draw_options):
+    # Get number of bins
+    nbins = hist.GetNbinsX()
+
+    # Divide canvas if it has not already been divided.
+    pads = canvas.GetListOfPrimitives()
+    npads = len(pads)
+    if npads < 2:
+      canvas.Divide(2, 1)
+    
+    # cd to first pad and set pad size.
+    canvas.cd(1)
+    ROOT.gPad.SetPad(0, 0, 0.9, 1.0)
+
+    # Draw the original histogram and obtain view range for use with overflow bin.
+    hist.Draw(draw_options)
+    ROOT.gPad.Update()
+    miny = ROOT.gPad.GetUymin()
+    maxy = ROOT.gPad.GetUymax()
+
+    # cd to second pad and set pad size
+    canvas.cd(2)
+    ROOT.gPad.SetPad(0.9, 0, 1.0, 1.0)
+  
+    # Create a new histogram for overflow
+    overflow = ROOT.TH1D(hist.GetName() + "_overflow", "Overflow", 1, hist.GetBinLowEdge(nbins), hist.GetBinLowEdge(nbins + 1))
+    
+    # Fill the overflow bin
+    overflow.SetBinContent(1, hist.GetBinContent(nbins + 1))
+    overflow.SetBinError(1, hist.GetBinError(nbins + 1))
+
+    # Set overflow histogram to same style and y range as the main one.
+    # Remove axes ticks and numbering since they will be the same as for the main histogram.
+    # Draw and update.
+    overflow.SetFillColor(hist.GetFillColor())
+    overflow.SetFillStyle(hist.GetFillStyle())
+    overflow.SetLineColor(hist.GetLineColor())
+    overflow.SetLineStyle(hist.GetLineStyle())
+    overflow.SetLineWidth(hist.GetLineWidth())
+    overflow.SetMarkerColor(hist.GetMarkerColor())
+    overflow.SetMarkerSize(hist.GetMarkerSize())
+    overflow.SetMarkerStyle(hist.GetMarkerStyle())
+    overflow.SetNdivisions(0, "xy")
+    overflow.GetYaxis().SetRangeUser(miny, maxy)
+    overflow.Draw(draw_options)
+    ROOT.gPad.Update()
+
+    # Update the canvas. Must return the overflow to prevent it from being deleted by Python prematurely.
+    canvas.cd(0)
+    canvas.Modified()
+    canvas.Update()
+    return overflow

@@ -5,7 +5,7 @@ import ROOT
 import datetime as dt
 import argparse
 import os,math
-from customHistAndPlotMethods import makeEnv_TCanvas,localDrawErrorSummary
+from customHistAndPlotMethods import *
 from calculateChi2 import *
 
 ## Set ROOT to batch mode
@@ -166,7 +166,7 @@ for sigDefnp in ["2g1p", "2g0p"]:
       local_tHist_add_smear_matrix.Draw("colz")
       local_tHist_add_smear_matrix.SetTitle(sigDefnp + " Exclusive Additional Smearing Matrix")
       local_tHist_add_smear_matrix.GetXaxis().SetTitle("True #pi^{0} Momentum")
-      local_tHist_add_smear_matrix.GetYaxis().SetTitle("Reco #pi^{0} Momentum")
+      local_tHist_add_smear_matrix.GetYaxis().SetTitle("Smeared True #pi^{0} Momentum")
       ptall.SetTextColor(ROOT.kWhite)
       ptall.Draw()
       #canvas.canvas.SetLogz()
@@ -179,7 +179,7 @@ for sigDefnp in ["2g1p", "2g0p"]:
       exec("local_tHist_cov_evtRate_{0}.GetXaxis().SetTitle(\"Reco #pi^{{0}} Momentum\")".format(sigDef))
       exec("local_tHist_cov_evtRate_{0}.GetYaxis().SetTitle(\"Reco #pi^{{0}} Momentum\")".format(sigDef))
       ptall.Draw()
-      #canvas.canvas.SetLogz()
+      canvas.canvas.SetLogz()
     
     with makeEnv_TCanvas('{0}/unfolded_cov_evtRate_{1}.png'.format(plotDir,sigDef)) as canvas:
     
@@ -239,7 +239,7 @@ for sigDefnp in ["2g1p","2g0p"]:
         
     ### Plot of NuWro fake data unfolded events vs. GENIE generator prediction
     ##########################################################################
-    with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_{1}.png'.format(plotDir,sigDef)):
+    with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_{1}.png'.format(plotDir,sigDef)) as canvas:
     
       ## Create local copies of all needed hists
       exec("local_tHist_unfolded_evtRate_scaled = tHist_unfolded_evtRate_{0}.Clone(\"local_tHist_unfolded_evtRate_{0}\")".format(sigDef))
@@ -268,12 +268,12 @@ for sigDefnp in ["2g1p","2g0p"]:
       chi2_GENIE_smeared = calculateChi2(local_tHist_genie_evtRate_smeared_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
     
       ## Scale and bin-width-normalize all hists (and POT normalize NuWro truth)
-      local_tHist_unfolded_evtRate_scaled.Scale(1e-3,"width")
-      local_tHist_genie_evtRate_smeared_scaled.Scale(1e-3,"width")
-      local_tHist_genie_evtRate_scaled.Scale(1e-3,"width")
-      local_tHist_effDenom_scaled.Scale(1e-3,"width")
-      local_tHist_nuwro_truth_scaled.Scale(1e-3,"width")
-      local_tHist_smeared_nuwro_truth_scaled.Scale(1e-3, "width")
+      local_tHist_unfolded_evtRate_scaled.Scale(1e-3)
+      local_tHist_genie_evtRate_smeared_scaled.Scale(1e-3)
+      local_tHist_genie_evtRate_scaled.Scale(1e-3)
+      local_tHist_effDenom_scaled.Scale(1e-3)
+      local_tHist_nuwro_truth_scaled.Scale(1e-3)
+      local_tHist_smeared_nuwro_truth_scaled.Scale(1e-3)
            
       ## Calculate yrange
       minycontent_local_tHist_unfolded_evtRate_scaled = local_tHist_unfolded_evtRate_scaled.GetMinimum()
@@ -307,12 +307,12 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetRangeUser(miny, maxy)
       local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetTitleSize(0.05)
       local_tHist_genie_evtRate_smeared_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetTitle("Events [10^{3}/GeV]")
+      local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetTitle("Events [10^{3}]")
       local_tHist_genie_evtRate_smeared_scaled.GetXaxis().SetTitle("True #pi^{0} Momentum [GeV]")
 
-      local_tHist_genie_evtRate_smeared_scaled.Draw("HIST")
-
-      ptall.Draw()
+      overflow1 = DrawWithOverflow(local_tHist_genie_evtRate_smeared_scaled, canvas.canvas, "HIST")
+      if not is_test:
+        ptall.Draw()
 
       # If it's a closure test, change the historgram title to reflect that.
       if is_closure_test:
@@ -321,11 +321,16 @@ for sigDefnp in ["2g1p","2g0p"]:
       # Print chi2 value of closure test using unfolded (fake) data covariance if in test mode.
       # If not in test mode, print only the smeared chi2 value regardless of whether or not it's a closure test.
       if (is_closure_test and is_test) or (not is_closure_test and not is_test):
+        canvas.canvas.cd(1)
         pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
+        if(is_closure_test):
+          pt.AddText("#chi^{{2}}/DOF: {0:.5f}/{1}".format(chi2_GENIE_smeared, nBins))
+        else:
+          pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
         pt.Draw()
+        canvas.canvas.cd(0)
     
       # If configured to test mode, also draw and print chi2 of the unsmeared distribution for non-closure tests.
       elif is_test:
@@ -333,17 +338,20 @@ for sigDefnp in ["2g1p","2g0p"]:
         local_tHist_genie_evtRate_scaled.SetLineColor(ROOT.kCyan - 3)
         local_tHist_genie_evtRate_scaled.SetFillColor(ROOT.kCyan - 3)
         local_tHist_genie_evtRate_scaled.SetFillStyle(3545)
-        local_tHist_genie_evtRate_scaled.Draw("SAME HIST")
+        overflow2 = DrawWithOverflow(local_tHist_genie_evtRate_scaled, canvas.canvas, "SAME HIST")
         
+        canvas.canvas.cd(1)
         pt = ROOT.TPaveText(0.5, 0.5, 0.845, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE, nBins))
+        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_GENIE, nBins))
         pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
         pt.Draw()
+        canvas.canvas.cd(0)
 
-      local_tHist_unfolded_evtRate_scaled.Draw("SAME")
+      overflow3 = DrawWithOverflow(local_tHist_unfolded_evtRate_scaled, canvas.canvas, "SAME")
 
+      canvas.canvas.cd(1)
       # Draw legend with appropriate labels.
       legend = ROOT.TLegend(0.42,0.7,0.845,0.9, "")
       legend.SetBorderSize(0)
@@ -358,6 +366,7 @@ for sigDefnp in ["2g1p","2g0p"]:
           legend.AddEntry(local_tHist_genie_evtRate_scaled,"GENIE Truth","f")
         legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Truth, Smeared","f")
       legend.Draw()
+      canvas.canvas.cd(0)
 
     ### Plot of NuWro fake data cross section vs. GENIE generator prediction
     ########################################################################
@@ -409,7 +418,8 @@ for sigDefnp in ["2g1p","2g0p"]:
       if is_test:
         local_tHist_xSection_mc_scaled.Draw("SAME HIST")
       local_tHist_unfolded_xSection_scaled.Draw("SAME")
-      ptall.Draw()
+      if not is_test:
+        ptall.Draw()
 
       # Draw the legend
       legend = ROOT.TLegend(0.42,0.7,0.845,0.9, "")
@@ -423,7 +433,11 @@ for sigDefnp in ["2g1p","2g0p"]:
       pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
       pt.SetBorderSize(0)
       pt.SetFillColorAlpha(0, 0)
-      pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
+      if is_test:
+        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_GENIE, nBins))
+        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
+      else:
+        pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
       pt.Draw()
 
     ### Plot of NuWro fake data unfolded events vs. NuWro generator prediction
@@ -477,7 +491,7 @@ for sigDefnp in ["2g1p","2g0p"]:
         pt = ROOT.TPaveText(0.5, 0.6, 0.845, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.2f}/{1}".format(chi2_NuWro, nBins))
+        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_NuWro, nBins))
         pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_NuWro_smeared, nBins))
         pt.Draw()
       else:
@@ -486,7 +500,7 @@ for sigDefnp in ["2g1p","2g0p"]:
         pt.SetFillColorAlpha(0, 0)
         pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_NuWro_smeared, nBins))
         pt.Draw()
-      ptall.Draw()
+        ptall.Draw()
       #nbins = local_tHist_nuwro_truth_scaled.GetNbinsX()
       #exec("local_tHist_unfolded_cov_evtRate = local_tHist_unfolded_cov_evtRate_{0}".format(sigDef))
       #local_tMat_unfolded_cov_evtRate = 

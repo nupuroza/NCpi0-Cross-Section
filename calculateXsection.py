@@ -74,14 +74,12 @@ for sigDefnp in ["2g1p","2g0p"]:
       tHist_xSection_data.Divide(tHist_xSection_data,mHist_nTargets)
 
       ## Smear mc cross section
-      tMat_xSection_mc_with_flows = ROOT.TMatrixD(nBins + 2, 1, mHist_xSection_mc.GetArray())
-      tMat_add_smear_matrix_with_flows = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist2D_add_smear_matrix.GetArray())
-      tMat_xSection_mc = tMat_xSection_mc_with_flows.GetSub(1, nBins, 0, 0)
-      tMat_add_smear_matrix = tMat_add_smear_matrix_with_flows.GetSub(1, nBins, 1, nBins)
+      tMat_xSection_mc = ROOT.TMatrixD(nBins + 2, 1, mHist_xSection_mc.GetArray())
+      tMat_add_smear_matrix = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist2D_add_smear_matrix.GetArray())
       tMat_smeared_xSection_mc = ROOT.TMatrixD(tMat_add_smear_matrix, ROOT.TMatrixD.kMult, tMat_xSection_mc)
       tHist_smeared_xSection_mc = mHist_xSection_mc.Clone("smeared_xSection_mc_" + sigDef)
-      for i in range(nBins):
-        tHist_smeared_xSection_mc.SetBinContent(i + 1, tMat_smeared_xSection_mc[i][0])
+      for i in range(nBins + 2):
+        tHist_smeared_xSection_mc.SetBinContent(i, tMat_smeared_xSection_mc[i][0])
 
       ## Write xsec to output file
       writeHist(tHist_xSection_data,outFile)
