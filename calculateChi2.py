@@ -8,6 +8,7 @@ import sys
 # data_hist is a TH1 with the data distribution being compared against mc_hist
 # cov_matrix is a TMatrix with the data covariance matrix
 # cov_matrix_includes_stats is a boolean indicating whether cov_matrix already includes statistical uncertainties. If not, it will be calculated. Can also be set to True if you don't want to include statistical uncertainties.
+# test comment
 def calculateChi2(mc_hist, data_hist, cov_matrix, cov_matrix_includes_stats):
     diff_hist = data_hist.Clone("diff_hist")
     diff_hist.Add(mc_hist, -1)
