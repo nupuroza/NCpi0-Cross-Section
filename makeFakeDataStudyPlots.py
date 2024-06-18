@@ -29,8 +29,8 @@ parser.add_argument('--test', help = 'Produce plots in test mode; useful for deb
 p = parser.parse_args()
 
 ## If in_file is not provided, exit
-if p.in_file < 0:
-  print "ERROR: Input directory argument not provided"
+if not p.in_file:
+  print("ERROR: Input directory argument not provided")
   parser.print_help()
   exit(1)
 
@@ -38,7 +38,7 @@ histFilePath = p.in_file
 histFile = ROOT.TFile(histFilePath)
 
 ## If out_dir is not provided, default to using in_dir
-if p.out_dir < 0:
+if not p.out_dir:
   outFileDir = os.path.dirname(histFilePath)
   plotDir = outFileDir+"/{0}_xsec-plots".format(dt.date.today())
 else:
@@ -46,7 +46,7 @@ else:
 
 ## Create output directory if it doesn't exist
 if not os.path.isdir(plotDir):
-  print "Making plot directory {0}".format(plotDir)
+  print("Making plot directory {0}".format(plotDir))
   os.system( "mkdir %s" % plotDir )
 
 #############################################################################################################

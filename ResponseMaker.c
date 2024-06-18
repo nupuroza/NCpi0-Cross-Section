@@ -22,14 +22,14 @@ void ResponseMaker(std::string outDir){
     // Interface with gLEE tuple 
     // -----------------------------------------------------
 
-    TTree *v_2g1p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
-    TTree *v_2g0p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
+    TTree *v_2g1p = (TTree*)loadgLEE("/mnt/morrigan/NCPi0_XS_data/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
+    TTree *v_2g0p = (TTree*)loadgLEE("/mnt/morrigan/NCPi0_XS_data/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
  
     // Copy variation spectra files from SBNfit to own directory in order to update cross section universes to only account for differences in response.
-    TFile *spectrain_2g1p = new TFile("/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root", "read");
-    TFile *spectrain_2g0p = new TFile("/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root", "read");
-    std::string spectraout_2g1p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root";
-    std::string spectraout_2g0p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root";
+    TFile *spectrain_2g1p = new TFile("/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_exclusive_2g1p.root", "read");
+    TFile *spectrain_2g0p = new TFile("/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_exclusive_2g0p.root", "read");
+    std::string spectraout_2g1p_path = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root";
+    std::string spectraout_2g0p_path = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root";
     spectrain_2g1p -> Cp(spectraout_2g1p_path.c_str());
     spectrain_2g0p -> Cp(spectraout_2g0p_path.c_str());
     spectrain_2g1p -> Close();
@@ -137,19 +137,54 @@ void ResponseMaker(std::string outDir){
     // Construct response matrix 
     // -----------------------------------------------------
 
-    // Specify reco and true analysis binning schemes
-    std::vector<double> reco_bins = {0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675,  0.9};
-    std::vector<double> true_bins = {0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675,  0.9};
-    int nbins_reco = reco_bins.size() - 1;
-    int nbins_true = true_bins.size() - 1;
+//this area is under Cricket construction be warned !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+    // Specify reco and true analysis binning schemes
+    // std::vector<double> reco_bins = {0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675,  0.9}; 
+    // std::vector<double> true_bins = {0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675,  0.9}; 
+    
+    // int nbins_reco = reco_bins.size() - 1;
+    // int nbins_true = true_bins.size() - 1;
+
+    //fill vectors with getLowBin values instead of manual numbers 3
+    //set number of bins by variation spectra 4
+    // make histogram 5
+    //debug 6
+    //call Leon 7
+
+
+/*1 -> use a pointer to get the number of bins */
+    //how to load in the correct file for the numBins variable?
+    TH1D *trueHistTest = (TH1D*) spectraout_2g1p -> Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_truth_Signal");
+    TH1D *recoHistTest = (TH1D*) spectraout_2g1p -> Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal");
+
+    int nbins_true = trueHistTest->GetNbinsX() - 1; //(get bins with the objects)
+    int nbins_reco = recoHistTest->GetNbinsX() - 1;
+
+/*2 -> use the number of bins to make the size of an empty array */
+    std::vector<double> reco_bins(nbins_true + 1);
+    std::vector<double> true_bins(nbins_reco + 1);
+
+/*3 -> fill array with lowBin values through for loop */
+    for(int i=1; i<(nbins_true+2); i++){ //true
+        true_bins.at(i-1) = recoHistTest->GetBinLowEdge(i);
+        std::cout << true_bins.at(i-1) << std::endl;
+    }
+    for(int i=1; i<(nbins_reco+2); i++){ //reco
+        reco_bins.at(i-1) = trueHistTest->GetBinLowEdge(i); 
+    }
+
+    
+
+//end Cricket construction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   std::cout << "I am here." << std::endl;
     // Create htrue, hreco, and response hists
-    PlotUtils::MnvH1D * htrue_2g1p = new PlotUtils::MnvH1D("htrue_2g1p","htrue_2g1p",nbins_true, &true_bins[0]);
-    PlotUtils::MnvH1D * htrue_2g0p = new PlotUtils::MnvH1D("htrue_2g0p","htrue_2g0p",nbins_true, &true_bins[0]);
-    PlotUtils::MnvH1D * hreco_2g1p = new PlotUtils::MnvH1D("hreco_2g1p","hreco_2g1p",nbins_reco, &reco_bins[0]);
-    PlotUtils::MnvH1D * hreco_2g0p = new PlotUtils::MnvH1D("hreco_2g0p","hreco_2g0p",nbins_reco, &reco_bins[0]);
-    PlotUtils::MnvH2D * resp_2g1p = new PlotUtils::MnvH2D("Response_2g1p","Response_2g1p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
-    PlotUtils::MnvH2D * resp_2g0p = new PlotUtils::MnvH2D("Response_2g0p","Response_2g0p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+   PlotUtils::MnvH1D * htrue_2g1p = new PlotUtils::MnvH1D("htrue_2g1p","htrue_2g1p",nbins_true, &true_bins[0]);
+   PlotUtils::MnvH1D * htrue_2g0p = new PlotUtils::MnvH1D("htrue_2g0p","htrue_2g0p",nbins_true, &true_bins[0]);
+   PlotUtils::MnvH1D * hreco_2g1p = new PlotUtils::MnvH1D("hreco_2g1p","hreco_2g1p",nbins_reco, &reco_bins[0]);
+   PlotUtils::MnvH1D * hreco_2g0p = new PlotUtils::MnvH1D("hreco_2g0p","hreco_2g0p",nbins_reco, &reco_bins[0]);
+   PlotUtils::MnvH2D * resp_2g1p = new PlotUtils::MnvH2D("Response_2g1p","Response_2g1p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+   PlotUtils::MnvH2D * resp_2g0p = new PlotUtils::MnvH2D("Response_2g0p","Response_2g0p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
 
     // Create vertical error bands for cross section systematic universes that need to be updated.
     // Vertical error bands store all the universes of a given category.
@@ -256,7 +291,7 @@ void ResponseMaker(std::string outDir){
     TH1D *htrue_resp_2g1p = (TH1D*) spectraout_2g1p -> Get("exclusive_2g1p_CV_Dir/Sys2g1p_denominator_truth_Signal");
     TH1D *htrue_resp_2g0p = (TH1D*) spectraout_2g0p -> Get("exclusive_2g0p_CV_Dir/Sys2g0p_denominator_truth_Signal");
 
-    // Loop through vertical error bands
+    // Loop through vertical error band
     for(std::string vert_error_band_name : resp_2g1p -> GetVertErrorBandNames()){
         // Load directory containing the corresponding systematic universes in the new variation spectra files.
         TDirectory *systcat_2g1p_dir = spectraout_2g1p -> GetDirectory(("exclusive_2g1p_" + vert_error_band_name + "_Dir").c_str());

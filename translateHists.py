@@ -16,33 +16,33 @@ ROOT.TH1.AddDirectory(False)
 #############################################################################################################
 
 ## Data
-dataFilePath_2g1p = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g1p_v3_d22_23_CV.SBNspec.root"
+dataFilePath_2g1p = "/mnt/morrigan/NCPi0_XS_data/Data_2g1p_v3_d22_23_CV.SBNspec.root"
 dataFile_2g1p = ROOT.TFile(dataFilePath_2g1p)
 
-dataFilePath_2g0p = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g0p_v3_d22_23_CV.SBNspec.root"
+dataFilePath_2g0p = "/mnt/morrigan/NCPi0_XS_data/Data_2g0p_v3_d22_23_CV.SBNspec.root"
 dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 
 ## NuWro fake data
-dataFilePath_NuWroFakeData =  "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Aug2023_v7_CV.SBNspec.root"
+dataFilePath_NuWroFakeData =  "/mnt/morrigan/NCPi0_XS_data/NuWro_Aug2023_v7_CV.SBNspec.root"
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2gnp_inclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
+inFilePath_2gnp_inclusive = "/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2gnp_inclusive = ROOT.TFile(inFilePath_2gnp_inclusive)
 
-inFilePath_2g1p_inclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
+inFilePath_2g1p_inclusive = "/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-inFilePath_2g0p_inclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
+inFilePath_2g0p_inclusive = "/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
 #inFilePath_2g1p_exclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
-inFilePath_2g1p_exclusive = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
+inFilePath_2g1p_exclusive = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
 
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
 #inFilePath_2g0p_exclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
-inFilePath_2g0p_exclusive = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
+inFilePath_2g0p_exclusive = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
 inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
 # File with detector systematics
@@ -57,13 +57,13 @@ parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
 p = parser.parse_args()
 
 ## If output_dir is not provided, exit
-if p.output_dir < 0:
+if not p.output_dir:
   parser.print_help()
   exit(1)
 
 ## Create output directory if it doesn't exist
 if not os.path.isdir(p.output_dir):
-  print "Making output directory {0}".format(p.output_dir)
+  print ("Making output directory {0}".format(p.output_dir))
   os.system( "mkdir %s" % p.output_dir )
 
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
@@ -202,7 +202,7 @@ avo = 6.02214e23
 molar_mass = 39.948
 n_targets = density*fid_vol*avo/molar_mass
 
-print "Number of targets: {0}".format(n_targets)
+print ("Number of targets: {0}".format(n_targets))
 
 ## Put scalar into TH1D
 tHist_nTargets = referenceHist_truth.Clone("tHist_nTargets")
@@ -271,7 +271,7 @@ for data_type in ["mc","data", "scaling"]:
 #############################################################################################################
 
 ## MCC9 (official files)
-fluxFileDir = "/pnfs/uboone/persistent/uboonebeam/bnb_gsimple/bnb_gsimple_fluxes_01.09.2019_463_hist"
+fluxFileDir = "/mnt/morrigan/NCPi0_XS_data"
 fluxFilePath = "{0}/MCC9_FluxHist_volTPCActive.root".format(fluxFileDir)
 fluxFile = ROOT.TFile(fluxFilePath)
 
@@ -304,7 +304,7 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
   ## Loop over flux systematics
   for systName,universePrefix,nUniverses in FLUX_SYSTS:
 
-    print "systName: {0}".format(systName)   
+    print ("systName: {0}".format(systName))   
     # Create the appropriate error band in the MnvH1D
     exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
     if universePrefix == "minmax":

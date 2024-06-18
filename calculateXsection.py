@@ -19,7 +19,7 @@ p = parser.parse_args()
 
 ## If in_file is not provided, exit
 if p.in_file < 0:
-  print "ERROR: Input file argument not provided"
+  print ("ERROR: Input file argument not provided")
   parser.print_help()
   exit(1)
 
