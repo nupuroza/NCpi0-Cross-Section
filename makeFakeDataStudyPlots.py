@@ -710,3 +710,6 @@ for sigDefnp in ["2g1p","2g0p"]:
       pt.Draw()
       ptall.Draw()
       canvas.canvas.cd(0)
+      canvas.canvas.cd(1)
+
+      # nonsense 2
