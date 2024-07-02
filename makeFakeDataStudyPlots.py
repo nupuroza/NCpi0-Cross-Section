@@ -720,3 +720,5 @@ for sigDefnp in ["2g1p","2g0p"]:
   ### Plot of error breakdown for Monte Carlo Background
   ######################################################
   exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+      canvas.canvas.cd(1)
+
