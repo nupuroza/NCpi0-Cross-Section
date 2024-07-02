@@ -1,4 +1,5 @@
 import ROOT,os
+import numpy as np
 
 class makeEnv_TCanvas(object):
 
@@ -21,17 +22,50 @@ class makeEnv_TCanvas(object):
     self.canvas.Print(self.plotName)
     del self.canvas
 
-def localDrawErrorSummary( plotter , hist , xaxis_label ):
+def localDrawErrorSummary(plotter, hist, title, xaxis_label, plotName):
   
-  box = ROOT.TBox(1,0,2,0.16)
-  box.SetFillColor(ROOT.kGray)
-  box.SetFillStyle(3001)
-  box.Draw()
+  with makeEnv_TCanvas(plotName) as canvas:
+  
+    hist.GetXaxis().SetTitle(xaxis_label)
+    hist.GetXaxis().SetTitleSize(0.05)
+    
+    #mc_stat_error = hist.GetStatError()
+    mc_stat_error_matrix = hist.GetStatErrorMatrix()
+    hist.FillSysErrorMatrix("mc_statistical", mc_stat_error_matrix)
+    hist.SetError(np.array([0]*(hist.GetNbinsX() + 2)))
+    #hist.AddVertErrorBandAndFillWithCV("mc_statistical", 2)
+    #hist.GetVertErrorBand("mc_statistical").GetHist(1).Add(mc_stat_error)
+    #hist.GetVertErrorBand("mc_statistical").SetUseSpreadError(True)
 
-  hist.GetXaxis().SetTitle(xaxis_label)
-  hist.GetXaxis().SetTitleSize(0.05)
-
-  plotter.DrawErrorSummary(hist,"TL",True,True,0.00001,False,"",True,"",True)  
+    plotObjs = plotter.DrawErrorSummary(hist,"TL",True,True,0.00001,False,"",True,"",True)
+    error_plots = plotObjs.first
+    names = plotObjs.second
+    legend = ROOT.TLegend(0.2,0.7,0.94,0.9, "")
+    legend.SetBorderSize(0)
+    legend.SetNColumns(2)
+    canvas.canvas.Clear()
+    i = 0
+    for error_plot in error_plots:
+      if i == 0:
+        error_plot.SetTitle(title)
+        error_plot.GetXaxis().SetLabelSize(hist.GetXaxis().GetLabelSize())
+        error_plot.GetXaxis().SetTitleSize(0.05)
+        error_plot.GetXaxis().SetTitleFont(hist.GetXaxis().GetTitleFont())
+        error_plot.GetXaxis().SetTitleOffset(hist.GetXaxis().GetTitleOffset())
+        error_plot.GetXaxis().CenterTitle(hist.GetXaxis().GetCenterTitle())
+        error_plot.GetYaxis().SetLabelSize(hist.GetYaxis().GetLabelSize())
+        error_plot.GetYaxis().SetTitleSize(0.05)
+        error_plot.GetYaxis().SetTitleFont(hist.GetYaxis().GetTitleFont())
+        error_plot.GetYaxis().SetTitleOffset(hist.GetYaxis().GetTitleOffset())
+        error_plot.GetYaxis().CenterTitle(hist.GetYaxis().GetCenterTitle())
+        exec("overflow{0} = DrawWithOverflow(error_plot, canvas.canvas, \"\")".format(i))
+      else:
+        exec("overflow{0} = DrawWithOverflow(error_plot, canvas.canvas, \"SAME\")".format(i))
+      legend.AddEntry(error_plot, names[i], "l")
+      i += 1
+    canvas.canvas.cd(1)
+    legend.Draw()
+    canvas.canvas.cd(0)
 
 def writeHist(hist,outFile):
   #exec('localHist = {0}'.format(histName))

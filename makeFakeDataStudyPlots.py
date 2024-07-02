@@ -7,6 +7,7 @@ import argparse
 import os,math
 from customHistAndPlotMethods import *
 from calculateChi2 import *
+from errorMaps import *
 
 ## Set ROOT to batch mode
 ROOT.gROOT.SetBatch()
@@ -16,6 +17,11 @@ ROOT.TH1.AddDirectory(False)
 
 ## Setup MnvPlotter, which has all of the plotting utilities
 plotter = ROOT.PlotUtils.MnvPlotter()
+plotter.error_summary_group_map.clear()
+for group in error_bands:
+  for error in error_bands[group]:
+    plotter.error_summary_group_map[group].push_back(error)
+plotter.stat_error_name = "Data Statistical"
 ROOT.gStyle.SetNumberContours(200)
 
 #############################################################################################################
@@ -710,3 +716,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       pt.Draw()
       ptall.Draw()
       canvas.canvas.cd(0)
+  
+  ### Plot of error breakdown for Monte Carlo Background
+  ######################################################
+  exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
