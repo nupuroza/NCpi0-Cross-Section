@@ -92,7 +92,7 @@ if not os.path.isdir(plotDir):
 #for sigDef in ["2g0p","2g1p","2gnp"]:
 for sigDef in ["2g1p"]:  
   ## for sigDefexcl in ["exclusive", "inclusive"]:
-  for sigDefexcl in ["inclusive"]:
+  for sigDefexcl in ["exclusive"]:
   
     if sigDef == "2gnp" and sigDefexcl == "exclusive":
       continue
@@ -213,30 +213,30 @@ plotter = ROOT.PlotUtils.MnvPlotter()
 plotter.SetROOT6Palette(54)
 ROOT.gStyle.SetNumberContours(200)
 
-with makeEnv_TCanvas('{0}/cov_evtRate_2g1p_inclusive.png'.format(plotDir)) as canvas:
-  tmp = histFile.Get('cov_evtRate_2g1p_inclusive')
+with makeEnv_TCanvas('{0}/cov_evtRate_2g1p_exclusive.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('cov_evtRate_2g1p_exclusive')
   tmp.Draw("colz")
   tmp.GetXaxis().SetTitle("Reconstructed #pi^{0} momentum")
   tmp.GetYaxis().SetTitle("Reconstructed #pi^{0} momentum")
   canvas.canvas.SetLogz()
 
-with makeEnv_TCanvas('{0}/response_2g1p_inclusive.png'.format(plotDir)) as canvas:
-  tmp = histFile.Get('response_2g1p_inclusive')
+with makeEnv_TCanvas('{0}/response_2g1p_exclusive.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('response_2g1p_exclusive')
   tmp.Draw("colz")
   tmp.GetXaxis().SetTitle("True #pi^{0} momentum")
   tmp.GetYaxis().SetTitle("Reconstructed #pi^{0} momentum")
   canvas.canvas.SetLogz()
 
-with makeEnv_TCanvas('{0}/unfolded_cov_evtRate_2g1p_inclusive.png'.format(plotDir)) as canvas:
-  tmp = histFile.Get('unfolded_cov_evtRate_2g1p_inclusive')
+with makeEnv_TCanvas('{0}/unfolded_cov_evtRate_2g1p_exclusive.png'.format(plotDir)) as canvas:
+  tmp = histFile.Get('unfolded_cov_evtRate_2g1p_exclusive')
   tmp.Draw("colz")
   tmp.GetXaxis().SetTitle("True #pi^{0} momentum")
   tmp.GetYaxis().SetTitle("True #pi^{0} momentum")
   canvas.canvas.SetLogz()
 
 with makeEnv_TCanvas('{0}/fakedatavsgenie.png'.format(plotDir)):
-  tHist_unfolded_evtRate = unfolded_evtRate_2g1p_inclusive.GetCVHistoWithError()
-  tHist_effNum = effNum_2g1p_inclusive.GetCVHistoWithError()
+  tHist_unfolded_evtRate = unfolded_evtRate_2g1p_exclusive.GetCVHistoWithError()
+  tHist_effNum = effNum_2g1p_exclusive.GetCVHistoWithError()
 
   tHist_effNum.GetYaxis().SetTitleSize(0.05)
   tHist_effNum.GetXaxis().SetTitleSize(0.05)
