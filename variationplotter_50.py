@@ -59,7 +59,7 @@ for i in range(1,51):
     mvs_ubgenie = mvs_file.Get("inclusive_2gXp_All_UBGenie_Dir/Sys2gXp_numerator_reco_universe_" + str(i) + "_Signal")
     mvs_ubgenie = ROOT.TH1D(mvs_ubgenie)
     mvs_ubgenie_rebin = r(mvs_ubgenie, cvs_ubgenie, ("mvs_rebin" + str(i)))
-    mvs_ubgenie_rebin.GetYaxis().SetRangeUser(0, 200)
+    mvs_ubgenie_rebin.GetYaxis().SetRangeUser(0, 350)
     overflow_mvs_ubgenie = d(mvs_ubgenie_rebin, mvs_canvas, "same hist")
     hists.append(mvs_ubgenie_rebin)
     hists.append(overflow_mvs_ubgenie)
@@ -67,8 +67,8 @@ for i in range(1,51):
 rebin_cvs_cv = r(cvs_cv, cvs_ubgenie, "cvs_rebin")
 rebin_mvs_cv = r(mvs_cv, mvs_ubgenie, "mvs_rebin")
 
-rebin_cvs_cv.SetLineColor(ROOT.kBlack)
-rebin_mvs_cv.SetLineColor(ROOT.kBlack)
+rebin_cvs_cv.SetLineColor(ROOT.kRed)
+rebin_mvs_cv.SetLineColor(ROOT.kRed)
 
 rebin_cvs_cv.SetLineWidth(3)
 rebin_mvs_cv.SetLineWidth(3)

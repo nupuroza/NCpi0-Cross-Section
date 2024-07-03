@@ -17,23 +17,46 @@ TTree* loadgLEE(std::string filename, std::string int_dir){
 // Method that creates response matrix and updated cross section systematic universes to be used in 1D NCpi0 xsec extraction
 void ResponseMaker(std::string outDir){
 
+    //added 07/03/24 to elimate the hard-coded file paths (Cricket construction)
+    int ans;
+    std::string inDir, outputDir;
+    std::cout << "\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t";
+    std::cin >> ans;
+        //input validation
+        while(ans < 1 || ans > 2){
+            std::cout << "Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t";
+            std::cin >> ans;
+        }
+    switch(ans){
+        case 1: //manannan
+            inDir = "/mnt/morrigan/NCPi0_XS_data/";
+            outputDir = "/app/users/crbergner/data/variation_spectra/";
+            break;
+        case 2: //fermilab gpvm
+            inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/";
+            outputDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/";
+            break;
+    }
+    //////////////////////////////////////////////////////////////////////////////
+
+
     // -----------------------------------------------------
     // Interface with gLEE tuple 
     // -----------------------------------------------------
 
-    TTree *v_2g1p = (TTree*)loadgLEE("/mnt/morrigan/NCPi0_XS_data/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
-    TTree *v_2g0p = (TTree*)loadgLEE("/mnt/morrigan/NCPi0_XS_data/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
+    TTree *v_2g1p = (TTree*)loadgLEE((inDir + "sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root").c_str(),"singlephoton");
+    TTree *v_2g0p = (TTree*)loadgLEE((inDir + "sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root").c_str(),"singlephoton");
  
     // Copy variation spectra files from SBNfit to own directory in order to update cross section universes to only account for differences in response.
-    TFile *spectrain_2g1p = new TFile("/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_exclusive_2g1p.root", "read");
-    TFile *spectrain_2g0p = new TFile("/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_exclusive_2g0p.root", "read");
+    TFile *spectrain_2g1p = new TFile((inDir + "SBNfit_variation_spectra_exclusive_2g1p.root").c_str(), "read");
+    TFile *spectrain_2g0p = new TFile((inDir + "SBNfit_variation_spectra_exclusive_2g0p.root").c_str(), "read");
 
-    TFile *spectrain_2gXp = new TFile("/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2gXp.root", "read");
+    TFile *spectrain_2gXp = new TFile((inDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str(), "read");
 
-    std::string spectraout_2g1p_path = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root";
-    std::string spectraout_2g0p_path = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root";
+    std::string spectraout_2g1p_path = (outputDir + "SBNfit_variation_spectra_exclusive_2g1p.root").c_str();
+    std::string spectraout_2g0p_path = (outputDir + "SBNfit_variation_spectra_exclusive_2g0p.root").c_str();
 
-    std::string spectraout_2gXp_path = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_inclusive_2gXp.root";
+    std::string spectraout_2gXp_path = (outputDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str();
 
     spectrain_2g1p -> Cp(spectraout_2g1p_path.c_str());
     spectrain_2g0p -> Cp(spectraout_2g0p_path.c_str());
@@ -512,7 +535,7 @@ void ResponseMaker(std::string outDir){
     mat_2g1p.Write("response_matrix_2g1p_exclusive");
     mat_2g0p.Write("response_matrix_2g0p_exclusive");
 
-    mat_2gXp.Write("response_matrix_2gXp_exclusive");
+    mat_2gXp.Write("response_matrix_2gXp_inclusive");
 
     // Write out htrue and hreco
     std::cout << "Writing htrue and hreco TH1Ds to output file" << std::endl;

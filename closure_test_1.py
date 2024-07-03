@@ -97,7 +97,7 @@ reco_vs_rebin_2gXp = r(reco_vs_2gXp, reco_rm_2gXp, "reco_vs_rebin_2gXp")
 
 ## subtract hists
 diff_true_2gXp = true_rm_2gXp - true_vs_rebin_2gXp
-# diff_reco_2gXp = reco_rm_2gXp - reco_vs_rebin_2gXp
+diff_reco_2gXp = reco_rm_2gXp - reco_vs_rebin_2gXp
 
 ## ############################
 ## canvases
@@ -108,7 +108,7 @@ diff_true_2g0p_canvas = ROOT.TCanvas("diff_true_2g0p_canvas", "diff_true_2g0p", 
 diff_true_2gXp_canvas = ROOT.TCanvas("diff_true_2gXp_canvas", "diff_true_2gXp", 1000, 750)
 diff_reco_2g1p_canvas = ROOT.TCanvas("diff_reco_2g1p_canvas", "diff_reco_2g1p", 1000, 750)
 diff_reco_2g0p_canvas = ROOT.TCanvas("diff_reco_2g0p_canvas", "diff_reco_2g0p", 1000, 750)
-# diff_reco_2gXp_canvas = ROOT.TCanvas("diff_reco_2gXp_canvas", "diff_reco_2gXp", 1000, 750)
+diff_reco_2gXp_canvas = ROOT.TCanvas("diff_reco_2gXp_canvas", "diff_reco_2gXp", 1000, 750)
 rm_reco_2g1p_canvas = ROOT.TCanvas("rm_reco_2g1p_canvas", "rm_reco_2g1p", 1000, 750)
 vs_reco_2g1p_canvas = ROOT.TCanvas("vs_reco_2g1p_canvas", "vs_reco_2g1p", 1000, 750)
 rm_reco_2g0p_canvas = ROOT.TCanvas("rm_reco_2g0p_canvas", "rm_reco_2g0p", 1000, 750)
@@ -125,7 +125,7 @@ overflow_diff_reco_2g1p = d(diff_reco_2g1p, diff_reco_2g1p_canvas, "hist")
 overflow_diff_true_2g0p = d(diff_true_2g0p, diff_true_2g0p_canvas, "hist")
 overflow_diff_reco_2g0p = d(diff_reco_2g0p, diff_reco_2g0p_canvas, "hist")
 overflow_diff_true_2gXp = d(diff_true_2gXp, diff_true_2gXp_canvas, "hist")
-# overflow_diff_reco_2gXp = d(diff_reco_2gXp, diff_reco_2gXp_canvas, "hist")
+overflow_diff_reco_2gXp = d(diff_reco_2gXp, diff_reco_2gXp_canvas, "hist")
 overflow_reco_2g1p_rm = d(reco_rm_2g1p, rm_reco_2g1p_canvas, "hist")
 overflow_reco_2g1p_vs = d(reco_vs_rebin_2g1p, vs_reco_2g1p_canvas, "hist")
 overflow_reco_2g0p_rm = d(reco_rm_2g0p, rm_reco_2g0p_canvas, "hist")
@@ -137,18 +137,18 @@ overflow_reco_2gXp_vs = d(reco_vs_rebin_2gXp, vs_reco_2gXp_canvas, "hist")
 ## printing images
 ## ############################
 
-fout_true_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/diff_true_2g1p.png"
-fout_reco_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/diff_reco_2g1p.png"
-fout_true_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/diff_true_2g0p.png"
-fout_reco_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/diff_reco_2g0p.png"
-fout_true_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/diff_true_2gXp.png"
-# fout_reco_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/diff_reco_2gXp.png"
-fout_rm_reco_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/rm_reco_2g1p.png"
-fout_vs_reco_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/vs_reco_2g1p.png"
-fout_rm_reco_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/rm_reco_2g0p.png"
-fout_vs_reco_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/vs_reco_2g0p.png"
-fout_rm_reco_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/rm_reco_2gXp.png"
-fout_vs_reco_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/vs_reco_2gXp.png"
+fout_true_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/diff_true_2g1p.png"
+fout_reco_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/diff_reco_2g1p.png"
+fout_true_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/diff_true_2g0p.png"
+fout_reco_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/diff_reco_2g0p.png"
+fout_true_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/diff_true_2gXp.png"
+fout_reco_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/diff_reco_2gXp.png"
+fout_rm_reco_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/rm_reco_2g1p.png"
+fout_vs_reco_2g1p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/vs_reco_2g1p.png"
+fout_rm_reco_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/rm_reco_2g0p.png"
+fout_vs_reco_2g0p = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/vs_reco_2g0p.png"
+fout_rm_reco_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/rm_reco_2gXp.png"
+fout_vs_reco_2gXp = "/app/users/crbergner/work/NCpi0-Cross-Section/pictures/vs_reco_2gXp.png"
 
 
 diff_true_2g1p_canvas.Print(fout_true_2g1p)
@@ -156,7 +156,7 @@ diff_reco_2g1p_canvas.Print(fout_reco_2g1p)
 diff_true_2g0p_canvas.Print(fout_true_2g0p)
 diff_reco_2g0p_canvas.Print(fout_reco_2g0p)
 diff_true_2gXp_canvas.Print(fout_true_2gXp)
-# diff_reco_2gXp_canvas.Print(fout_reco_2gXp)
+diff_reco_2gXp_canvas.Print(fout_reco_2gXp)
 rm_reco_2g1p_canvas.Print(fout_rm_reco_2g1p)
 vs_reco_2g1p_canvas.Print(fout_vs_reco_2g1p)
 rm_reco_2g0p_canvas.Print(fout_rm_reco_2g0p)

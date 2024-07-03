@@ -11,38 +11,61 @@ import numpy as np
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
 
+# added 07/03/24 to eliminate the hard-coded file paths (Cricket construction)
+ans = None
+inDir = ""
+inDi2 = ""
+
+print("\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
+ans = int(input())
+
+# input validation
+while ans < 1 or ans > 2:
+    print("Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
+    ans = int(input())
+
+if ans == 1:
+    # manannan
+    inDir = "/mnt/morrigan/NCPi0_XS_data/"
+    inDir2 = "/app/users/crbergner/data/variation_spectra/"
+elif ans == 2:
+    # fermilab gpvm
+    inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/"
+    inDir2 = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/"
+
+
 #############################################################################################################
 ### File Management #########################################################################################
 #############################################################################################################
 
 ## Data
-dataFilePath_2g1p = "/mnt/morrigan/NCPi0_XS_data/Data_2g1p_v3_d22_23_CV.SBNspec.root"
+dataFilePath_2g1p = inDir + "Data_2g1p_v3_d22_23_CV.SBNspec.root"
 dataFile_2g1p = ROOT.TFile(dataFilePath_2g1p)
 
-dataFilePath_2g0p = "/mnt/morrigan/NCPi0_XS_data/Data_2g0p_v3_d22_23_CV.SBNspec.root"
+dataFilePath_2g0p = inDir + "Data_2g0p_v3_d22_23_CV.SBNspec.root"
 dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 
 ## NuWro fake data
-dataFilePath_NuWroFakeData =  "/mnt/morrigan/NCPi0_XS_data/NuWro_Aug2023_v7_CV.SBNspec.root"
+dataFilePath_NuWroFakeData =  inDir + "NuWro_Aug2023_v7_CV.SBNspec.root"
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2gXp_inclusive = "/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2gXp.root" ## placeholder
+inFilePath_2gXp_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2gXp.root" ## placeholder
 inFile_2gXp_inclusive = ROOT.TFile(inFilePath_2gXp_inclusive)
 
-inFilePath_2g1p_inclusive = "/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
+inFilePath_2g1p_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-inFilePath_2g0p_inclusive = "/mnt/morrigan/NCPi0_XS_data/SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
+inFilePath_2g0p_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
 #inFilePath_2g1p_exclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
-inFilePath_2g1p_exclusive = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
+inFilePath_2g1p_exclusive = inDir2 + "SBNfit_variation_spectra_exclusive_2g1p.root"
 
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
 #inFilePath_2g0p_exclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
-inFilePath_2g0p_exclusive = "/app/users/crbergner/data/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
+inFilePath_2g0p_exclusive = inDir2 + "SBNfit_variation_spectra_exclusive_2g0p.root"
 inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
 # File with detector systematics
