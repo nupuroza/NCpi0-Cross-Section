@@ -11,38 +11,61 @@ import numpy as np
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
 
+# added 07/03/24 to eliminate the hard-coded file paths (Cricket construction)
+ans = None
+inDir = ""
+inDi2 = ""
+
+print("\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
+ans = int(input())
+
+# input validation
+while ans < 1 or ans > 2:
+    print("Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
+    ans = int(input())
+
+if ans == 1:
+    # manannan
+    inDir = "/mnt/morrigan/NCPi0_XS_data/"
+    inDir2 = "/app/users/crbergner/data/variation_spectra/"
+elif ans == 2:
+    # fermilab gpvm
+    inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/"
+    inDir2 = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/"
+
+
 #############################################################################################################
 ### File Management #########################################################################################
 #############################################################################################################
 
 ## Data
-dataFilePath_2g1p = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g1p_v3_d22_23_CV.SBNspec.root"
+dataFilePath_2g1p = inDir + "Data_2g1p_v3_d22_23_CV.SBNspec.root"
 dataFile_2g1p = ROOT.TFile(dataFilePath_2g1p)
 
-dataFilePath_2g0p = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/Data_2g0p_v3_d22_23_CV.SBNspec.root"
+dataFilePath_2g0p = inDir + "Data_2g0p_v3_d22_23_CV.SBNspec.root"
 dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 
 ## NuWro fake data
-dataFilePath_NuWroFakeData =  "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/NuWro_FakeData_Generation_NEW/NuWro_Aug2023_v7_CV.SBNspec.root"
+dataFilePath_NuWroFakeData =  inDir + "NuWro_Aug2023_v7_CV.SBNspec.root"
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2gnp_inclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
-inFile_2gnp_inclusive = ROOT.TFile(inFilePath_2gnp_inclusive)
+inFilePath_2gXp_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2gXp.root" ## placeholder
+inFile_2gXp_inclusive = ROOT.TFile(inFilePath_2gXp_inclusive)
 
-inFilePath_2g1p_inclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
+inFilePath_2g1p_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
 inFile_2g1p_inclusive = ROOT.TFile(inFilePath_2g1p_inclusive)
 
-inFilePath_2g0p_inclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/variation_spectra/SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
+inFilePath_2g0p_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2g0p.root" ## placeholder
 inFile_2g0p_inclusive = ROOT.TFile(inFilePath_2g0p_inclusive)
 
 #inFilePath_2g1p_exclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
-inFilePath_2g1p_exclusive = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root"
+inFilePath_2g1p_exclusive = inDir2 + "SBNfit_variation_spectra_exclusive_2g1p.root"
 
 inFile_2g1p_exclusive = ROOT.TFile(inFilePath_2g1p_exclusive)
 
 #inFilePath_2g0p_exclusive = "/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
-inFilePath_2g0p_exclusive = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root"
+inFilePath_2g0p_exclusive = inDir2 + "SBNfit_variation_spectra_exclusive_2g0p.root"
 inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 
 # File with detector systematics
@@ -57,13 +80,13 @@ parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
 p = parser.parse_args()
 
 ## If output_dir is not provided, exit
-if p.output_dir < 0:
+if not p.output_dir:
   parser.print_help()
   exit(1)
 
 ## Create output directory if it doesn't exist
 if not os.path.isdir(p.output_dir):
-  print "Making output directory {0}".format(p.output_dir)
+  print ("Making output directory {0}".format(p.output_dir))
   os.system( "mkdir %s" % p.output_dir )
 
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
@@ -202,7 +225,7 @@ avo = 6.02214e23
 molar_mass = 39.948
 n_targets = density*fid_vol*avo/molar_mass
 
-print "Number of targets: {0}".format(n_targets)
+print ("Number of targets: {0}".format(n_targets))
 
 ## Put scalar into TH1D
 tHist_nTargets = referenceHist_truth.Clone("tHist_nTargets")
@@ -271,7 +294,7 @@ for data_type in ["mc","data", "scaling"]:
 #############################################################################################################
 
 ## MCC9 (official files)
-fluxFileDir = "/pnfs/uboone/persistent/uboonebeam/bnb_gsimple/bnb_gsimple_fluxes_01.09.2019_463_hist"
+fluxFileDir = "/mnt/morrigan/NCPi0_XS_data"
 fluxFilePath = "{0}/MCC9_FluxHist_volTPCActive.root".format(fluxFileDir)
 fluxFile = ROOT.TFile(fluxFilePath)
 
@@ -304,7 +327,7 @@ for nuSpec in ["numu","numubar","nue","nuebar"]:
   ## Loop over flux systematics
   for systName,universePrefix,nUniverses in FLUX_SYSTS:
 
-    print "systName: {0}".format(systName)   
+    print ("systName: {0}".format(systName))   
     # Create the appropriate error band in the MnvH1D
     exec("mHist_flux_{0}.AddVertErrorBandAndFillWithCV(systName,nUniverses)".format(nuSpec))
     if universePrefix == "minmax":
@@ -394,11 +417,11 @@ for sigDef in ["2g1p","2g0p"]:
   else:
     exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
 
-## Add together 2g1p and 2g0p hists to form 2gnp data hist
-tHist_data_selected_2gnp = tHist_data_selected_2g0p.Clone("tHist_data_selected_2gnp")
-tHist_data_selected_2gnp.Add(tHist_data_selected_2g1p)
+## Add together 2g1p and 2g0p hists to form 2gXpdata hist
+tHist_data_selected_2gXp= tHist_data_selected_2g0p.Clone("tHist_data_selected_2gXp")
+tHist_data_selected_2gXp.Add(tHist_data_selected_2g1p)
 
-for sigDef in ["2g0p","2g1p","2gnp"]:
+for sigDef in ["2g0p","2g1p","2gXp"]:
   ## Create MnvH1D from TH1D
   exec("mHist_data_selected_{0} = ROOT.PlotUtils.MnvH1D(tHist_data_selected_{0})".format(sigDef))
   exec("mHist_data_selected_{0}.SetName(\"data_selected_{0}\")".format(sigDef))
@@ -415,8 +438,10 @@ for sigDef in ["2g0p","2g1p","2gnp"]:
 ### Assemble xsec component MnvHnDs for 2g1p, 2g0p ##########################################################
 #############################################################################################################
 
-for sigDef in ["2g1p","2g0p"]:
+for sigDef in ["2g1p","2g0p","2gXp"]:
   for sigDefexcl in ["inclusive","exclusive"]:
+    if sigDef == "2gXp" and sigDefexcl == "exclusive":
+      continue
 
     #############################################################################################################
     ### Construct Efficiency Denominator MnvH1D #################################################################
@@ -565,33 +590,33 @@ for sigDef in ["2g1p","2g0p"]:
     exec("writeHist(mHist_fakedata_mc_{0}_{1}, outFile)".format(sigDef, sigDefexcl))
      
 #############################################################################################################
-### Derive xsec component MnvHnDs for 2gnp ##################################################################
+### Derive xsec component MnvHnDs for 2gXp##################################################################
 #############################################################################################################
 
 for histCat in ["effNum","background"]:
 
-  exec("mHist_{0}_2gnp_inclusive = mHist_{0}_2g0p_inclusive.Clone(\"{0}_2gnp_inclusive\")".format(histCat))
-  exec("mHist_{0}_2gnp_inclusive.Add(mHist_{0}_2g1p_inclusive)".format(histCat))
+  exec("mHist_{0}_2gXp_inclusive = mHist_{0}_2g0p_inclusive.Clone(\"{0}_2gXp_inclusive\")".format(histCat))
+  exec("mHist_{0}_2gXp_inclusive.Add(mHist_{0}_2g1p_inclusive)".format(histCat))
 
-  exec("writeHist(mHist_{0}_2gnp_inclusive,outFile)".format(histCat))
+  exec("writeHist(mHist_{0}_2gXp_inclusive,outFile)".format(histCat))
 
-## The 2gnp effDenom is just the 2g1p effDenom because the 2g0p sample has been scaled to have equivalent POT to 2g1p
-mHist_effDenom_2gnp_inclusive = mHist_effDenom_2g1p_inclusive.Clone("effDenom_2gnp_inclusive")
+## The 2gXpeffDenom is just the 2g1p effDenom because the 2g0p sample has been scaled to have equivalent POT to 2g1p
+mHist_effDenom_2gXp_inclusive = mHist_effDenom_2g1p_inclusive.Clone("effDenom_2gXp_inclusive")
 
-writeHist(mHist_effDenom_2gnp_inclusive,outFile)
+writeHist(mHist_effDenom_2gXp_inclusive,outFile)
 
 #############################################################################################################
-### Loop over 2g1p, 2g0p, 2gnp ##############################################################################
+### Loop over 2g1p, 2g0p, 2gXp##############################################################################
 #############################################################################################################
 
-for sigDef in ["2g1p","2g0p","2gnp"]:
+for sigDef in ["2g1p","2g0p","2gXp"]:
   for sigDefexcl in ["inclusive","exclusive"]:
 
     #############################################################################################################
     ### Calculate efficiency and MC xsec ########################################################################
     #############################################################################################################
     
-    if sigDef == "2gnp" and sigDefexcl == "exclusive":
+    if sigDef == "2gXp" and sigDefexcl == "exclusive":
       continue
     
     else:

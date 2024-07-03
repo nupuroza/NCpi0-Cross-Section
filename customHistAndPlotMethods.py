@@ -17,7 +17,7 @@ class makeEnv_TCanvas(object):
     plotNameComponents = self.plotName.split('/')
     plotDir = '/'.join(plotNameComponents[:-1]) 
     if not os.path.isdir(plotDir):
-      print "Making plot directory {0}".format(plotDir)
+      print("Making plot directory {0}".format(plotDir))
       os.system( "mkdir %s" % plotDir )
     self.canvas.Print(self.plotName)
     del self.canvas
@@ -76,7 +76,7 @@ def writeHist(hist,outFile):
   #exec('localHist = {0}'.format(histName))
   #localHist.SetName(histName)
   outFile.cd()
-  print 'Writing {0} to output file'.format(hist.GetName())
+  print('Writing {0} to output file'.format(hist.GetName()))
   hist.Write()
 
 ## Function to rebin a TH1D according to a reference histogram.

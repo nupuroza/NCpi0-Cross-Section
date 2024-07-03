@@ -1,4 +1,3 @@
-
 // Method to get gLEE tree loaded for proper looping-over
 // Originally from /exp/uboone/app/users/markrl/useful_scripts/plothelper.h
 TTree* loadgLEE(std::string filename, std::string int_dir){
@@ -18,24 +17,58 @@ TTree* loadgLEE(std::string filename, std::string int_dir){
 // Method that creates response matrix and updated cross section systematic universes to be used in 1D NCpi0 xsec extraction
 void ResponseMaker(std::string outDir){
 
+    //added 07/03/24 to elimate the hard-coded file paths (Cricket construction)
+    int ans;
+    std::string inDir, outputDir;
+    std::cout << "\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t";
+    std::cin >> ans;
+        //input validation
+        while(ans < 1 || ans > 2){
+            std::cout << "Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t";
+            std::cin >> ans;
+        }
+    switch(ans){
+        case 1: //manannan
+            inDir = "/mnt/morrigan/NCPi0_XS_data/";
+            outputDir = "/app/users/crbergner/data/variation_spectra/";
+            break;
+        case 2: //fermilab gpvm
+            inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/";
+            outputDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/";
+            break;
+    }
+    //////////////////////////////////////////////////////////////////////////////
+
+
     // -----------------------------------------------------
     // Interface with gLEE tuple 
     // -----------------------------------------------------
 
-    TTree *v_2g1p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
-    TTree *v_2g0p = (TTree*)loadgLEE("/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root","singlephoton");
+    TTree *v_2g1p = (TTree*)loadgLEE((inDir + "sbnfit_2g1p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root").c_str(),"singlephoton");
+    TTree *v_2g0p = (TTree*)loadgLEE((inDir + "sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root").c_str(),"singlephoton");
  
     // Copy variation spectra files from SBNfit to own directory in order to update cross section universes to only account for differences in response.
-    TFile *spectrain_2g1p = new TFile("/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root", "read");
-    TFile *spectrain_2g0p = new TFile("/exp/uboone/app/users/markrl/SBNfit_uBooNE/July2020_SL7/MajorMerge_GGE_mark/working_dir/ToTH1D/VersionNextGen_SamePOT_Aug2023/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root", "read");
-    std::string spectraout_2g1p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g1p.root";
-    std::string spectraout_2g0p_path = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/SBNfit_variation_spectra_exclusive_2g0p.root";
+    TFile *spectrain_2g1p = new TFile((inDir + "SBNfit_variation_spectra_exclusive_2g1p.root").c_str(), "read");
+    TFile *spectrain_2g0p = new TFile((inDir + "SBNfit_variation_spectra_exclusive_2g0p.root").c_str(), "read");
+
+    TFile *spectrain_2gXp = new TFile((inDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str(), "read");
+
+    std::string spectraout_2g1p_path = (outputDir + "SBNfit_variation_spectra_exclusive_2g1p.root").c_str();
+    std::string spectraout_2g0p_path = (outputDir + "SBNfit_variation_spectra_exclusive_2g0p.root").c_str();
+
+    std::string spectraout_2gXp_path = (outputDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str();
+
     spectrain_2g1p -> Cp(spectraout_2g1p_path.c_str());
     spectrain_2g0p -> Cp(spectraout_2g0p_path.c_str());
+    spectrain_2gXp -> Cp(spectraout_2gXp_path.c_str());
+
     spectrain_2g1p -> Close();
     spectrain_2g0p -> Close();
+    spectrain_2gXp -> Close();
+
     TFile *spectraout_2g1p = new TFile(spectraout_2g1p_path.c_str(), "UPDATE");
     TFile *spectraout_2g0p = new TFile(spectraout_2g0p_path.c_str(), "UPDATE");
+    TFile *spectraout_2gXp = new TFile(spectraout_2gXp_path.c_str(), "UPDATE");
 
     std::cout<<"Number of entries in 2g1p tuple: "<<v_2g1p->GetEntries()<<std::endl;
     std::cout<<"Number of entries in 2g0p tuple: "<<v_2g0p->GetEntries()<<std::endl;
@@ -120,36 +153,60 @@ void ResponseMaker(std::string outDir){
     TTreeFormula * pass_form_2g1p = new TTreeFormula("pass","(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20) && (simple_2g1p_NextGen_v4COSMIC_mva>0.894 && simple_2g1p_NextGen_v4BNB_mva >0.737)", v_2g1p);
     TTreeFormula * pass_form_2g0p = new TTreeFormula("pass","(m_flash_optfltr_pe_beam >20 && m_flash_optfltr_pe_veto < 20) && (simple_2g0p_NextGen_v4COSMIC_mva>0.944 && simple_2g0p_NextGen_v4BNB_mva >0.731)", v_2g0p);
 
+
     // Prescription for determining which events
     // pass signal cuts
     // -----------------------------------------
     TTreeFormula * norm_form_2g1p = new TTreeFormula("norm",(additional_weight_2g1p).c_str(), v_2g1p);
     TTreeFormula * norm_form_2g0p = new TTreeFormula("norm",(additional_weight_2g0p).c_str(), v_2g0p);
+    
+    //added for 2gXp <-Cricket construction //////
+    TTreeFormula * norm_form_2gXp = new TTreeFormula("norm", (additional_weight_common).c_str(), v_2g1p);
+    //////////////////////////////////////////////
 
     // Load maps to universe weights
     // -----------------------------------------
     std::map<std::string, std::vector<double>> *univ_weight_2g1p = 0;
     std::map<std::string, std::vector<double>> *univ_weight_2g0p = 0;
+
+    //std::map<std::string, std::vector<double>> *univ_weight_2gXp = 0;
+
     v_2g1p -> SetBranchAddress("mcweight", &univ_weight_2g1p);
     v_2g0p -> SetBranchAddress("mcweight", &univ_weight_2g0p);
+
 
     // -----------------------------------------------------
     // Construct response matrix 
     // -----------------------------------------------------
 
-    // Specify reco and true analysis binning schemes
-    std::vector<double> reco_bins = {0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675,  0.9};
-    std::vector<double> true_bins = {0, 0.075, 0.15, 0.225, 0.3, 0.375, 0.45, 0.525, 0.6, 0.675,  0.9};
-    int nbins_reco = reco_bins.size() - 1;
-    int nbins_true = true_bins.size() - 1;
+    TH1D *trueHistTest = (TH1D*) spectraout_2g1p -> Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_truth_Signal");
+    TH1D *recoHistTest = (TH1D*) spectraout_2g1p -> Get("exclusive_2g1p_CV_Dir/Sys2g1p_numerator_reco_Signal");
+
+    int nbins_true = trueHistTest->GetNbinsX() - 1;
+    int nbins_reco = recoHistTest->GetNbinsX() - 1;
+
+    std::vector<double> reco_bins(nbins_true + 1);
+    std::vector<double> true_bins(nbins_reco + 1);
+
+    for(int i=1; i<(nbins_true+2); i++){ 
+        true_bins.at(i-1) = recoHistTest->GetBinLowEdge(i);
+        std::cout << true_bins.at(i-1) << std::endl;
+    }
+    for(int i=1; i<(nbins_reco+2); i++){ 
+        reco_bins.at(i-1) = trueHistTest->GetBinLowEdge(i); 
+    }
 
     // Create htrue, hreco, and response hists
-    PlotUtils::MnvH1D * htrue_2g1p = new PlotUtils::MnvH1D("htrue_2g1p","htrue_2g1p",nbins_true, &true_bins[0]);
-    PlotUtils::MnvH1D * htrue_2g0p = new PlotUtils::MnvH1D("htrue_2g0p","htrue_2g0p",nbins_true, &true_bins[0]);
-    PlotUtils::MnvH1D * hreco_2g1p = new PlotUtils::MnvH1D("hreco_2g1p","hreco_2g1p",nbins_reco, &reco_bins[0]);
-    PlotUtils::MnvH1D * hreco_2g0p = new PlotUtils::MnvH1D("hreco_2g0p","hreco_2g0p",nbins_reco, &reco_bins[0]);
-    PlotUtils::MnvH2D * resp_2g1p = new PlotUtils::MnvH2D("Response_2g1p","Response_2g1p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
-    PlotUtils::MnvH2D * resp_2g0p = new PlotUtils::MnvH2D("Response_2g0p","Response_2g0p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+   PlotUtils::MnvH1D * htrue_2g1p = new PlotUtils::MnvH1D("htrue_2g1p","htrue_2g1p",nbins_true, &true_bins[0]);
+   PlotUtils::MnvH1D * htrue_2g0p = new PlotUtils::MnvH1D("htrue_2g0p","htrue_2g0p",nbins_true, &true_bins[0]);
+   PlotUtils::MnvH1D * hreco_2g1p = new PlotUtils::MnvH1D("hreco_2g1p","hreco_2g1p",nbins_reco, &reco_bins[0]);
+   PlotUtils::MnvH1D * hreco_2g0p = new PlotUtils::MnvH1D("hreco_2g0p","hreco_2g0p",nbins_reco, &reco_bins[0]);
+   PlotUtils::MnvH2D * resp_2g1p = new PlotUtils::MnvH2D("Response_2g1p","Response_2g1p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+   PlotUtils::MnvH2D * resp_2g0p = new PlotUtils::MnvH2D("Response_2g0p","Response_2g0p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+
+    PlotUtils::MnvH1D * hreco_2gXp = new PlotUtils::MnvH1D("hreco_2gXp", "hreco_2gXp", nbins_reco, &reco_bins[0]);
+    PlotUtils::MnvH2D * resp_2gXp = new PlotUtils::MnvH2D("resp_2gXp", "resp_2gXp", nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+    PlotUtils::MnvH1D * htrue_2gXp = new PlotUtils::MnvH1D("htrue_2gXp","htrue_2gXp",nbins_true, &true_bins[0]);
 
     // Create vertical error bands for cross section systematic universes that need to be updated.
     // Vertical error bands store all the universes of a given category.
@@ -163,6 +220,10 @@ void ResponseMaker(std::string outDir){
         hreco_2g0p -> AddVertErrorBand(syst.first, syst.second);
         resp_2g1p -> AddVertErrorBand(syst.first, syst.second);
         resp_2g0p -> AddVertErrorBand(syst.first, syst.second);
+
+        htrue_2gXp -> AddVertErrorBand(syst.first, syst.second);
+        hreco_2gXp -> AddVertErrorBand(syst.first, syst.second);
+        resp_2gXp -> AddVertErrorBand(syst.first, syst.second);
     }
 
     // Create response TMatrix (large enough to include underflow/underflow from corresponding TH2D)
@@ -171,11 +232,15 @@ void ResponseMaker(std::string outDir){
     TMatrixD mat_2g0p(nbins_reco + 2, nbins_true + 2);
     mat_2g0p.Zero();
 
+    TMatrix mat_2gXp(nbins_reco + 2, nbins_true + 2);
+    mat_2gXp.Zero();
+
     // Loop through event tree; fill htrue, hreco, and response hists
     for(int i=0; i<v_2g1p->GetEntries();i++){
 
         v_2g1p->GetEntry(i);
         v_2g0p->GetEntry(i);
+
 
         // Technically not necessary, but Mark says that this avoids some inconsistent obscure ROOT bug
         reco_form_2g1p->GetNdata();
@@ -183,21 +248,40 @@ void ResponseMaker(std::string outDir){
         pass_form_2g1p->GetNdata();
         norm_form_2g1p->GetNdata();
 
-        reco_form_2g0p->GetNdata();
+        reco_form_2g0p->GetNdata(); 
         true_form_2g0p->GetNdata();
         pass_form_2g0p->GetNdata();
         norm_form_2g0p->GetNdata();
 
+        norm_form_2gXp->GetNdata();
+
         // Evaluate TTreeFormulas for each event.
-        double r_2g1p = reco_form_2g1p->EvalInstance();
+        double r_2g1p = reco_form_2g1p->EvalInstance(); 
         double t_2g1p = true_form_2g1p->EvalInstance();
         double p_2g1p = pass_form_2g1p->EvalInstance();
         double w_2g1p = norm_form_2g1p->EvalInstance();
 
-        double r_2g0p = reco_form_2g0p->EvalInstance();
+        double r_2g0p = reco_form_2g0p->EvalInstance();  
         double t_2g0p = true_form_2g0p->EvalInstance();
         double p_2g0p = pass_form_2g0p->EvalInstance();
         double w_2g0p = norm_form_2g0p->EvalInstance();
+
+        //instructions unclear, getting values? - Cricket
+        double w_2gXp = norm_form_2gXp->EvalInstance();
+        double r_2gXp, t_2gXp;
+        double p_2gXp;
+
+        if(p_2g1p > 0){
+            p_2gXp = p_2g1p;
+            r_2gXp = r_2g1p;
+            t_2gXp = t_2g1p;
+            //univ_weight_2gXp = univ_weight_2g1p;
+        }
+        else{
+            p_2gXp = p_2g0p;
+            r_2gXp = r_2g0p;
+            t_2gXp = t_2g0p;
+        }
 
         if(i%20000==0)std::cout<<i<<" "<<v_2g1p->GetEntries()<<std::endl;
         //    std::cout<<r<<"\t\t"<<t<<"\t\t"<<p<<std::endl;
@@ -212,10 +296,16 @@ void ResponseMaker(std::string outDir){
             resp_2g0p->Fill(t_2g0p,r_2g0p, w_2g0p);
             hreco_2g0p->Fill(r_2g0p, w_2g0p);
         }
-            
+        if(p_2gXp){ 
+            resp_2gXp->Fill(t_2gXp, r_2gXp, w_2gXp);
+            hreco_2gXp->Fill(r_2gXp, w_2gXp);
+        }
+
         // Always fill true histograms with true momentum value and signal weight (0 if not signal).
         htrue_2g1p->Fill(t_2g1p, w_2g1p);
         htrue_2g0p->Fill(t_2g0p, w_2g0p);
+
+        htrue_2gXp->Fill(t_2gXp, w_2gXp);
 
         // Fill vertical error bands with same events using corresponding universe weights. This gives systematic uncertainties through reweighting.
         // The MnvVertErrorBand code seems like it should fill the CV universe histogram as well, but that is not the case through testing,
@@ -229,8 +319,14 @@ void ResponseMaker(std::string outDir){
                 resp_2g0p->FillVertErrorBand(syst.first, t_2g0p,r_2g0p, (*univ_weight_2g0p)[syst.first], w_2g0p);
                 hreco_2g0p->FillVertErrorBand(syst.first, r_2g0p, (*univ_weight_2g0p)[syst.first], w_2g0p);
             }    
+            if(p_2gXp){
+                resp_2gXp->FillVertErrorBand(syst.first, t_2gXp,r_2gXp, (*univ_weight_2g0p)[syst.first], w_2gXp);
+                hreco_2gXp->FillVertErrorBand(syst.first, r_2gXp, (*univ_weight_2g0p)[syst.first], w_2gXp);
+            }
             htrue_2g1p->FillVertErrorBand(syst.first, t_2g1p, (*univ_weight_2g1p)[syst.first], w_2g1p);
             htrue_2g0p->FillVertErrorBand(syst.first, t_2g0p, (*univ_weight_2g0p)[syst.first], w_2g0p);
+
+            htrue_2gXp->FillVertErrorBand(syst.first, t_2gXp, (*univ_weight_2g0p)[syst.first], w_2gXp);
     }}
     std::cout << "Finished main loop; constructed htrue, hreco, and response hists for both 2g1p and 2g0p signal definitions." << std::endl;
     
@@ -245,6 +341,11 @@ void ResponseMaker(std::string outDir){
             if(isnan(eff_2g0p))
                 eff_2g0p = 0;
             resp_2g0p -> SetBinContent(a, i, eff_2g0p);
+
+            double eff_2gXp = resp_2gXp->GetBinContent(a, i)/htrue_2gXp->GetBinContent(a);
+            if(isnan(eff_2gXp))
+                eff_2gXp = 0;
+            resp_2gXp -> SetBinContent(a, i, eff_2gXp);
         }}
 
     // ---------------------------------
@@ -256,11 +357,19 @@ void ResponseMaker(std::string outDir){
     TH1D *htrue_resp_2g1p = (TH1D*) spectraout_2g1p -> Get("exclusive_2g1p_CV_Dir/Sys2g1p_denominator_truth_Signal");
     TH1D *htrue_resp_2g0p = (TH1D*) spectraout_2g0p -> Get("exclusive_2g0p_CV_Dir/Sys2g0p_denominator_truth_Signal");
 
-    // Loop through vertical error bands
+    TH1D *htrue_resp_2gXp = (TH1D*) spectraout_2gXp -> Get("inclusive_2gXp_CV_Dir/Sys2gXp_denominator_truth_Signal");
+
+
+    //comment out all edits below!!!!!!!!!!!!!!!!
+
+    // Loop through vertical error band
     for(std::string vert_error_band_name : resp_2g1p -> GetVertErrorBandNames()){
         // Load directory containing the corresponding systematic universes in the new variation spectra files.
         TDirectory *systcat_2g1p_dir = spectraout_2g1p -> GetDirectory(("exclusive_2g1p_" + vert_error_band_name + "_Dir").c_str());
         TDirectory *systcat_2g0p_dir = spectraout_2g0p -> GetDirectory(("exclusive_2g0p_" + vert_error_band_name + "_Dir").c_str());
+
+        TDirectory *systcat_2gXp_dir = spectraout_2gXp -> GetDirectory(("inclusive_2gXp_" + vert_error_band_name + "_Dir").c_str());
+
         // Loop through universes within vertical error band. All histograms should have the same number of universes in each error band, so using resp_2g1p is arbitrary.
         for(int histnum = 0; histnum < resp_2g1p -> GetVertErrorBand(vert_error_band_name) -> GetNHists(); histnum++){
             // Pull out the corresponding universe's histograms.
@@ -268,6 +377,10 @@ void ResponseMaker(std::string outDir){
             TH1D *true_2g1p_hist = htrue_2g1p -> GetVertErrorBand(vert_error_band_name) -> GetHist(histnum);
             TH2D *resp_2g0p_hist = resp_2g0p -> GetVertErrorBand(vert_error_band_name) -> GetHist(histnum);
             TH1D *true_2g0p_hist = htrue_2g0p -> GetVertErrorBand(vert_error_band_name) -> GetHist(histnum);
+
+            TH2D *resp_2gXp_hist = resp_2gXp -> GetVertErrorBand(vert_error_band_name) -> GetHist(histnum);
+            TH1D *true_2gXp_hist = htrue_2gXp -> GetVertErrorBand(vert_error_band_name) -> GetHist(histnum);
+
             // Divide each response bin by corresponding truth bin.
             for(int i = 0; i < nbins_reco + 2; i++){ // Both loops need to go to nbins+2 to capture the underflow and overflow
                 for(int a = 0; a < nbins_true + 2; a++){ // It doesn't matter whether we loop over 2g1p or 2g0p to get the bin counts
@@ -279,6 +392,11 @@ void ResponseMaker(std::string outDir){
                     if(isnan(eff_2g0p))
                         eff_2g0p = 0;
                     resp_2g0p_hist -> SetBinContent(a, i, eff_2g0p);
+
+                    double eff_2gXp = resp_2gXp_hist->GetBinContent(a, i)/true_2gXp_hist->GetBinContent(a);
+                    if(isnan(eff_2gXp))
+                        eff_2gXp = 0;
+                    resp_2gXp_hist -> SetBinContent(a, i, eff_2gXp);
                 }}
             // Convert histograms to matrices and multiply to obtain new reco universes.
             // htrue_(2g1p/2g0p)_resp -> GetArray() has one more element than true_(2g1p/2g0p)_mat (an extra overflow bin), but it will simply be ignored, which is the desired behavior.
@@ -288,6 +406,11 @@ void ResponseMaker(std::string outDir){
             TMatrixD *true_2g0p_mat = new TMatrixD(nbins_true + 2, 1, htrue_resp_2g0p -> GetArray());
             TMatrixD *reco_resp_2g1p_mat = new TMatrixD(*resp_2g1p_mat, TMatrixD::kMult, *true_2g1p_mat);
             TMatrixD *reco_resp_2g0p_mat = new TMatrixD(*resp_2g0p_mat, TMatrixD::kMult, *true_2g0p_mat);
+
+            TMatrixD *resp_2gXp_mat = new TMatrixD(nbins_reco + 2, nbins_true + 2, resp_2gXp_hist -> GetArray());
+            TMatrixD *true_2gXp_mat = new TMatrixD(nbins_true + 2, 1, htrue_resp_2gXp -> GetArray());
+            TMatrixD *reco_resp_2gXp_mat = new TMatrixD(*resp_2gXp_mat, TMatrixD::kMult, *true_2gXp_mat);
+
             // Prescribe names of histograms to be replaced.
             std::string hreco_resp_2g1p_name;
             std::string hreco_resp_2g0p_name;
@@ -295,6 +418,11 @@ void ResponseMaker(std::string outDir){
             std::string htrue_resp_2g0p_name;
             std::string heffNum_truth_resp_2g1p_name;
             std::string heffNum_truth_resp_2g0p_name;
+
+            std::string hreco_resp_2gXp_name;
+            std::string htrue_resp_2gXp_name;
+            std::string heffNum_truth_resp_2gXp_name;
+
             if(vert_error_band_name == "All_UBGenie" || vert_error_band_name == "RPA_CCQE_UBGenie"){
                 hreco_resp_2g1p_name = "Sys2g1p_numerator_reco_universe_" + std::to_string(histnum + 1) + "_Signal";
                 hreco_resp_2g0p_name = "Sys2g0p_numerator_reco_universe_" + std::to_string(histnum + 1) + "_Signal";
@@ -302,6 +430,11 @@ void ResponseMaker(std::string outDir){
                 htrue_resp_2g0p_name = "Sys2g0p_denominator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
                 heffNum_truth_resp_2g1p_name = "Sys2g1p_numerator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
                 heffNum_truth_resp_2g0p_name = "Sys2g0p_numerator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
+
+                hreco_resp_2gXp_name = "Sys2gXp_numerator_reco_universe_" + std::to_string(histnum + 1) + "_Signal";
+                htrue_resp_2gXp_name = "Sys2gXp_denominator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
+                heffNum_truth_resp_2gXp_name = "Sys2gXp_numerator_truth_universe_" + std::to_string(histnum + 1) + "_Signal";
+
             }
             else{
                 hreco_resp_2g1p_name = "Sys2g1p_numerator_reco_minmax_" + std::to_string(histnum + 1) + "_Signal";
@@ -310,20 +443,37 @@ void ResponseMaker(std::string outDir){
                 htrue_resp_2g0p_name = "Sys2g0p_denominator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
                 heffNum_truth_resp_2g1p_name = "Sys2g1p_numerator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
                 heffNum_truth_resp_2g0p_name = "Sys2g0p_numerator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
+
+                hreco_resp_2gXp_name = "Sys2gXp_numerator_reco_minmax_" + std::to_string(histnum + 1) + "_Signal";
+                htrue_resp_2gXp_name = "Sys2gXp_denominator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
+                heffNum_truth_resp_2gXp_name = "Sys2gXp_numerator_truth_minmax_" + std::to_string(histnum + 1) + "_Signal";
+
             }
             // Convert new reco distributions back to histograms for writing.
             TH1D *hreco_resp_2g1p = new TH1D(hreco_resp_2g1p_name.c_str(), hreco_resp_2g1p_name.c_str(), nbins_reco, &reco_bins[0]);
             TH1D *hreco_resp_2g0p = new TH1D(hreco_resp_2g0p_name.c_str(), hreco_resp_2g0p_name.c_str(), nbins_reco, &reco_bins[0]);
+
+            TH1D *hreco_resp_2gXp = new TH1D((hreco_resp_2gXp_name + "1").c_str(), hreco_resp_2gXp_name.c_str(), nbins_reco, &reco_bins[0]);
+
             for(int bin = 0; bin < nbins_reco + 2; bin++){
                 hreco_resp_2g1p -> SetBinContent(bin, (*reco_resp_2g1p_mat)(bin, 0));
                 hreco_resp_2g0p -> SetBinContent(bin, (*reco_resp_2g0p_mat)(bin, 0));
+
+                hreco_resp_2gXp -> SetBinContent(bin, (*reco_resp_2gXp_mat)(bin, 0));
+
             }
             // Get the new efficiency numerator truth distributions for use in calculating the efficiency.
             TH1D *heffNum_truth_resp_2g1p = resp_2g1p_hist -> ProjectionX(heffNum_truth_resp_2g1p_name.c_str());
             TH1D *heffNum_truth_resp_2g0p = resp_2g0p_hist -> ProjectionX(heffNum_truth_resp_2g0p_name.c_str());
+
+            TH1D *heffNum_truth_resp_2gXp = resp_2gXp_hist -> ProjectionX((heffNum_truth_resp_2gXp_name + "1").c_str());
+
             for(int bin = 0; bin < nbins_true + 2; bin++){
                 heffNum_truth_resp_2g1p -> SetBinContent(bin, heffNum_truth_resp_2g1p -> GetBinContent(bin)*htrue_resp_2g1p -> GetBinContent(bin));
                 heffNum_truth_resp_2g0p -> SetBinContent(bin, heffNum_truth_resp_2g0p -> GetBinContent(bin)*htrue_resp_2g0p -> GetBinContent(bin));
+
+                heffNum_truth_resp_2gXp -> SetBinContent(bin, heffNum_truth_resp_2gXp -> GetBinContent(bin)*htrue_resp_2gXp -> GetBinContent(bin));
+
             }
             // Cd to the correct directory and overwrite existing distributions.
             systcat_2g1p_dir -> cd();
@@ -334,9 +484,15 @@ void ResponseMaker(std::string outDir){
             hreco_resp_2g0p -> Write(hreco_resp_2g0p_name.c_str(), TObject::kWriteDelete);
             htrue_resp_2g0p -> Write(htrue_resp_2g0p_name.c_str(), TObject::kWriteDelete);
             heffNum_truth_resp_2g0p -> Write(heffNum_truth_resp_2g0p_name.c_str(), TObject::kWriteDelete);
+
+            systcat_2gXp_dir -> cd();
+            hreco_resp_2gXp -> Write(hreco_resp_2gXp_name.c_str(), TObject::kWriteDelete);
+            htrue_resp_2gXp -> Write(htrue_resp_2gXp_name.c_str(), TObject::kWriteDelete);
+            heffNum_truth_resp_2gXp -> Write(heffNum_truth_resp_2gXp_name.c_str(), TObject::kWriteDelete);
         }
-        systcat_2g1p_dir -> Write();
-        systcat_2g0p_dir -> Write();
+        //systcat_2g1p_dir -> Write();
+        //systcat_2g0p_dir -> Write();
+        //systcat_2gXp_dir -> Write();
     }
     
 
@@ -347,6 +503,8 @@ void ResponseMaker(std::string outDir){
         for(int a=0; a<htrue_2g1p->GetNbinsX()+2; a++){ // It doesn't matter whether we loop over 2g1p or 2g0p to get the bin counts
             mat_2g1p(i,a) = resp_2g1p->GetBinContent(a,i); // NOTE: TMatrix uses (row, column) for indices, so while (i, a) corresponds to (xbin, ybin) in resp_2g1p, it is reversed in mat_2g1p.
             mat_2g0p(i,a) = resp_2g0p->GetBinContent(a,i); // Also, matrices have their "origin" at the top left, while 2D histograms have theirs at the bottom left.
+
+            mat_2gXp(i,a) = resp_2gXp->GetBinContent(a,i);
         }
     }
     std::cout << "Constructed response TMatrices." << std::endl;
@@ -368,10 +526,16 @@ void ResponseMaker(std::string outDir){
     resp_2g0p->GetYaxis()->SetTitle("True Var");
     resp_2g0p->Write();
 
+    resp_2gXp->GetXaxis()->SetTitle("Reco Var");
+    resp_2gXp->GetYaxis()->SetTitle("True Var");
+    resp_2gXp->Write();
+
     // Write out response matrix TMatrices
     std::cout << "Writing response matrix TMatrices to output file" << std::endl;
     mat_2g1p.Write("response_matrix_2g1p_exclusive");
     mat_2g0p.Write("response_matrix_2g0p_exclusive");
+
+    mat_2gXp.Write("response_matrix_2gXp_inclusive");
 
     // Write out htrue and hreco
     std::cout << "Writing htrue and hreco TH1Ds to output file" << std::endl;
@@ -384,10 +548,17 @@ void ResponseMaker(std::string outDir){
     htrue_2g0p->Write();
     hreco_2g0p->Write();
 
+    htrue_2gXp->SetTitle("True Var");
+    hreco_2gXp->SetTitle("Reco Var");
+    htrue_2gXp->Write();
+    hreco_2gXp->Write();
+
     // Close output file
     fout->Close();
     spectraout_2g1p -> Close();
     spectraout_2g0p -> Close();
+    spectraout_2gXp -> Close();
+
     return ;
 
 }

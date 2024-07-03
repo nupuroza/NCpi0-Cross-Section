@@ -77,8 +77,11 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
     Int_t lowerBound = include_underflow_reco ? 0 : 1;
     Int_t upperBound = include_overflow_reco ? nBins_reco+1 : nBins_reco;
+    Int_t lowerBoundTrue = include_underflow_true ? 0 : 1; //* adding lower and upper bounds for the true space
+    Int_t upperBoundTrue = include_overflow_true ? nBins_true+1 : nBins_true;
+
     TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
-    TMatrixD tMat_smearcept_final = tMat_smearcept->GetSub(lowerBound, upperBound, lowerBound, upperBound);   
+    TMatrixD tMat_smearcept_final = tMat_smearcept->GetSub(lowerBound, upperBound, lowerBoundTrue, upperBoundTrue);   
 
     // --------------------------------------------------------
     // Then convert other unfolding ingredients into matrices
@@ -94,12 +97,12 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     // --------------------------------------------------------
 
     // Derive generator prediction in reco space directly from smearcept matrix and prior_true_signal
-    TMatrixD tMat_folded_true_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal);
+    TMatrixD tMat_folded_true_signal = TMatrixD(tMat_smearcept_final,TMatrixD::EMatrixCreatorsOp2::kMult,tMat_prior_true_signal); 
     TH1D tHist_folded_true_signal = TMatrixDtoTH1D(tMat_folded_true_signal,tHist_data_signal, include_underflow_true);
     PlotUtils::MnvH1D *mHist_prior_reco_signal = (PlotUtils::MnvH1D*)file_out->Get(("effNum_reco_"+sigDef).c_str());  
     TH1D tHist_prior_reco_signal = mHist_prior_reco_signal->GetCVHistoWithStatError();
     // This one always closes. Use in emergency to show closure.
-    //TH1D tHist_prior_reco_signal = tHist_folded_true_signal;
+    // TH1D tHist_prior_reco_signal = tHist_folded_true_signal;
     TMatrixD tMat_prior_reco_signal_initial = TMatrixD(nBins_reco + 2, 1, tHist_prior_reco_signal.GetArray());
     TMatrixD tMat_prior_reco_signal = tMat_prior_reco_signal_initial.GetSub(lowerBound, upperBound, 0, 0);
 
@@ -452,9 +455,12 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
     // -----------------------------------------------------
 
     // Navigate to response matrix file in same directory as input hist file
-    std::size_t last_slash_pos = filePath_in.find_last_of("/");
-    std::string fileDir = filePath_in.substr(0,last_slash_pos);
-    TFile* file_in_response = new TFile((fileDir+"/response_matrices_exclusive.root").c_str(),"READ");
+    std::size_t last_slash_pos = filePath_in.find_last_of("/"); //*
+    std::size_t second_last_slash_pos = filePath_in.find_last_of("/", last_slash_pos - 1); //*ADDED
+    std::string fileDir = filePath_in.substr(0, second_last_slash_pos); //* changed to second_last_slash
+
+    TFile* file_in_response = new TFile((fileDir+"/response_matrices/response_matrices_exclusive.root").c_str(),"READ"); //* added directory above
+
 
     // Copy all contents of response matrix file to output file 
     TFile* file_out = new TFile(output_file_path.c_str(),"UPDATE");
