@@ -720,5 +720,22 @@ for sigDefnp in ["2g1p","2g0p"]:
   ### Plot of error breakdown for Monte Carlo Background
   ######################################################
   exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
-      canvas.canvas.cd(1)
+  local_mHist_background.TransferErrorBands(local_mHist_evtRate_reco, False)
+  local_mHist_data_selected = histFile.Get("data_selected_" + sigDefnp)
+  local_mHist_fakedata_mc = histFile.Get("fakedata_mc_" + sigDef)
+  exec("local_tMat_folded_covariance = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
+  local_tMat_folded_covariance_sub = local_tMat_folded_covariance.GetSub(1, nBins + 1, 1, nBins + 1)
+  local_tMat_folded_covariance_with_stat_sub = calculateChi2(local_mHist_data_selected, local_mHist_fakedata_mc, local_tMat_folded_covariance_sub, False)[1] 
+  local_tMat_folded_covariance_with_stat = local_tMat_folded_covariance
+  for i in range(nBins + 1):
+    for j in range(nBins + 1):
+      local_tMat_folded_covariance_with_stat[i + 1][j + 1] = local_tMat_folded_covariance_with_stat_sub[i][j]
+  local_tMat_stat_error = ROOT.TMatrixD(nBins+2, nBins + 2)
+  local_tMat_stat_error.Minus(local_tMat_folded_covariance_with_stat, local_tMat_folded_covariance)
+  print(local_mHist_data_selected.GetBinContent(1))
+  print(local_mHist_fakedata_mc.GetBinContent(1))
+  print(local_tMat_folded_covariance_with_stat_sub[1][1])
+  print(local_tMat_folded_covariance[2][2])
+  local_mHist_evtRate_reco.FillSysErrorMatrix("data_statistical", local_tMat_stat_error)
+  exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
 
