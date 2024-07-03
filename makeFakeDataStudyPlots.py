@@ -7,6 +7,7 @@ import argparse
 import os,math
 from customHistAndPlotMethods import *
 from calculateChi2 import *
+from errorMaps import *
 
 ## Set ROOT to batch mode
 ROOT.gROOT.SetBatch()
@@ -16,6 +17,11 @@ ROOT.TH1.AddDirectory(False)
 
 ## Setup MnvPlotter, which has all of the plotting utilities
 plotter = ROOT.PlotUtils.MnvPlotter()
+plotter.error_summary_group_map.clear()
+for group in error_bands:
+  for error in error_bands[group]:
+    plotter.error_summary_group_map[group].push_back(error)
+plotter.stat_error_name = "Data Statistical"
 ROOT.gStyle.SetNumberContours(200)
 
 #############################################################################################################
@@ -221,10 +227,10 @@ for sigDefnp in ["2g1p", "2g0p"]:
 #############################################################################################################
 
 # Move TPaveText for TH1D plots.
-ptall.SetX1NDC(0.55)
-ptall.SetY1NDC(0.5)
-ptall.SetX2NDC(0.825)
-ptall.SetY2NDC(0.6)
+ptall.SetX1NDC(0.65)
+ptall.SetY1NDC(0.4)
+ptall.SetX2NDC(0.925)
+ptall.SetY2NDC(0.5)
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
 for sigDefnp in ["2g1p","2g0p"]:
@@ -242,143 +248,145 @@ for sigDefnp in ["2g1p","2g0p"]:
     with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_{1}.png'.format(plotDir,sigDef)) as canvas:
     
       ## Create local copies of all needed hists
-      exec("local_tHist_unfolded_evtRate_scaled = tHist_unfolded_evtRate_{0}.Clone(\"local_tHist_unfolded_evtRate_{0}\")".format(sigDef))
-      local_tHist_genie_evtRate_smeared_scaled = histFile.Get("smeared_true_signal_{0}".format(sigDef))
-      local_tHist_genie_evtRate_scaled = histFile.Get("prior_true_signal_{0}".format(sigDef))
-      local_mHist_effDenom_scaled = histFile.Get("effDenom_{0}".format(sigDef))
-      local_tHist_effDenom_scaled =local_mHist_effDenom_scaled.GetCVHistoWithError()
-      exec("local_tHist_nuwro_truth_scaled = histFile.Get(\"nu_uBooNE_denom_{0}\")".format(sigDefnp))
-      exec("local_tHist_smeared_nuwro_truth_scaled = tHist_smeared_nuwro_signal_{0}.Clone(\"smeared_nuwro_truth_scaled\")".format(sigDef))
+      exec("local_tHist_unfolded_evtRate = tHist_unfolded_evtRate_{0}.Clone(\"local_tHist_unfolded_evtRate_{0}\")".format(sigDef))
+      local_tHist_genie_evtRate_smeared = histFile.Get("smeared_true_signal_{0}".format(sigDef))
+      local_tHist_genie_evtRate = histFile.Get("prior_true_signal_{0}".format(sigDef))
+      local_mHist_effDenom = histFile.Get("effDenom_{0}".format(sigDef))
+      local_tHist_effDenom =local_mHist_effDenom.GetCVHistoWithError()
+      exec("local_tHist_nuwro_truth = histFile.Get(\"nu_uBooNE_denom_{0}\")".format(sigDefnp))
+      exec("local_tHist_smeared_nuwro_truth = tHist_smeared_nuwro_signal_{0}.Clone(\"smeared_nuwro_truth\")".format(sigDef))
     
       for i in range(nBins+2):## Loop over bins
         exec("cov_binContent = tHist_unfolded_cov_evtRate_{0}.GetBinContent(i,i)".format(sigDef))
-        local_tHist_unfolded_evtRate_scaled.SetBinError(i,math.sqrt(cov_binContent))
+        local_tHist_unfolded_evtRate.SetBinError(i,math.sqrt(cov_binContent))
         if is_closure_test:
-          local_tHist_unfolded_evtRate_scaled.SetBinError(i, 0.00001)
+          local_tHist_unfolded_evtRate.SetBinError(i, 0.00001)
       
       
       ## Calculate chi2 before scaling.
-      local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(nBins, nBins)
-      for i in range(1, nBins+1):
-        for j in range(1, nBins+1):
+      local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(nBins + 1, nBins + 1)
+      for i in range(1, nBins+2):
+        for j in range(1, nBins+2):
           exec("local_tMat_unfolded_cov_evtRate[i-1][j-1] = tHist_unfolded_cov_evtRate_{0}.GetBinContent(j, i)".format(sigDef))
-      chi2_NuWro = calculateChi2(local_tHist_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
-      chi2_NuWro_smeared = calculateChi2(local_tHist_smeared_nuwro_truth_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
-      chi2_GENIE = calculateChi2(local_tHist_genie_evtRate_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
-      chi2_GENIE_smeared = calculateChi2(local_tHist_genie_evtRate_smeared_scaled, local_tHist_unfolded_evtRate_scaled, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_NuWro = calculateChi2(local_tHist_nuwro_truth, local_tHist_unfolded_evtRate, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_NuWro_smeared = calculateChi2(local_tHist_smeared_nuwro_truth, local_tHist_unfolded_evtRate, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_GENIE = calculateChi2(local_tHist_genie_evtRate, local_tHist_unfolded_evtRate, local_tMat_unfolded_cov_evtRate, True)[0]
+      chi2_GENIE_smeared = calculateChi2(local_tHist_genie_evtRate_smeared, local_tHist_unfolded_evtRate, local_tMat_unfolded_cov_evtRate, True)[0]
     
       ## Scale and bin-width-normalize all hists (and POT normalize NuWro truth)
-      local_tHist_unfolded_evtRate_scaled.Scale(1e-3)
-      local_tHist_genie_evtRate_smeared_scaled.Scale(1e-3)
-      local_tHist_genie_evtRate_scaled.Scale(1e-3)
-      local_tHist_effDenom_scaled.Scale(1e-3)
-      local_tHist_nuwro_truth_scaled.Scale(1e-3)
-      local_tHist_smeared_nuwro_truth_scaled.Scale(1e-3)
+      #local_tHist_unfolded_evtRate.Scale(1e-3)
+      #local_tHist_genie_evtRate_smeared.Scale(1e-3)
+      #local_tHist_genie_evtRate.Scale(1e-3)
+      #local_tHist_effDenom.Scale(1e-3)
+      #local_tHist_nuwro_truth.Scale(1e-3)
+      #local_tHist_smeared_nuwro_truth.Scale(1e-3)
            
       ## Calculate yrange
-      minycontent_local_tHist_unfolded_evtRate_scaled = local_tHist_unfolded_evtRate_scaled.GetMinimum()
-      miny_local_tHist_unfolded_evtRate_scaled = minycontent_local_tHist_unfolded_evtRate_scaled - (local_tHist_unfolded_evtRate_scaled.GetBinError(local_tHist_unfolded_evtRate_scaled.GetMinimumBin()) if minycontent_local_tHist_unfolded_evtRate_scaled < 0 else 0)
-      maxy_local_tHist_unfolded_evtRate_scaled = local_tHist_unfolded_evtRate_scaled.GetMaximum() + local_tHist_unfolded_evtRate_scaled.GetBinError(local_tHist_unfolded_evtRate_scaled.GetMaximumBin())
-      miny_local_tHist_genie_evtRate_scaled = local_tHist_genie_evtRate_scaled.GetMinimum()
-      maxy_local_tHist_genie_evtRate_scaled = local_tHist_genie_evtRate_scaled.GetMaximum()
-      miny_local_tHist_genie_evtRate_smeared_scaled = local_tHist_genie_evtRate_smeared_scaled.GetMinimum()
-      maxy_local_tHist_genie_evtRate_smeared_scaled = local_tHist_genie_evtRate_smeared_scaled.GetMaximum()
-      miny = min(0, miny_local_tHist_unfolded_evtRate_scaled, (miny_local_tHist_genie_evtRate_scaled if not is_closure_test else 0), miny_local_tHist_genie_evtRate_smeared_scaled)*1.1
-      maxy = max(0, maxy_local_tHist_unfolded_evtRate_scaled, (maxy_local_tHist_genie_evtRate_scaled if not is_closure_test else 0), maxy_local_tHist_genie_evtRate_smeared_scaled)*1.1
+      minycontent_local_tHist_unfolded_evtRate = local_tHist_unfolded_evtRate.GetMinimum()
+      miny_local_tHist_unfolded_evtRate = minycontent_local_tHist_unfolded_evtRate - (local_tHist_unfolded_evtRate.GetBinError(local_tHist_unfolded_evtRate.GetMinimumBin()) if minycontent_local_tHist_unfolded_evtRate < 0 else 0)
+      maxy_local_tHist_unfolded_evtRate = local_tHist_unfolded_evtRate.GetMaximum() + local_tHist_unfolded_evtRate.GetBinError(local_tHist_unfolded_evtRate.GetMaximumBin())
+      miny_local_tHist_genie_evtRate = local_tHist_genie_evtRate.GetMinimum()
+      maxy_local_tHist_genie_evtRate = local_tHist_genie_evtRate.GetMaximum()
+      miny_local_tHist_genie_evtRate_smeared = local_tHist_genie_evtRate_smeared.GetMinimum()
+      maxy_local_tHist_genie_evtRate_smeared = local_tHist_genie_evtRate_smeared.GetMaximum()
+      miny = min(0, miny_local_tHist_unfolded_evtRate, (miny_local_tHist_genie_evtRate if not is_closure_test else 0), miny_local_tHist_genie_evtRate_smeared)*1.1
+      maxy = max(0, maxy_local_tHist_unfolded_evtRate, (maxy_local_tHist_genie_evtRate if not is_closure_test else 0), maxy_local_tHist_genie_evtRate_smeared)*1.1
 
       ## Set plot formatting 
-      local_tHist_unfolded_evtRate_scaled.SetMarkerSize(0.5)
-      local_tHist_unfolded_evtRate_scaled.SetLineColor(ROOT.kBlue+2)
-      local_tHist_unfolded_evtRate_scaled.SetMarkerColor(ROOT.kBlack)
-      local_tHist_unfolded_evtRate_scaled.SetMarkerStyle(ROOT.kFullCircle)
-      local_tHist_unfolded_evtRate_scaled.SetFillStyle(0)
-      local_tHist_unfolded_evtRate_scaled.SetLineWidth(1)
+      local_tHist_unfolded_evtRate.SetMarkerSize(0.5)
+      local_tHist_unfolded_evtRate.SetLineColor(ROOT.kBlue+2)
+      local_tHist_unfolded_evtRate.SetMarkerColor(ROOT.kBlack)
+      local_tHist_unfolded_evtRate.SetMarkerStyle(ROOT.kFullCircle)
+      local_tHist_unfolded_evtRate.SetFillStyle(0)
+      local_tHist_unfolded_evtRate.SetLineWidth(1)
 
-      local_tHist_effDenom_scaled.SetLineColor(ROOT.kGreen+2)
-      local_tHist_effDenom_scaled.SetMarkerColor(ROOT.kGreen+2)
-      local_tHist_effDenom_scaled.SetMarkerSize(0.5)
-      #local_tHist_effDenom_scaled.Draw("SAME")
+      local_tHist_effDenom.SetLineColor(ROOT.kGreen+2)
+      local_tHist_effDenom.SetMarkerColor(ROOT.kGreen+2)
+      local_tHist_effDenom.SetMarkerSize(0.5)
+      #local_tHist_effDenom.Draw("SAME")
 
-      local_tHist_genie_evtRate_smeared_scaled.SetLineColor(ROOT.kRed)
-      local_tHist_genie_evtRate_smeared_scaled.SetMarkerColor(ROOT.kRed)
-      local_tHist_genie_evtRate_smeared_scaled.SetFillColor(ROOT.kRed)
-      local_tHist_genie_evtRate_smeared_scaled.SetFillStyle(3554)
-      local_tHist_genie_evtRate_smeared_scaled.SetTitle(sigDefnp + " Exclusive Unfolded Events") 
-      local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetRangeUser(miny, maxy)
-      local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetTitleSize(0.05)
-      local_tHist_genie_evtRate_smeared_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_genie_evtRate_smeared_scaled.GetYaxis().SetTitle("Events [10^{3}]")
-      local_tHist_genie_evtRate_smeared_scaled.GetXaxis().SetTitle("True #pi^{0} Momentum [GeV]")
+      local_tHist_genie_evtRate_smeared.SetLineColor(ROOT.kRed)
+      local_tHist_genie_evtRate_smeared.SetMarkerColor(ROOT.kRed)
+      local_tHist_genie_evtRate_smeared.SetFillColor(ROOT.kRed)
+      local_tHist_genie_evtRate_smeared.SetFillStyle(3554)
+      local_tHist_genie_evtRate_smeared.SetTitle(sigDefnp + " Exclusive Unfolded Events") 
+      local_tHist_genie_evtRate_smeared.GetYaxis().SetRangeUser(miny, maxy)
+      local_tHist_genie_evtRate_smeared.GetYaxis().SetTitleSize(0.05)
+      local_tHist_genie_evtRate_smeared.GetXaxis().SetTitleSize(0.05)
+      local_tHist_genie_evtRate_smeared.GetYaxis().SetTitle("Events")
+      local_tHist_genie_evtRate_smeared.GetXaxis().SetTitle("True #pi^{0} Momentum [GeV]")
 
-      overflow1 = DrawWithOverflow(local_tHist_genie_evtRate_smeared_scaled, canvas.canvas, "HIST")
+      overflow1 = DrawWithOverflow(local_tHist_genie_evtRate_smeared, canvas.canvas, "HIST")
       if not is_test:
+        canvas.canvas.cd(1) # Place chi^2 pavetext and legend relative to first pad.
         ptall.Draw()
+        canvas.canvas.cd(0)
 
       # If it's a closure test, change the historgram title to reflect that.
       if is_closure_test:
-        local_tHist_genie_evtRate_smeared_scaled.SetTitle(sigDefnp + " Exclusive Closure Test")
+        local_tHist_genie_evtRate_smeared.SetTitle(sigDefnp + " Exclusive Closure Test")
       
       # Print chi2 value of closure test using unfolded (fake) data covariance if in test mode.
       # If not in test mode, print only the smeared chi2 value regardless of whether or not it's a closure test.
       if (is_closure_test and is_test) or (not is_closure_test and not is_test):
         canvas.canvas.cd(1)
-        pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
+        pt = ROOT.TPaveText(0.53, 0.6, 0.775, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
         if(is_closure_test):
-          pt.AddText("#chi^{{2}}/DOF: {0:.5f}/{1}".format(chi2_GENIE_smeared, nBins))
+          pt.AddText("#chi^{{2}}/DOF: {0:.5f}/{1}".format(chi2_GENIE_smeared, nBins + 1))
         else:
-          pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
+          pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins + 1))
         pt.Draw()
         canvas.canvas.cd(0)
     
       # If configured to test mode, also draw and print chi2 of the unsmeared distribution for non-closure tests.
       elif is_test:
-        local_tHist_genie_evtRate_scaled.SetMarkerColor(ROOT.kCyan - 3)
-        local_tHist_genie_evtRate_scaled.SetLineColor(ROOT.kCyan - 3)
-        local_tHist_genie_evtRate_scaled.SetFillColor(ROOT.kCyan - 3)
-        local_tHist_genie_evtRate_scaled.SetFillStyle(3545)
-        overflow2 = DrawWithOverflow(local_tHist_genie_evtRate_scaled, canvas.canvas, "SAME HIST")
+        local_tHist_genie_evtRate.SetMarkerColor(ROOT.kCyan - 3)
+        local_tHist_genie_evtRate.SetLineColor(ROOT.kCyan - 3)
+        local_tHist_genie_evtRate.SetFillColor(ROOT.kCyan - 3)
+        local_tHist_genie_evtRate.SetFillStyle(3545)
+        overflow2 = DrawWithOverflow(local_tHist_genie_evtRate, canvas.canvas, "SAME HIST")
         
         canvas.canvas.cd(1)
-        pt = ROOT.TPaveText(0.5, 0.5, 0.845, 0.7, "NDC")
+        pt = ROOT.TPaveText(0.53, 0.5, 0.875, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_GENIE, nBins))
-        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
+        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_GENIE, nBins + 1))
+        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins + 1))
         pt.Draw()
         canvas.canvas.cd(0)
 
-      overflow3 = DrawWithOverflow(local_tHist_unfolded_evtRate_scaled, canvas.canvas, "SAME")
+      overflow3 = DrawWithOverflow(local_tHist_unfolded_evtRate, canvas.canvas, "SAME")
 
       canvas.canvas.cd(1)
       # Draw legend with appropriate labels.
-      legend = ROOT.TLegend(0.42,0.7,0.845,0.9, "")
+      legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0)
       if is_closure_test:
-        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"GENIE Reconstruction Unfolded","lep")
-        legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Truth, Smeared","f")
+        legend.AddEntry(local_tHist_unfolded_evtRate,"GENIE Reconstruction Unfolded","lep")
+        legend.AddEntry(local_tHist_genie_evtRate_smeared,"GENIE Truth, Smeared","f")
       else:
-        legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"NuWro Fake Data Unfolded","lep")
-        #legend.AddEntry(local_tHist_nuwro_truth_scaled,"NuWro Truth","f")
-        #legend.AddEntry(local_tHist_effDenom_scaled,"effDenom","lep")
+        legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
+        #legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
+        #legend.AddEntry(local_tHist_effDenom,"effDenom","lep")
         if is_test:
-          legend.AddEntry(local_tHist_genie_evtRate_scaled,"GENIE Truth","f")
-        legend.AddEntry(local_tHist_genie_evtRate_smeared_scaled,"GENIE Truth, Smeared","f")
+          legend.AddEntry(local_tHist_genie_evtRate,"GENIE Truth","f")
+        legend.AddEntry(local_tHist_genie_evtRate_smeared,"GENIE Truth, Smeared","f")
       legend.Draw()
       canvas.canvas.cd(0)
 
     ### Plot of NuWro fake data cross section vs. GENIE generator prediction
     ########################################################################
-    with makeEnv_TCanvas('{0}/fakedatavsgenie_xSection_{1}.png'.format(plotDir,sigDef)):
+    with makeEnv_TCanvas('{0}/fakedatavsgenie_xSection_{1}.png'.format(plotDir,sigDef)) as canvas:
     
       # Cross sections are on the order of 1e-38. Scale by 1e38 and move the exponent to the units label.
-      exec("local_tHist_unfolded_xSection_scaled = tHist_unfolded_xSection_{0}.Clone(\"local_tHist_unfolded_xSection_{0}\")".format(sigDef))
-      local_tHist_unfolded_xSection_scaled.Scale(1e38,"width") 
-      exec("local_tHist_xSection_mc_scaled = tHist_xSection_mc_{0}.Clone(\"local_tHist_xSection_mc_{0}\")".format(sigDef))
-      local_tHist_xSection_mc_scaled.Scale(1e38,"width")
-      exec("local_tHist_smeared_xSection_mc_scaled = tHist_smeared_xSection_mc_{0}.Clone(\"local_tHist_smeared_xSection_mc_{0}\")".format(sigDef))
-      local_tHist_smeared_xSection_mc_scaled.Scale(1e38, "width")
+      exec("local_tHist_unfolded_xSection_scaled = tHist_unfolded_xSection_{0}.Clone(\"local_tHist_unfolded_xSection_scaled_{0}\")".format(sigDef))
+      local_tHist_unfolded_xSection_scaled.Scale(1e40) 
+      exec("local_tHist_xSection_mc_scaled = tHist_xSection_mc_{0}.Clone(\"local_tHist_xSection_mc_scaled_{0}\")".format(sigDef))
+      local_tHist_xSection_mc_scaled.Scale(1e40)
+      exec("local_tHist_smeared_xSection_mc_scaled = tHist_smeared_xSection_mc_{0}.Clone(\"local_tHist_smeared_xSection_mc_scaled_{0}\")".format(sigDef))
+      local_tHist_smeared_xSection_mc_scaled.Scale(1e40)
 
       # Prescription for determining minimum and maximum y values from individual histograms.
       minycontent_local_tHist_unfolded_xSection_scaled = local_tHist_unfolded_xSection_scaled.GetMinimum()
@@ -400,7 +408,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tHist_smeared_xSection_mc_scaled.GetYaxis().SetRangeUser(miny, maxy)
       local_tHist_smeared_xSection_mc_scaled.GetYaxis().SetTitleSize(0.05)
       local_tHist_smeared_xSection_mc_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_smeared_xSection_mc_scaled.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}}[10^{-38} cm^{2}/Atom/GeV]")
+      local_tHist_smeared_xSection_mc_scaled.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}}[10^{-40} cm^{2}/Atom]")
       local_tHist_smeared_xSection_mc_scaled.GetXaxis().SetTitle("True #pi^{0} momentum [GeV]")
      
       local_tHist_xSection_mc_scaled.SetLineColor(ROOT.kCyan - 3)
@@ -414,15 +422,14 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tHist_smeared_xSection_mc_scaled.SetFillStyle(3554)
 
       # Draw only the smeared GENIE prediction if not in test configuration.
-      local_tHist_smeared_xSection_mc_scaled.Draw("HIST")
+      overflow1 = DrawWithOverflow(local_tHist_smeared_xSection_mc_scaled, canvas.canvas, "HIST")
       if is_test:
-        local_tHist_xSection_mc_scaled.Draw("SAME HIST")
-      local_tHist_unfolded_xSection_scaled.Draw("SAME")
-      if not is_test:
-        ptall.Draw()
+        overflow2 = DrawWithOverflow(local_tHist_xSection_mc_scaled, canvas.canvas, "SAME HIST")
+      overflow3 = DrawWithOverflow(local_tHist_unfolded_xSection_scaled, canvas.canvas, "SAME")
 
       # Draw the legend
-      legend = ROOT.TLegend(0.42,0.7,0.845,0.9, "")
+      canvas.canvas.cd(1)
+      legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0);
       legend.AddEntry(local_tHist_unfolded_xSection_scaled,"NuWro Fake Data","lep")
       if is_test:
@@ -430,97 +437,102 @@ for sigDefnp in ["2g1p","2g0p"]:
       legend.AddEntry(local_tHist_smeared_xSection_mc_scaled, "GENIE Prediction, Smeared", "f")
       legend.Draw()
 
-      pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
+      if is_test:
+        pt = ROOT.TPaveText(0.53, 0.5, 0.875, 0.7, "NDC")
+        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_GENIE, nBins + 1))
+        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins + 1))
+      else:
+        pt = ROOT.TPaveText(0.53, 0.6, 0.775, 0.7, "NDC")
+        pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins + 1))
+        ptall.Draw()
       pt.SetBorderSize(0)
       pt.SetFillColorAlpha(0, 0)
-      if is_test:
-        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_GENIE, nBins))
-        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
-      else:
-        pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_GENIE_smeared, nBins))
       pt.Draw()
+      canvas.canvas.cd(0)
 
     ### Plot of NuWro fake data unfolded events vs. NuWro generator prediction
     ##########################################################################
-    with makeEnv_TCanvas('{0}/nuwro_evtRate_{1}.png'.format(plotDir,sigDef)):
+    with makeEnv_TCanvas('{0}/nuwro_evtRate_{1}.png'.format(plotDir,sigDef)) as canvas:
       # Prescription for determining minimum and maximum y values from individual histograms.
-      truth_max = local_tHist_nuwro_truth_scaled.GetMaximum()
-      truth_smeared_max = local_tHist_smeared_nuwro_truth_scaled.GetMaximum()
-      reco_maxbin = local_tHist_unfolded_evtRate_scaled.GetMaximumBin()
-      local_tHist_unfolded_evtRate_scaled.GetBinContent(reco_maxbin)
-      reco_max = local_tHist_unfolded_evtRate_scaled.GetBinContent(reco_maxbin)
-      reco_max += local_tHist_unfolded_evtRate_scaled.GetBinError(reco_maxbin)
-      truth_smeared_min = local_tHist_smeared_nuwro_truth_scaled.GetMinimum()
-      reco_minbin = local_tHist_unfolded_evtRate_scaled.GetMinimumBin()
-      reco_min = local_tHist_unfolded_evtRate_scaled.GetBinContent(reco_minbin)
-      reco_min -= local_tHist_unfolded_evtRate_scaled.GetBinError(reco_minbin) if reco_min < 0 else 0
+      truth_max = local_tHist_nuwro_truth.GetMaximum()
+      truth_smeared_max = local_tHist_smeared_nuwro_truth.GetMaximum()
+      reco_maxbin = local_tHist_unfolded_evtRate.GetMaximumBin()
+      local_tHist_unfolded_evtRate.GetBinContent(reco_maxbin)
+      reco_max = local_tHist_unfolded_evtRate.GetBinContent(reco_maxbin)
+      reco_max += local_tHist_unfolded_evtRate.GetBinError(reco_maxbin)
+      truth_smeared_min = local_tHist_smeared_nuwro_truth.GetMinimum()
+      reco_minbin = local_tHist_unfolded_evtRate.GetMinimumBin()
+      reco_min = local_tHist_unfolded_evtRate.GetBinContent(reco_minbin)
+      reco_min -= local_tHist_unfolded_evtRate.GetBinError(reco_minbin) if reco_min < 0 else 0
       maxy = max(truth_max, truth_smeared_max, reco_max)*1.1
       miny = min(0, truth_smeared_min, reco_min)*1.1
 
       # Set plot styles.
-      local_tHist_smeared_nuwro_truth_scaled.SetLineColor(ROOT.kViolet)
-      local_tHist_smeared_nuwro_truth_scaled.SetFillColor(ROOT.kViolet)
-      local_tHist_smeared_nuwro_truth_scaled.SetFillStyle(3554)
-      local_tHist_smeared_nuwro_truth_scaled.SetLineWidth(1)
-      local_tHist_smeared_nuwro_truth_scaled.GetYaxis().SetRangeUser(miny, maxy)
-      local_tHist_smeared_nuwro_truth_scaled.GetYaxis().SetTitleSize(0.05)
-      local_tHist_smeared_nuwro_truth_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_smeared_nuwro_truth_scaled.SetTitle(sigDefnp + " Exclusive Unfolded Events")
-      local_tHist_smeared_nuwro_truth_scaled.GetYaxis().SetTitle("Events [10^{3}/GeV]")
-      local_tHist_smeared_nuwro_truth_scaled.GetXaxis().SetTitle("True #pi^{0} momentum [GeV]")
-      local_tHist_smeared_nuwro_truth_scaled.Draw("HIST")
+      local_tHist_smeared_nuwro_truth.SetLineColor(ROOT.kViolet)
+      local_tHist_smeared_nuwro_truth.SetFillColor(ROOT.kViolet)
+      local_tHist_smeared_nuwro_truth.SetFillStyle(3554)
+      local_tHist_smeared_nuwro_truth.SetLineWidth(1)
+      local_tHist_smeared_nuwro_truth.GetYaxis().SetRangeUser(miny, maxy)
+      local_tHist_smeared_nuwro_truth.GetYaxis().SetTitleSize(0.05)
+      local_tHist_smeared_nuwro_truth.GetXaxis().SetTitleSize(0.05)
+      local_tHist_smeared_nuwro_truth.SetTitle(sigDefnp + " Exclusive Unfolded Events")
+      local_tHist_smeared_nuwro_truth.GetYaxis().SetTitle("Events")
+      local_tHist_smeared_nuwro_truth.GetXaxis().SetTitle("True #pi^{0} momentum [GeV]")
+      overflow1 = DrawWithOverflow(local_tHist_smeared_nuwro_truth, canvas.canvas, "HIST")
 
-      local_tHist_nuwro_truth_scaled.SetMarkerColor(ROOT.kGreen -3)
-      local_tHist_nuwro_truth_scaled.SetLineColor(ROOT.kGreen - 3)
-      local_tHist_nuwro_truth_scaled.SetFillColor(ROOT.kGreen -3)
-      local_tHist_nuwro_truth_scaled.SetFillStyle(3545)
-      local_tHist_nuwro_truth_scaled.SetLineWidth(1)
+      local_tHist_nuwro_truth.SetMarkerColor(ROOT.kGreen -3)
+      local_tHist_nuwro_truth.SetLineColor(ROOT.kGreen - 3)
+      local_tHist_nuwro_truth.SetFillColor(ROOT.kGreen -3)
+      local_tHist_nuwro_truth.SetFillStyle(3545)
+      local_tHist_nuwro_truth.SetLineWidth(1)
 
       # Draw unsmeared distribution and corresponding labels only in test mode.
       if is_test:
-        local_tHist_nuwro_truth_scaled.Draw("HIST SAME")
-      local_tHist_unfolded_evtRate_scaled.Draw("SAME")
-      legend = ROOT.TLegend(0.42,0.7,0.845,0.9, "")
+        overflow2 = DrawWithOverflow(local_tHist_nuwro_truth, canvas.canvas, "HIST SAME")
+      overflow3 = DrawWithOverflow(local_tHist_unfolded_evtRate, canvas.canvas, "SAME")
+      canvas.canvas.cd(1)
+      legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0);
-      legend.AddEntry(local_tHist_unfolded_evtRate_scaled,"NuWro Fake Data Unfolded","lep")
+      legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
       if is_test:
-        legend.AddEntry(local_tHist_nuwro_truth_scaled,"NuWro Truth","f")
-      legend.AddEntry(local_tHist_smeared_nuwro_truth_scaled, "NuWro Truth, Smeared", "f")
+        legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
+      legend.AddEntry(local_tHist_smeared_nuwro_truth, "NuWro Truth, Smeared", "f")
       legend.Draw()
       if is_test:
-        pt = ROOT.TPaveText(0.5, 0.6, 0.845, 0.7, "NDC")
+        pt = ROOT.TPaveText(0.53, 0.5, 0.875, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_NuWro, nBins))
-        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_NuWro_smeared, nBins))
+        pt.AddText("#chi^{{2}}_{{unsmeared}}/DOF: {0:.0f}/{1}".format(chi2_NuWro, nBins + 1))
+        pt.AddText("#chi^{{2}}_{{smeared}}/DOF: {0:.2f}/{1}".format(chi2_NuWro_smeared, nBins + 1))
         pt.Draw()
       else:
-        pt = ROOT.TPaveText(0.55, 0.6, 0.795, 0.7, "NDC")
+        pt = ROOT.TPaveText(0.53, 0.6, 0.775, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
         pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_NuWro_smeared, nBins))
         pt.Draw()
         ptall.Draw()
-      #nbins = local_tHist_nuwro_truth_scaled.GetNbinsX()
+      canvas.canvas.cd(0)
+      #nbins = local_tHist_nuwro_truth.GetNbinsX()
       #exec("local_tHist_unfolded_cov_evtRate = local_tHist_unfolded_cov_evtRate_{0}".format(sigDef))
       #local_tMat_unfolded_cov_evtRate = 
 
     ### Plot of NuWro fake data folded events vs. GENIE generator prediction
     ########################################################################
-    with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded_{1}.png'.format(plotDir,sigDef)):
+    with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_folded_{1}.png'.format(plotDir,sigDef)) as canvas:
     
       ## Create local copies of all needed hists
       exec("local_mHist_evtRate_reco = histFile.Get(\"evtRate_{0}\")".format(sigDef))
-      local_tHist_evtRate_reco_scaled = local_mHist_evtRate_reco.GetCVHistoWithError()
+      local_tHist_evtRate_reco = local_mHist_evtRate_reco.GetCVHistoWithError()
     
-      exec("local_tHist_genie_evtRate_reco_scaled = histFile.Get(\"folded_true_signal_{0}\")".format(sigDef))
+      exec("local_tHist_genie_evtRate_reco = histFile.Get(\"folded_true_signal_{0}\")".format(sigDef))
      
-      exec("local_mHist_hreco_scaled = histFile.Get(\"hreco_{0}\")".format(sigDefnp))
-      local_tHist_hreco_scaled = local_mHist_hreco_scaled.GetCVHistoWithStatError()
-      local_tHist_hreco_scaled.Multiply(tHist_POT_scaling)
+      exec("local_mHist_hreco = histFile.Get(\"hreco_{0}\")".format(sigDefnp))
+      local_tHist_hreco = local_mHist_hreco.GetCVHistoWithStatError()
+      local_tHist_hreco.Multiply(tHist_POT_scaling)
      
       exec("local_mHist_effNum_reco = histFile.Get(\"effNum_reco_{0}\")".format(sigDef))
-      local_tHist_effNum_reco_scaled = local_mHist_effNum_reco.GetCVHistoWithError()
+      local_tHist_effNum_reco = local_mHist_effNum_reco.GetCVHistoWithError()
       local_tMat_cov_effNum_reco = local_mHist_effNum_reco.GetTotalErrorMatrix(True)
 
       # Get folded covariance matrix to compare folded distributions. Remove underflow and overflow bins for now.
@@ -529,173 +541,201 @@ for sigDefnp in ["2g1p","2g0p"]:
       # On the other hand, do we want the covariance matrix we're unfolding to be different from the one we use for our reco distributions?
       # Currently subtracting signal systematic component of the folded covariance matrix.
       exec("local_tMat_cov_evtRate = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
-      local_tMat_cov_evtRate = local_tMat_cov_evtRate.GetSub(1, nBins, 1, nBins)
-      local_tMat_cov_effNum_reco = local_tMat_cov_effNum_reco.GetSub(1, nBins, 1, nBins)
-      local_tMat_cov_reco_evtRate = ROOT.TMatrixD(nBins, nBins)
+      local_tMat_cov_evtRate = local_tMat_cov_evtRate.GetSub(1, nBins + 1, 1, nBins + 1)
+      local_tMat_cov_effNum_reco = local_tMat_cov_effNum_reco.GetSub(1, nBins + 1, 1, nBins + 1)
+      local_tMat_cov_reco_evtRate = ROOT.TMatrixD(nBins + 1, nBins + 1)
       local_tMat_cov_reco_evtRate.Minus(local_tMat_cov_evtRate, local_tMat_cov_effNum_reco)
       
       # Set errors to square root of diagonal of folded covariance matrix.
-      for i in range(nBins):
-        local_tHist_effNum_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
-        local_tHist_evtRate_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
+      for i in range(nBins + 1):
+        local_tHist_effNum_reco.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
+        local_tHist_evtRate_reco.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
 
       # Calculate chi2 before scaling.
-      chi2_effNum_hreco = calculateChi2(local_tHist_hreco_scaled, local_tHist_effNum_reco_scaled, local_tMat_cov_reco_evtRate, True)[0]
-      chi2_effNum_genie_evtRate = calculateChi2(local_tHist_genie_evtRate_reco_scaled, local_tHist_effNum_reco_scaled, local_tMat_cov_reco_evtRate, True)[0]
-      chi2_evtRate_reco_effNum = calculateChi2(local_tHist_effNum_reco_scaled, local_tHist_evtRate_reco_scaled, local_tMat_cov_reco_evtRate, True)[0]
+      chi2_effNum_hreco = calculateChi2(local_tHist_hreco, local_tHist_effNum_reco, local_tMat_cov_reco_evtRate, True)[0]
+      chi2_effNum_genie_evtRate = calculateChi2(local_tHist_genie_evtRate_reco, local_tHist_effNum_reco, local_tMat_cov_reco_evtRate, True)[0]
+      chi2_evtRate_reco_effNum = calculateChi2(local_tHist_effNum_reco, local_tHist_evtRate_reco, local_tMat_cov_reco_evtRate, True)[0]
 
-      local_tHist_evtRate_reco_scaled.Scale(1e-2,"width")
-      local_tHist_genie_evtRate_reco_scaled.Scale(1e-2,"width")
-      local_tHist_hreco_scaled.Scale(1e-2,"width")
-      local_tHist_effNum_reco_scaled.Scale(1e-2,"width")
+      #local_tHist_evtRate_reco.Scale(1e-2,"width")
+      #local_tHist_genie_evtRate_reco.Scale(1e-2,"width")
+      #local_tHist_hreco.Scale(1e-2,"width")
+      #local_tHist_effNum_reco.Scale(1e-2,"width")
 
       # Prescription for determining minimum and maximum y values from individual histograms.
-      miny_hreco = local_tHist_hreco_scaled.GetMinimum()
-      miny_genie_evtRate_reco = local_tHist_genie_evtRate_reco_scaled.GetMinimum()
-      minycont_effNum_reco = local_tHist_effNum_reco_scaled.GetMinimum()
-      miny_effNum_reco = minycont_effNum_reco - (local_tHist_effNum_reco_scaled.GetBinError(local_tHist_effNum_reco_scaled.GetMinimumBin()) if minycont_effNum_reco < 0 and is_closure_test else 0)
-      minycont_evtRate_reco = local_tHist_evtRate_reco_scaled.GetMinimum()
-      miny_evtRate_reco = minycont_evtRate_reco - (local_tHist_evtRate_reco_scaled.GetBinError(local_tHist_evtRate_reco_scaled.GetMinimumBin()) if minycont_evtRate_reco < 0 else 0)
-      maxy_hreco = local_tHist_hreco_scaled.GetMaximum()
-      maxy_genie_evtRate_reco = local_tHist_genie_evtRate_reco_scaled.GetMaximum()
-      maxybin_effNum_reco = local_tHist_effNum_reco_scaled.GetMaximumBin()
-      maxy_effNum_reco = local_tHist_effNum_reco_scaled.GetBinContent(maxybin_effNum_reco) + (local_tHist_effNum_reco_scaled.GetBinError(maxybin_effNum_reco) if is_closure_test else 0)
-      maxybin_evtRate_reco = local_tHist_evtRate_reco_scaled.GetMaximumBin()
-      maxy_evtRate_reco = local_tHist_evtRate_reco_scaled.GetBinContent(maxybin_evtRate_reco) + local_tHist_evtRate_reco_scaled.GetBinError(maxybin_evtRate_reco)
+      miny_hreco = local_tHist_hreco.GetMinimum()
+      miny_genie_evtRate_reco = local_tHist_genie_evtRate_reco.GetMinimum()
+      minycont_effNum_reco = local_tHist_effNum_reco.GetMinimum()
+      miny_effNum_reco = minycont_effNum_reco - (local_tHist_effNum_reco.GetBinError(local_tHist_effNum_reco.GetMinimumBin()) if minycont_effNum_reco < 0 and is_closure_test else 0)
+      minycont_evtRate_reco = local_tHist_evtRate_reco.GetMinimum()
+      miny_evtRate_reco = minycont_evtRate_reco - (local_tHist_evtRate_reco.GetBinError(local_tHist_evtRate_reco.GetMinimumBin()) if minycont_evtRate_reco < 0 else 0)
+      maxy_hreco = local_tHist_hreco.GetMaximum()
+      maxy_genie_evtRate_reco = local_tHist_genie_evtRate_reco.GetMaximum()
+      maxybin_effNum_reco = local_tHist_effNum_reco.GetMaximumBin()
+      maxy_effNum_reco = local_tHist_effNum_reco.GetBinContent(maxybin_effNum_reco) + (local_tHist_effNum_reco.GetBinError(maxybin_effNum_reco) if is_closure_test else 0)
+      maxybin_evtRate_reco = local_tHist_evtRate_reco.GetMaximumBin()
+      maxy_evtRate_reco = local_tHist_evtRate_reco.GetBinContent(maxybin_evtRate_reco) + local_tHist_evtRate_reco.GetBinError(maxybin_evtRate_reco)
       miny = min(0, (miny_hreco if is_closure_test else 0), (miny_genie_evtRate_reco if is_closure_test else 0), miny_effNum_reco, (miny_evtRate_reco if not is_closure_test else 0))*1.1
       maxy = max(0, (maxy_hreco if is_closure_test else 0), (maxy_genie_evtRate_reco if is_closure_test else 0), maxy_effNum_reco, (maxy_evtRate_reco if not is_closure_test else 0))*1.1
 
       ## Set plot formatting 
-      local_tHist_evtRate_reco_scaled.GetYaxis().SetRangeUser(miny, maxy)
-      local_tHist_evtRate_reco_scaled.SetMarkerSize(0.5)
-      local_tHist_evtRate_reco_scaled.SetMarkerStyle(ROOT.kFullCircle)
-      local_tHist_evtRate_reco_scaled.SetMarkerColor(ROOT.kBlack)
-      local_tHist_evtRate_reco_scaled.GetYaxis().SetTitleSize(0.05)
-      local_tHist_evtRate_reco_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_evtRate_reco_scaled.SetTitle(sigDefnp + " Exclusive Folded Events") 
-      local_tHist_evtRate_reco_scaled.GetYaxis().SetTitle("Events [10^{2}/GeV]")
-      local_tHist_evtRate_reco_scaled.GetXaxis().SetTitle("Reco #pi^{{0}} momentum [GeV]".format(sigDef))
+      local_tHist_evtRate_reco.GetYaxis().SetRangeUser(miny, maxy)
+      local_tHist_evtRate_reco.SetMarkerSize(0.5)
+      local_tHist_evtRate_reco.SetMarkerStyle(ROOT.kFullCircle)
+      local_tHist_evtRate_reco.SetMarkerColor(ROOT.kBlack)
+      local_tHist_evtRate_reco.GetYaxis().SetTitleSize(0.05)
+      local_tHist_evtRate_reco.GetXaxis().SetTitleSize(0.05)
+      local_tHist_evtRate_reco.SetTitle(sigDefnp + " Exclusive Folded Events") 
+      local_tHist_evtRate_reco.GetYaxis().SetTitle("Events")
+      local_tHist_evtRate_reco.GetXaxis().SetTitle("Reco #pi^{{0}} momentum [GeV]".format(sigDef))
       if is_closure_test:
-        local_tHist_evtRate_reco_scaled.SetLineColor(ROOT.kCyan-3)
+        local_tHist_evtRate_reco.SetLineColor(ROOT.kCyan-3)
       else:
-        local_tHist_evtRate_reco_scaled.SetLineColor(ROOT.kBlue + 2)
+        local_tHist_evtRate_reco.SetLineColor(ROOT.kBlue + 2)
     
-      local_tHist_hreco_scaled.GetYaxis().SetRangeUser(miny, maxy)
-      local_tHist_hreco_scaled.GetYaxis().SetTitleSize(0.05)
-      local_tHist_hreco_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_hreco_scaled.SetTitle(sigDefnp + " Exclusive Folded Closure Test") 
-      local_tHist_hreco_scaled.GetYaxis().SetTitle("Events [10^{2}/GeV]")
-      local_tHist_hreco_scaled.GetXaxis().SetTitle("Reco #pi^{{0}} momentum [GeV]".format(sigDef))
+      local_tHist_hreco.GetYaxis().SetRangeUser(miny, maxy)
+      local_tHist_hreco.GetYaxis().SetTitleSize(0.05)
+      local_tHist_hreco.GetXaxis().SetTitleSize(0.05)
+      local_tHist_hreco.SetTitle(sigDefnp + " Exclusive Folded Closure Test") 
+      local_tHist_hreco.GetYaxis().SetTitle("Events")
+      local_tHist_hreco.GetXaxis().SetTitle("Reco #pi^{{0}} momentum [GeV]".format(sigDef))
 
       if is_closure_test:
-        local_tHist_effNum_reco_scaled.SetLineColor(ROOT.kGreen+2)
-        local_tHist_effNum_reco_scaled.SetMarkerColor(ROOT.kGreen+2)
-        local_tHist_effNum_reco_scaled.SetFillColor(ROOT.kGreen+2)
+        local_tHist_effNum_reco.SetLineColor(ROOT.kGreen+2)
+        local_tHist_effNum_reco.SetMarkerColor(ROOT.kGreen+2)
+        local_tHist_effNum_reco.SetFillColor(ROOT.kGreen+2)
       else:
-        local_tHist_effNum_reco_scaled.SetLineColor(ROOT.kRed)
-        local_tHist_effNum_reco_scaled.SetMarkerColor(ROOT.kRed)
-        local_tHist_effNum_reco_scaled.SetFillColor(ROOT.kRed)
-      local_tHist_effNum_reco_scaled.SetMarkerSize(0.5)
-      local_tHist_effNum_reco_scaled.SetFillStyle(3545)
+        local_tHist_effNum_reco.SetLineColor(ROOT.kRed)
+        local_tHist_effNum_reco.SetMarkerColor(ROOT.kRed)
+        local_tHist_effNum_reco.SetFillColor(ROOT.kRed)
+      local_tHist_effNum_reco.SetMarkerSize(0.5)
+      local_tHist_effNum_reco.SetFillStyle(3545)
     
-      local_tHist_genie_evtRate_reco_scaled.SetLineColor(ROOT.kRed)
-      local_tHist_genie_evtRate_reco_scaled.SetFillColor(ROOT.kRed)
-      local_tHist_genie_evtRate_reco_scaled.SetMarkerColor(ROOT.kRed)
-      local_tHist_genie_evtRate_reco_scaled.SetMarkerSize(0.5)
-      local_tHist_genie_evtRate_reco_scaled.SetFillStyle(3554)
+      local_tHist_genie_evtRate_reco.SetLineColor(ROOT.kRed)
+      local_tHist_genie_evtRate_reco.SetFillColor(ROOT.kRed)
+      local_tHist_genie_evtRate_reco.SetMarkerColor(ROOT.kRed)
+      local_tHist_genie_evtRate_reco.SetMarkerSize(0.5)
+      local_tHist_genie_evtRate_reco.SetFillStyle(3554)
     
-      local_tHist_hreco_scaled.SetLineColor(ROOT.kCyan-3)
-      local_tHist_hreco_scaled.SetFillColor(ROOT.kCyan-3)
-      local_tHist_hreco_scaled.SetMarkerColor(ROOT.kCyan-3)
-      local_tHist_hreco_scaled.SetMarkerSize(0.5)
+      local_tHist_hreco.SetLineColor(ROOT.kCyan-3)
+      local_tHist_hreco.SetFillColor(ROOT.kCyan-3)
+      local_tHist_hreco.SetMarkerColor(ROOT.kCyan-3)
+      local_tHist_hreco.SetMarkerSize(0.5)
+      local_tHist_hreco.SetFillStyle(3545)
       
-      legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
+      legend = ROOT.TLegend(0.57,0.7,0.945,0.9, "")
       legend.SetBorderSize(0)
       # If it's a closure test, draw the same GENIE reco distribution calculated using three different methods.
       if is_closure_test:
-        local_tHist_hreco_scaled.Draw("HIST")
-        local_tHist_genie_evtRate_reco_scaled.Draw("SAME HIST")
-        local_tHist_effNum_reco_scaled.Draw("SAME")
-        legend.AddEntry(local_tHist_effNum_reco_scaled,"GENIE Reconstructed (from Sbnfit)","lep")
-        legend.AddEntry(local_tHist_hreco_scaled,"GENIE Reconstructed (from ResponseMaker)","f")
-        legend.AddEntry(local_tHist_genie_evtRate_reco_scaled,"GENIE Truth (from Sbnfit) Folded","f")
-        local_tHist_hreco_scaled.SetFillStyle(3545)
-        pt = ROOT.TPaveText(0.5, 0.5, 0.845, 0.7, "NDC")
+        overflow1 = DrawWithOverflow(local_tHist_hreco, canvas.canvas, "HIST")
+        overflow2 = DrawWithOverflow(local_tHist_genie_evtRate_reco, canvas.canvas, "SAME HIST")
+        overflow3 = DrawWithOverflow(local_tHist_effNum_reco, canvas.canvas, "SAME")
+        legend.AddEntry(local_tHist_effNum_reco,"GENIE Reconstructed (from Sbnfit)","lep")
+        legend.AddEntry(local_tHist_hreco,"GENIE Reconstructed (from ResponseMaker)","f")
+        legend.AddEntry(local_tHist_genie_evtRate_reco,"GENIE Truth (from Sbnfit) Folded","f")
+        canvas.canvas.cd(1)
+        pt = ROOT.TPaveText(0.58, 0.5, 0.875, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}_{{ResponseMaker}}/DOF: {0:.2f}/{1}".format(chi2_effNum_hreco, nBins))
-        pt.AddText("#chi^{{2}}_{{Folded}}/DOF: {0:.2f}/{1}".format(chi2_effNum_genie_evtRate, nBins))
+        pt.AddText("#chi^{{2}}_{{ResponseMaker}}/DOF: {0:.2f}/{1}".format(chi2_effNum_hreco, nBins + 1))
+        pt.AddText("#chi^{{2}}_{{Folded}}/DOF: {0:.2f}/{1}".format(chi2_effNum_genie_evtRate, nBins + 1))
         pt.Draw()
       else:
-        local_tHist_evtRate_reco_scaled.Draw()
-        legend.AddEntry(local_tHist_evtRate_reco_scaled,"NuWro Fake Data","lep")
-        legend.AddEntry(local_tHist_effNum_reco_scaled,"GENIE Reco Signal","f")
-        local_tHist_effNum_reco_scaled.Draw("HIST SAME") 
-        pt = ROOT.TPaveText(0.5, 0.5, 0.845, 0.7, "NDC")
+        overflow4 = DrawWithOverflow(local_tHist_evtRate_reco, canvas.canvas, "")
+        legend.AddEntry(local_tHist_evtRate_reco,"NuWro Fake Data","lep")
+        legend.AddEntry(local_tHist_effNum_reco,"GENIE Reco Signal","f")
+        overflow5 = DrawWithOverflow(local_tHist_effNum_reco, canvas.canvas, "HIST SAME") 
+        canvas.canvas.cd(1)
+        pt = ROOT.TPaveText(0.58, 0.6, 0.775, 0.7, "NDC")
         pt.SetBorderSize(0)
         pt.SetFillColorAlpha(0, 0)
-        pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_evtRate_reco_effNum, nBins))
+        pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_evtRate_reco_effNum, nBins + 1))
         pt.Draw()
       legend.Draw()
       ptall.Draw()
+      canvas.canvas.cd(0)
    
     ### Plot of NuWro fake data folded events vs. NuWro generator prediction
     ########################################################################
-    with makeEnv_TCanvas('{0}/nuwro_evtRate_folded_{1}.png'.format(plotDir, sigDef)):
+    with makeEnv_TCanvas('{0}/nuwro_evtRate_folded_{1}.png'.format(plotDir, sigDef)) as canvas:
       # The only difference between NuWro fake data and NuWro reco signal is the background, so we extract and only use the background uncertainty.
-      local_tHist_nuwro_signal_scaled = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "sig")
+      local_tHist_nuwro_signal = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "sig")
       local_tHist_nuwro_background = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "bkg")
       exec("local_mHist_background = mHist_background_{0}.Clone(\"local_mHist_background\")".format(sigDef))
-      local_tHist_evtRate_reco_scaled = local_mHist_evtRate_reco.GetCVHistoWithError()
+      local_tHist_evtRate_reco = local_mHist_evtRate_reco.GetCVHistoWithError()
       local_tHist_background = local_mHist_background.GetCVHistoWithError()
       local_tMat_background_covMat = local_mHist_background.GetTotalErrorMatrix(True) 
-      local_tMat_background_covMat = local_tMat_background_covMat.GetSub(1, nBins, 1, nBins)
+      local_tMat_background_covMat = local_tMat_background_covMat.GetSub(1, nBins + 1, 1, nBins + 1)
 
       # Update covariance with data statistical uncertainties and set error bars to the diagonal.
       chi2_evtRate_reco_nuwro_signal, local_tMat_background_covMat = calculateChi2(local_tHist_nuwro_background, local_tHist_background, local_tMat_background_covMat, False)
-      for i in range(nBins):
-        local_tHist_evtRate_reco_scaled.SetBinError(i + 1, math.sqrt(local_tMat_background_covMat[i][i]))
+      for i in range(nBins + 1):
+        local_tHist_evtRate_reco.SetBinError(i + 1, math.sqrt(local_tMat_background_covMat[i][i]))
       
       # Scale and set max y.
-      local_tHist_nuwro_signal_scaled.Scale(1e-2, "width")
-      local_tHist_evtRate_reco_scaled.Scale(1e-2, "width")
+      #local_tHist_nuwro_signal.Scale(1e-2, "width")
+      #local_tHist_evtRate_reco.Scale(1e-2, "width")
 
-      maxy_nuwro_signal_scaled = local_tHist_nuwro_signal_scaled.GetMaximum()
-      maxy = max(maxy_nuwro_signal_scaled, maxy_evtRate_reco)*1.1
+      maxy_nuwro_signal = local_tHist_nuwro_signal.GetMaximum()
+      maxy = max(maxy_nuwro_signal, maxy_evtRate_reco)*1.1
 
       # Set plot formatting.
-      local_tHist_nuwro_signal_scaled.GetYaxis().SetRangeUser(miny, maxy)
-      local_tHist_nuwro_signal_scaled.GetYaxis().SetTitleSize(0.05)
-      local_tHist_nuwro_signal_scaled.GetXaxis().SetTitleSize(0.05)
-      local_tHist_nuwro_signal_scaled.SetTitle(sigDefnp + " Exclusive Folded Events")
-      local_tHist_nuwro_signal_scaled.GetYaxis().SetTitle("Events [10^{2}/GeV]")
-      local_tHist_nuwro_signal_scaled.GetXaxis().SetTitle("Reco #pi^{0} momentum [GeV]")
-      local_tHist_nuwro_signal_scaled.SetMarkerColor(ROOT.kViolet)
-      local_tHist_nuwro_signal_scaled.SetLineColor(ROOT.kViolet)
-      local_tHist_nuwro_signal_scaled.SetFillColor(ROOT.kViolet)
-      local_tHist_nuwro_signal_scaled.SetFillStyle(3545)
-      local_tHist_nuwro_signal_scaled.SetLineWidth(1)
+      local_tHist_nuwro_signal.GetYaxis().SetRangeUser(miny, maxy)
+      local_tHist_nuwro_signal.GetYaxis().SetTitleSize(0.05)
+      local_tHist_nuwro_signal.GetXaxis().SetTitleSize(0.05)
+      local_tHist_nuwro_signal.SetTitle(sigDefnp + " Exclusive Folded Events")
+      local_tHist_nuwro_signal.GetYaxis().SetTitle("Events")
+      local_tHist_nuwro_signal.GetXaxis().SetTitle("Reco #pi^{0} momentum [GeV]")
+      local_tHist_nuwro_signal.SetMarkerColor(ROOT.kViolet)
+      local_tHist_nuwro_signal.SetLineColor(ROOT.kViolet)
+      local_tHist_nuwro_signal.SetFillColor(ROOT.kViolet)
+      local_tHist_nuwro_signal.SetFillStyle(3545)
+      local_tHist_nuwro_signal.SetLineWidth(1)
 
-      local_tHist_evtRate_reco_scaled.SetMarkerSize(0.5)
-      local_tHist_evtRate_reco_scaled.SetLineColor(ROOT.kBlue+2)
-      local_tHist_evtRate_reco_scaled.SetMarkerStyle(ROOT.kFullCircle)
-      local_tHist_evtRate_reco_scaled.SetMarkerColor(ROOT.kBlack)
-      local_tHist_evtRate_reco_scaled.SetFillStyle(0)
-      local_tHist_evtRate_reco_scaled.SetLineWidth(1)
+      local_tHist_evtRate_reco.SetMarkerSize(0.5)
+      local_tHist_evtRate_reco.SetLineColor(ROOT.kBlue+2)
+      local_tHist_evtRate_reco.SetMarkerStyle(ROOT.kFullCircle)
+      local_tHist_evtRate_reco.SetMarkerColor(ROOT.kBlack)
+      local_tHist_evtRate_reco.SetFillStyle(0)
+      local_tHist_evtRate_reco.SetLineWidth(1)
 
       # Draw plot.
-      local_tHist_nuwro_signal_scaled.Draw("HIST")
-      local_tHist_evtRate_reco_scaled.Draw("SAME E0")
+      overflow1 = DrawWithOverflow(local_tHist_nuwro_signal, canvas.canvas, "HIST")
+      overflow2 = DrawWithOverflow(local_tHist_evtRate_reco, canvas.canvas, "SAME E0")
 
-      legend = ROOT.TLegend(0.5,0.7,0.845,0.9, "")
+      canvas.canvas.cd(1)
+      legend = ROOT.TLegend(0.57,0.7,0.965,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_evtRate_reco_scaled, "NuWro Fake Data - GENIE Bkgd.", "lep")
-      legend.AddEntry(local_tHist_nuwro_signal_scaled, "NuWro Reco Signal", "f")
+      legend.AddEntry(local_tHist_evtRate_reco, "NuWro Fake Data - GENIE Bkgd.", "lep")
+      legend.AddEntry(local_tHist_nuwro_signal, "NuWro Reco Signal", "f")
       legend.Draw()
 
-      pt = ROOT.TPaveText(0.55, 0.5, 0.795, 0.7, "NDC")
+      pt = ROOT.TPaveText(0.58, 0.6, 0.825, 0.7, "NDC")
       pt.SetBorderSize(0)
       pt.SetFillColorAlpha(0, 0)
-      pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_evtRate_reco_nuwro_signal, nBins))
+      pt.AddText("#chi^{{2}}/DOF: {0:.2f}/{1}".format(chi2_evtRate_reco_nuwro_signal, nBins + 1))
       pt.Draw()
       ptall.Draw()
+      canvas.canvas.cd(0)
+  
+  ### Plot of error breakdown for Monte Carlo Background
+  ######################################################
+  exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+  local_mHist_background.TransferErrorBands(local_mHist_evtRate_reco, False)
+  local_mHist_data_selected = histFile.Get("data_selected_" + sigDefnp)
+  local_mHist_fakedata_mc = histFile.Get("fakedata_mc_" + sigDef)
+  exec("local_tMat_folded_covariance = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
+  local_tMat_folded_covariance_sub = local_tMat_folded_covariance.GetSub(1, nBins + 1, 1, nBins + 1)
+  local_tMat_folded_covariance_with_stat_sub = calculateChi2(local_mHist_data_selected, local_mHist_fakedata_mc, local_tMat_folded_covariance_sub, False)[1] 
+  local_tMat_folded_covariance_with_stat = local_tMat_folded_covariance
+  for i in range(nBins + 1):
+    for j in range(nBins + 1):
+      local_tMat_folded_covariance_with_stat[i + 1][j + 1] = local_tMat_folded_covariance_with_stat_sub[i][j]
+  local_tMat_stat_error = ROOT.TMatrixD(nBins+2, nBins + 2)
+  local_tMat_stat_error.Minus(local_tMat_folded_covariance_with_stat, local_tMat_folded_covariance)
+  print(local_mHist_data_selected.GetBinContent(1))
+  print(local_mHist_fakedata_mc.GetBinContent(1))
+  print(local_tMat_folded_covariance_with_stat_sub[1][1])
+  print(local_tMat_folded_covariance[2][2])
+  local_mHist_evtRate_reco.FillSysErrorMatrix("data_statistical", local_tMat_stat_error)
+  exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+
