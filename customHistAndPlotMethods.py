@@ -1,4 +1,5 @@
-import ROOT,os
+import ROOT
+import os
 
 class makeEnv_TCanvas(object):
 
@@ -61,9 +62,14 @@ def DrawWithOverflow(hist, canvas, draw_options):
     if npads < 2:
       canvas.Divide(2, 1)
     
-    # cd to first pad and set pad size.
+    # cd to first pad and set pad size and margin.
     canvas.cd(1)
-    ROOT.gPad.SetPad(0, 0, 0.9, 1.0)
+    ROOT.gPad.SetPad(0, 0, 10.0/11, 1.0)
+    ROOT.gPad.SetRightMargin(0.02)
+
+    ROOT.gStyle.SetTitleSize(0.05, "t")
+    ROOT.gStyle.SetTitleY(1.0)
+    ROOT.gStyle.SetTitleX(0.55)
 
     # Draw the original histogram and obtain view range for use with overflow bin.
     hist.Draw(draw_options)
@@ -71,9 +77,10 @@ def DrawWithOverflow(hist, canvas, draw_options):
     miny = ROOT.gPad.GetUymin()
     maxy = ROOT.gPad.GetUymax()
 
-    # cd to second pad and set pad size
+    # cd to second pad and set pad size and margin.
     canvas.cd(2)
-    ROOT.gPad.SetPad(0.9, 0, 1.0, 1.0)
+    ROOT.gPad.SetPad(10.0/11, 0, 1.0, 1.0)
+    ROOT.gPad.SetLeftMargin(0.0)
   
     # Create a new histogram for overflow
     overflow = ROOT.TH1D(hist.GetName() + "_overflow", "Overflow", 1, hist.GetBinLowEdge(nbins), hist.GetBinLowEdge(nbins + 1))
@@ -84,6 +91,7 @@ def DrawWithOverflow(hist, canvas, draw_options):
 
     # Set overflow histogram to same style and y range as the main one.
     # Remove axes ticks and numbering since they will be the same as for the main histogram.
+    # Set title to appropriate size and position.
     # Draw and update.
     overflow.SetFillColor(hist.GetFillColor())
     overflow.SetFillStyle(hist.GetFillStyle())
@@ -95,6 +103,9 @@ def DrawWithOverflow(hist, canvas, draw_options):
     overflow.SetMarkerStyle(hist.GetMarkerStyle())
     overflow.SetNdivisions(0, "xy")
     overflow.GetYaxis().SetRangeUser(miny, maxy)
+    ROOT.gStyle.SetTitleSize(0.3, "t")
+    ROOT.gStyle.SetTitleY(0.295)
+    ROOT.gStyle.SetTitleX(0.4)
     overflow.Draw(draw_options)
     ROOT.gPad.Update()
 
