@@ -18,7 +18,7 @@ parser.add_argument('in_file', help='Path to input file', type=str,nargs='?')
 p = parser.parse_args()
 
 ## If in_file is not provided, exit
-if p.in_file < 0:
+if not p.in_file:
   print ("ERROR: Input file argument not provided")
   parser.print_help()
   exit(1)
@@ -45,13 +45,19 @@ mHist_nTargets = outFile.Get("nTargets")
 mHist_POT_data = outFile.Get("POT_data")
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDefnp in ["2g1p","2g0p"]:
+for sigDefnp in ["2g1p","2g0p","2gXp"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["exclusive"]:
+  for sigDefexcl in ["exclusive","inclusive"]:
 
     sigDef = sigDefnp + "_" + sigDefexcl
 
-    if sigDef == "2gnp" and sigDefexcl == "exclusive":
+    if sigDefnp == "2gXp" and sigDefexcl == "exclusive":
+      continue
+
+    if sigDefnp == "2g1p" and sigDefexcl == "inclusive":
+      continue
+
+    if sigDefnp == "2g0p" and sigDefexcl == "inclusive":
       continue
     
     else:

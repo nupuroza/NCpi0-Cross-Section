@@ -14,7 +14,7 @@
 // Bit that should be evaluated separately once for each
 // signal definition (sigDef) that we care about
 // -----------------------------------------------------
-void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, bool closureTest, WienerSVDUnfolder::RegularizationMatrixType MY_REGULARIZATION, int NUM_ITERATIONS, double *MSB, double *MV, double *MSE, double *MSE_weighted, double *true_MSB, double *true_MSE, double *true_MSE_weighted, bool calculateTrueBias)
+void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, bool closureTest, WienerSVDUnfolder::RegularizationMatrixType MY_REGULARIZATION, int NUM_ITERATIONS)
 {
 
     std::cout << "I'm inside execute_unfolding(). I'm running over " << sigDef << std::endl;
@@ -77,7 +77,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     // Usage: TMatrixT< Element > GetSub (Int_t row_lwb, Int_t row_upb, Int_t col_lwb, Int_t col_upb, Option_t *option="S") const 
     Int_t lowerBound = include_underflow_reco ? 0 : 1;
     Int_t upperBound = include_overflow_reco ? nBins_reco+1 : nBins_reco;
-    Int_t lowerBoundTrue = include_underflow_true ? 0 : 1; //* adding lower and upper bounds for the true space
+    Int_t lowerBoundTrue = include_underflow_true ? 0 : 1; 
     Int_t upperBoundTrue = include_overflow_true ? nBins_true+1 : nBins_true;
 
     TMatrixD tMat_data_covmat_final = tMat_data_covmat.GetSub(lowerBound, upperBound, lowerBound, upperBound);   
@@ -193,128 +193,10 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     auto tMat_add_smear_matrix = result.add_smear_matrix_.get();
 
     // Refold the unfolded data
-
     TMatrixD refolded_true_signal(tMat_smearcept_final, TMatrixD::EMatrixCreatorsOp2::kMult, *tMat_data_signal_unfolded);
-
-    // Calculate bias using (11.76) of Cowan 1998, where derivative corresponds to error matrix (see Steven Gardiner's PRD).
-    // Then calculate mean squared bias, mean variance, mean squared error (11.79), and mean squared error weighted (11.80).
-    TMatrixD* bias = new TMatrixD(smearcept_cols, 1);
-    *MSB = 0;
-    *MV = 0;
-    *MSE = 0;
-    *MSE_weighted = 0;
-    for(int t = 0; t < smearcept_cols; ++t){
-        double curr_bias = 0;
-        for(int r = 0; r < smearcept_rows; ++r)
-            curr_bias += tMat_errprop_matrix -> operator()(t, r)*(refolded_true_signal(r, 0) - tMat_data_signal(r, 0));
-        (*bias)(t, 0) = curr_bias;
-        double curr_MSB = curr_bias*curr_bias/smearcept_cols;
-        *MSB += curr_MSB;
-        double curr_MV = tMat_unfolded_covariance -> operator()(t, t)/smearcept_cols;
-        *MV += curr_MV;
-        double curr_MSE = curr_MV + curr_MSB;
-        *MSE += curr_MSE;
-        *MSE_weighted += curr_MSE/tMat_data_signal_unfolded -> operator()(t, 0);
-    }
-
-    // If required, calculate true bias using statistical fluctuations on reco data.
+    
+    // line moved from deleted piece due to relevance to overall code
     TH1D tHist_data_signal_unfolded = TMatrixDtoTH1D(*tMat_data_signal_unfolded, tHist_prior_true_signal, include_underflow_true);
-
-    if(calculateTrueBias){
-        TMatrixD *tMat_old_data_signal = (TMatrixD*) tMat_data_signal.Clone("tMat_old_data_signal");
-        TMatrixD tMat_cum_signal_unfolded(mc_rows, 1);
-        tMat_cum_signal_unfolded = 0;
-        TRandom randomGenerator;
-        double it = 1024;
-        double max = -DBL_MAX;
-        double min = DBL_MAX;
-        std::string sigDef_title;
-        if(sigDef == "2g1p_exclusive")
-            sigDef_title = "2g1p Exclusive";
-        else if(sigDef == "2g0p_exclusive")
-            sigDef_title = "2g0p Exclusive";
-        TH1D* firstHist = nullptr;
-        TCanvas ch(("Unfolded Poisson Data " + sigDef_title).c_str(), ("Unfolded Poisson Data" + sigDef_title).c_str());
-        ch.cd();
-        TLegend legend(0.5,0.65,0.845,0.85, "");
-        legend.SetTextSize(0.025);
-        legend.SetBorderSize(0);
-        legend.SetFillStyle(0);
-        for(int i = 0; i < it; i++){
-            for(int r = 0; r < data_rows; r++)
-                tMat_data_signal(r, 0) = randomGenerator.Poisson(tMat_old_data_signal -> operator()(r, 0));
-            UnfoldedMeasurement result2 = unfolder->unfold( tMat_data_signal, tMat_data_covmat_final,
-                    tMat_smearcept_final, tMat_prior_true_signal );
-            TMatrixD tMat_signal_unfolded = *result2.unfolded_signal_.get();
-            TH1D tHist_signal_unfolded = TMatrixDtoTH1D(tMat_signal_unfolded, tHist_prior_true_signal, include_underflow_true);
-            if(tHist_signal_unfolded.GetMaximum() > max){
-                max = tHist_signal_unfolded.GetMaximum();
-            }
-            if(tHist_signal_unfolded.GetMinimum() < min){
-                min = tHist_signal_unfolded.GetMinimum();
-            }
-            tHist_signal_unfolded.SetLineWidth(1);
-            tHist_signal_unfolded.SetLineColor(kGray);
-            tHist_signal_unfolded.SetFillStyle(0);
-            if(i==0){
-                tHist_signal_unfolded.SetTitle((sigDef_title + " Unfolded Poisson Data").c_str());
-                tHist_signal_unfolded.GetXaxis() -> SetTitle("True #pi^{0} momentum (GeV)");
-                tHist_signal_unfolded.GetYaxis() -> SetTitle("Events");
-                firstHist = dynamic_cast<TH1D*>(tHist_signal_unfolded.DrawCopy("HIST"));
-            }else{
-                tHist_signal_unfolded.DrawCopy("HIST SAME");
-            }
-            tMat_cum_signal_unfolded += tMat_signal_unfolded;
-        }
-        tHist_data_signal_unfolded.SetLineWidth(2);
-        tHist_data_signal_unfolded.SetFillStyle(0);
-        tHist_data_signal_unfolded.SetLineColor(kBlue);
-        if(tHist_data_signal_unfolded.GetMaximum() > max)
-            max = tHist_data_signal_unfolded.GetMaximum();
-        if(tHist_data_signal_unfolded.GetMinimum() < min)
-            min = tHist_data_signal_unfolded.GetMinimum();
-        tHist_data_signal_unfolded.DrawCopy("HIST SAME");
-        firstHist -> SetMaximum(max*1.01);
-        firstHist -> SetMinimum((min > 0) ? 0 : min*1.01);
-        tMat_cum_signal_unfolded *= (1.0/it);
-        TH1D tHist_cum_signal_unfolded = TMatrixDtoTH1D(tMat_cum_signal_unfolded, tHist_prior_true_signal, include_underflow_true);
-        tHist_cum_signal_unfolded.SetLineWidth(2);
-        tHist_cum_signal_unfolded.SetLineColor(kBlack);
-        tHist_cum_signal_unfolded.SetFillStyle(0);
-        tHist_cum_signal_unfolded.SetMaximum(max);
-        tHist_cum_signal_unfolded.SetMinimum(min);
-        tHist_cum_signal_unfolded.Draw("HIST SAME");
-        legend.AddEntry(&tHist_data_signal_unfolded, "Unfolded data", "l");
-        legend.AddEntry(&tHist_cum_signal_unfolded, "Mean unfolded Poisson fluctuation", "l");
-        legend.AddEntry(firstHist, "Unfolded Poisson fluctuation around data", "l");
-        legend.Draw();
-        std::string sigDefnp;
-        if(sigDef == "2g1p_exclusive")
-            sigDefnp = "2g1p";
-        else if(sigDef == "2g0p_exclusive")
-            sigDefnp = "2g0p";
-        TMatrixD true_bias(tMat_cum_signal_unfolded, TMatrixD::EMatrixCreatorsOp2::kMinus, tMat_nuwro_true_signal);
-        *true_MSB = 0;
-        *true_MSE = 0;
-        *true_MSE_weighted = 0;
-        for(int t = 0; t < smearcept_cols; ++t){
-            double curr_bias = true_bias(t, 0);
-            double curr_MSB = curr_bias*curr_bias/smearcept_cols;
-            *true_MSB += curr_MSB;
-            double curr_MV = tMat_unfolded_covariance -> operator()(t, t)/smearcept_cols;
-            double curr_MSE = curr_MV + curr_MSB;
-            *true_MSE += curr_MSE;
-            *true_MSE_weighted += curr_MSE/tMat_data_signal_unfolded -> operator()(t, 0);
-        }
-        file_out -> cd(); 
-        tHist_cum_signal_unfolded.SetName(("expected_unfolded_evtRate_"+sigDef).c_str());
-        tHist_cum_signal_unfolded.Write();
-        TH1D tHist_true_bias = TMatrixDtoTH1D(true_bias, tHist_prior_true_signal, include_underflow_true);
-        tHist_true_bias.SetName(("true_bias_" + sigDef).c_str());
-        tHist_true_bias.Write();
-        ch.Write();
-        ch.SaveAs((sigDef + "_unfolded_poisson_data_1_iterations_1024_poisson_unfoldings.png").c_str());
-    }
 
     // -----------------------------------------------------
     // Calculate smeared true signal distribution
@@ -335,7 +217,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     TH2D tHist2D_add_smear_matrix = TMatrixDtoTH2D(*tMat_add_smear_matrix, tHist_prior_true_signal, include_underflow_true);
     TH1D tHist_smeared_true_signal = TMatrixDtoTH1D(*tMat_smeared_true_signal, tHist_prior_true_signal, include_underflow_true);
     TH1D tHist_smeared_nuwro_signal = TMatrixDtoTH1D(*tMat_smeared_nuwro_signal, tHist_prior_true_signal, include_underflow_true);
-    TH1D tHist_bias = TMatrixDtoTH1D(*bias, tHist_prior_true_signal, include_underflow_true);
+    //TH1D tHist_bias = TMatrixDtoTH1D(*bias, tHist_prior_true_signal, include_underflow_true);
 
     // -----------------------------------------------------
     // 
@@ -386,8 +268,8 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     tHist_smeared_true_signal.Write();
     tHist_smeared_nuwro_signal.SetName(("smeared_nuwro_signal_" + sigDef).c_str());
     tHist_smeared_nuwro_signal.Write();
-    tHist_bias.SetName(("bias_"+sigDef).c_str());
-    tHist_bias.Write();
+    //tHist_bias.SetName(("bias_"+sigDef).c_str());
+    //tHist_bias.Write();
 
     //file_out->Close();
     return;
@@ -455,11 +337,11 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
     // -----------------------------------------------------
 
     // Navigate to response matrix file in same directory as input hist file
-    std::size_t last_slash_pos = filePath_in.find_last_of("/"); //*
-    std::size_t second_last_slash_pos = filePath_in.find_last_of("/", last_slash_pos - 1); //*ADDED
-    std::string fileDir = filePath_in.substr(0, second_last_slash_pos); //* changed to second_last_slash
+    std::size_t last_slash_pos = filePath_in.find_last_of("/"); 
+    std::size_t second_last_slash_pos = filePath_in.find_last_of("/", last_slash_pos - 1); 
+    std::string fileDir = filePath_in.substr(0, second_last_slash_pos); 
 
-    TFile* file_in_response = new TFile((fileDir+"/response_matrices/response_matrices_exclusive.root").c_str(),"READ"); //* added directory above
+    TFile* file_in_response = new TFile((fileDir+"/response_matrices/response_matrices_exclusive.root").c_str(),"READ");
 
 
     // Copy all contents of response matrix file to output file 
@@ -483,6 +365,10 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
                 file_out->cd();
                 obj->Write("response_matrix_2g0p_exclusive");
             }
+            else if(objName == "response_matrix_2gXp_inclusive") {
+                file_out->cd();
+                obj->Write("response_matrix_2gXp_inclusive");
+            }
         }
         // The rest of the objects are much more straightforward to deal with
         else{
@@ -494,69 +380,9 @@ void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingCon
     // We don't need this file open any more
     file_in_response->Close();
 
-    // Everything needed can now be pulled from file_out
-    // -----------------------------------------------------
+    execute_unfolding(file_out,"2g1p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
+    execute_unfolding(file_out,"2g0p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
+    execute_unfolding(file_out,"2gXp_inclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS);
 
-    double MSB_2g1p, MV_2g1p, MSE_2g1p, MSE_weighted_2g1p, true_MSB_2g1p, true_MSE_2g1p, true_MSE_weighted_2g1p, MSB_2g0p, MV_2g0p, MSE_2g0p, MSE_weighted_2g0p, true_MSB_2g0p, true_MSE_2g0p, true_MSE_weighted_2g0p;
 
-    execute_unfolding(file_out,"2g1p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS, &MSB_2g1p, &MV_2g1p, &MSE_2g1p, &MSE_weighted_2g1p, &true_MSB_2g1p, &true_MSE_2g1p, &true_MSE_weighted_2g1p, calculateTrueBias);
-    execute_unfolding(file_out,"2g0p_exclusive",useWienerSVD,closureTest,MY_REGULARIZATION,NUM_ITERATIONS, &MSB_2g0p, &MV_2g0p, &MSE_2g0p, &MSE_weighted_2g0p, &true_MSB_2g0p, &true_MSE_2g0p, &true_MSE_weighted_2g0p, calculateTrueBias);
-
-    // Write statistical information to statistical file
-
-    FILE *fStats;
-    fStats = fopen((output_file_path_base + "_stats.txt").c_str(), "w");
-    fprintf(fStats, "2g1p\n");
-    fprintf(fStats, "Mean Variance: %lf\n", MV_2g1p);
-    fprintf(fStats, "Mean Squared Bias: %lf\n", MSB_2g1p);
-    fprintf(fStats, "Mean Squared Error: %lf\n", MSE_2g1p);
-    fprintf(fStats, "Mean Squared Error, Weighted: %lf\n", MSE_weighted_2g1p);
-    if(calculateTrueBias){
-        fprintf(fStats, "True Mean Squared Bias: %lf\n", true_MSB_2g1p);
-        fprintf(fStats, "True Mean Squared Error: %lf\n", true_MSE_2g1p);
-        fprintf(fStats, "True Mean Squared Error, Weighted: %lf\n", true_MSE_weighted_2g1p);
-    }
-    fprintf(fStats, "\n2g0p\n");
-    fprintf(fStats, "Mean Variance: %lf\n", MV_2g0p);
-    fprintf(fStats, "Mean Squared Bias: %lf\n", MSB_2g0p);
-    fprintf(fStats, "Mean Squared Error: %lf\n", MSE_2g0p);
-    fprintf(fStats, "Mean Squared Error, Weighted: %lf\n", MSE_weighted_2g0p);
-    if(calculateTrueBias){
-        fprintf(fStats, "True Mean Squared Bias: %lf\n", true_MSB_2g0p);
-        fprintf(fStats, "True Mean Squared Error: %lf\n", true_MSE_2g0p);
-        fprintf(fStats, "True Mean Squared Error, Weighted: %lf\n", true_MSE_weighted_2g0p);
-    }
-    fclose(fStats);
-
-    if(writeCumStats){
-        FILE *fCumStats_2g1p;
-        fCumStats_2g1p = fopen((filePath_in+"_unfolded_stats_2g1p.txt").c_str(), "a+");
-        char placeholder;
-        if(fscanf(fCumStats_2g1p, "%c", &placeholder) == EOF){
-            fprintf(fCumStats_2g1p, "%s\t%s\t%s\t%s\t%s", "Iterations", "Mean Variance", "Mean Squared Bias", "Mean Squared Error", "Mean Squared Error, Weighted");
-            if(calculateTrueBias)
-                fprintf(fCumStats_2g1p, "\t%s\t%s\t%s", "True Mean Squared Bias", "True Mean Squared Error", "True Mean Squared Error, Weighted");
-            fprintf(fCumStats_2g1p, "\n");
-        }
-        fprintf(fCumStats_2g1p, "%d\t%lf\t%lf\t\t%lf\t\t%lf", NUM_ITERATIONS, MV_2g1p, MSB_2g1p, MSE_2g1p, MSE_weighted_2g1p);
-        if(calculateTrueBias)
-            fprintf(fCumStats_2g1p, "\t\t%lf\t\t%lf\t\t%lf", true_MSB_2g1p, true_MSE_2g1p, true_MSE_weighted_2g1p);
-        fprintf(fCumStats_2g1p, "\n");
-
-        FILE *fCumStats_2g0p;
-        fCumStats_2g0p = fopen((filePath_in+"_unfolded_stats_2g0p.txt").c_str(), "a+");
-        if(fscanf(fCumStats_2g0p, "%c", &placeholder) == EOF){
-            fprintf(fCumStats_2g0p, "%s\t%s\t%s\t%s\t%s", "Iterations", "Mean Variance", "Mean Squared Bias", "Mean Squared Error", "Mean Squared Error, Weighted");
-            if(calculateTrueBias)
-                fprintf(fCumStats_2g0p, "\t%s\t%s\t%s", "True Mean Squared Bias", "True Mean Squared Error", "True Mean Squared Error, Weighted");
-            fprintf(fCumStats_2g0p, "\n");
-        }
-        fprintf(fCumStats_2g0p, "%d\t%lf\t%lf\t\t%lf\t\t%lf", NUM_ITERATIONS, MV_2g0p, MSB_2g0p, MSE_2g0p, MSE_weighted_2g0p);
-        if(calculateTrueBias)
-            fprintf(fCumStats_2g0p, "\t\t%lf\t\t%lf\t\t%lf", true_MSB_2g0p, true_MSE_2g0p, true_MSE_weighted_2g0p);
-        fprintf(fCumStats_2g0p, "\n");
-    }
-
-    return;
 }
-
