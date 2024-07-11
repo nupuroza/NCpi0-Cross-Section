@@ -1,0 +1,158 @@
+<?xml version="1.0" ?>
+
+<mode name="Sys2g0p" />
+
+<detector name="numerator" />
+<detector name="denominator" />
+
+
+<channel name="reco" unit="Reco #pi^{0} Momentum [GeV]">
+    <bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9 100"
+        />
+    <subchannel name="NCPi0sig" osc = "0" plotname="NC 1 #pi^{0} Sig"/>
+    <subchannel name="NCPi0bkg" osc = "0" plotname="NC 1 #pi^{0} Back"/>
+    <subchannel name="BeamBackgrounds" osc = "0"  plotname="All Beam Backgrounds" />
+    <subchannel name="Cosmics" osc = "0" plotname="Cosmic Data"/>
+</channel>
+
+
+<channel name="truth" unit="True #pi^{0} Momentum [GeV]">
+    <bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9 100"
+        />
+    <subchannel name="NCPi0sig" osc = "0" plotname="NC 1 #pi^{0}" />
+</channel>
+
+
+
+<varied_spectrum writeout="true" writeout_tag="exclusive_2g0p" form_matrix = "false"/>
+
+<WeightMaps>
+    <variation pattern="_UBGenie" weight_formula="1.0/((1.0*(tan(atan(genie_CV_tune_weight))>=30.0)   +    tan(atan(genie_CV_tune_weight))*(tan(atan(genie_CV_tune_weight))<30.0)))"/>
+
+    <!-- These are N=1 min/max variations -->
+    <variation pattern="Theta_Delta2Npi_UBGenie" weight_formula="1.0" mode="minmax" />
+    <variation pattern="VecFFCCQEshape_UBGenie"  weight_formula="1.0" mode="minmax" />
+    <variation pattern="AxFFCCQEshape_UBGenie"   weight_formula="1.0"  mode="minmax" />
+    <variation pattern="DecayAngMEC_UBGenie"     weight_formula="1.0"  mode="minmax" />
+    <variation pattern="NormNCCOH_UBGenie"       weight_formula="1.0" mode="minmax"/>
+    <variation pattern="NormCCCOH_UBGenie"       weight_formula="1.0" mode="minmax"/> 
+
+    <!-- This one is bugged under old CV -->
+    <!--    <variation pattern="XSecShape_CCMEC_UBGenie" weight_formula="1.0/((1.0*(tan(atan(genie_CV_tune_weight))>=30.0)   +    tan(atan(genie_CV_tune_weight))*(tan(atan(genie_CV_tune_weight))<30.0)))" mode="minmax" />-->
+
+    <!-- These are N=2 varaitions, so should be treated as normal -->
+    <!--
+       <variation pattern="RPA_CCQE_UBGenie" weight_formula="1.0/((1.0*(tan(atan(genie_CV_tune_weight))>=30.0)   +    tan(atan(genie_CV_tune_weight))*(tan(atan(genie_CV_tune_weight))<30.0)))" mode="minmax" />
+    -->
+</WeightMaps>
+
+
+<variation_list>
+    <whitelist>All_UBGenie</whitelist>
+    <whitelist>expskin_FluxUnisim</whitelist>
+    <whitelist>horncurrent_FluxUnisim</whitelist>
+    <whitelist>kminus_PrimaryHadronNormalization</whitelist>
+    <whitelist>kplus_PrimaryHadronFeynmanScaling</whitelist>
+    <whitelist>kzero_PrimaryHadronSanfordWang</whitelist>
+    <whitelist>nucleoninexsec_FluxUnisim</whitelist>
+    <whitelist>nucleonqexsec_FluxUnisim</whitelist>
+    <whitelist>nucleontotxsec_FluxUnisim</whitelist>
+    <whitelist>piminus_PrimaryHadronSWCentralSplineVariation</whitelist>
+    <whitelist>pioninexsec_FluxUnisim</whitelist>
+    <whitelist>pionqexsec_FluxUnisim</whitelist>
+    <whitelist>piontotxsec_FluxUnisim</whitelist>
+    <whitelist>piplus_PrimaryHadronSWCentralSplineVariation</whitelist>
+    <whitelist>NormNCCOH_UBGenie</whitelist>
+    <whitelist>NormCCCOH_UBGenie</whitelist>
+    <whitelist>Theta_Delta2Npi_UBGenie</whitelist>
+    <whitelist>RPA_CCQE_UBGenie</whitelist>
+    <whitelist>VecFFCCQEshape_UBGenie</whitelist>
+    <whitelist>AxFFCCQEshape_UBGenie</whitelist>
+    <whitelist>DecayAngMEC_UBGenie</whitelist>
+    <!--<whitelist>XSecShape_CCMEC_UBGenie</whitelist>-->
+ </variation_list>
+
+
+<!--   #################################### 2g0p    ##################################### -->
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_NCPi0All.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <friend treename="singlephoton/true_eventweight_tree"/> 
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="Sys2g0p_numerator_reco_NCPi0sig"
+        additional_weight="simple_pot_weight*(Sum$(mctruth_exiting_proton_energy-0.93827 &gt; 0.05)==0 &amp;&amp; mctruth_num_exiting_pipm==0)" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_NCPi0All.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <friend treename="singlephoton/true_eventweight_tree"/> 
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="Sys2g0p_numerator_reco_NCPi0bkg"
+        additional_weight="simple_pot_weight*!(Sum$(mctruth_exiting_proton_energy-0.93827 &gt; 0.05)==0 &amp;&amp; mctruth_num_exiting_pipm==0)" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_MergedBackgrounds.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/> 
+        <friend treename="singlephoton/true_eventweight_tree"/> 
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="Sys2g0p_numerator_reco_BeamBackgrounds"
+        additional_weight="simple_pot_weight" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_BNBext.root" scale = "1.0" maxevents="5000000" pot="1.0" fake="true"> 
+    <friend treename="singlephoton/vertex_tree"/> 
+    <friend treename="singlephoton/true_eventweight_tree"/> 
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="Sys2g0p_numerator_reco_Cosmics"
+        additional_weight="simple_pot_weight" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_NCPi0All.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <friend treename="singlephoton/true_eventweight_tree"/> 
+    <branch 
+        name="mctruth_exiting_pi0_mom"
+        type="double"
+        associated_subchannel="Sys2g0p_numerator_truth_NCPi0sig"
+        additional_weight="simple_pot_weight*(Sum$(mctruth_exiting_proton_energy-0.93827 &gt; 0.05)==0 &amp;&amp; mctruth_num_exiting_pipm==0)" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_-1_ext_Denom_NCPi0_CutFromBNB_Run123_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <friend treename="singlephoton/true_eventweight_tree"/> 
+    <friend treename="singlephoton/eventweight_tree"/> 
+    <branch 
+        name="mctruth_exiting_pi0_mom"
+        type="double"
+        associated_subchannel="Sys2g0p_denominator_truth_NCPi0sig"
+        additional_weight="(simple_pot_weight*6.868e20/4.9669582e21)*(MCFlux_NuPosX &gt; (0.0-1.55) &amp;&amp; MCFlux_NuPosX &lt; (256.35-1.55) &amp;&amp; MCFlux_NuPosY &gt; (-116.5+0.97) &amp;&amp; MCFlux_NuPosY &lt; (116.5+0.97) &amp;&amp; MCFlux_NuPosZ &gt; 0.0+0.1 &amp;&amp; MCFlux_NuPosZ &lt; 1036.8+0.1)*(Sum$(mctruth_exiting_proton_energy-0.93827 &gt; 0.05)==0 &amp;&amp; mctruth_num_exiting_pipm==0)*((run_number &gt;= 4952 &amp;&amp; run_number &lt;= 7770)*0.943100+!(run_number &gt;= 4952 &amp;&amp; run_number &lt; 7770)*1.020139)"
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+

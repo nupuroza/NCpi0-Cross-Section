@@ -2,6 +2,8 @@ from collections import OrderedDict
 
 error_bands = OrderedDict()
 
+error_bands["MC Statistical"]          = ["mc_statistical"]
+
 error_bands["Detector"]                = ["AngleXZ",
                                           "AngleYZ",
                                           "LYAtt",

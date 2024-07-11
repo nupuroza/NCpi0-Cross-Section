@@ -8,6 +8,7 @@ import re         ## to pull out date from in_dir
 
 parser = argparse.ArgumentParser(description='Script to perform the cross-section calculation for all configurations of unfolder')
 parser.add_argument('in_dir', help='Path to input directory', type=str,nargs='?')
+parser.add_argument('--closureTest',help='Input file corresponds to closure test',action='store_true')
 p = parser.parse_args()
 
 ## If in_dir is not provided, exit
@@ -17,6 +18,8 @@ if p.in_dir < 0:
   exit(1)
 
 inFileDir = p.in_dir
+
+closureTest = "_closureTest" if p.closureTest>0 else ""
 
 ## Pull date out of in_dir
 date_pattern = r"\d{4}-\d{2}-\d{2}"
@@ -40,7 +43,7 @@ configs_to_run = [
 
 for config in configs_to_run:
 
-  file_to_process = "{0}/{1}_out_unfolded_{2}.root".format(inFileDir,date_string,config)
+  file_to_process = "{0}/{1}_out_unfolded_{2}{3}.root".format(inFileDir,date_string,config, closureTest)
   command_string = "python calculateXsection.py {0}".format(file_to_process)
   print "Running the following command: \"{0}\"".format(command_string)
 
