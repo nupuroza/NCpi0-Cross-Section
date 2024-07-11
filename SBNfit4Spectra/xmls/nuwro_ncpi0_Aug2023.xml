@@ -1,0 +1,235 @@
+<?xml version="1.0" ?>
+
+<mode name="nu" />
+
+<detector name="uBooNE" />
+<channel name="nuwromc" unit="Reco #pi^{0} Momentum [GeV]">
+    <bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9"
+        />
+    <subchannel name="2g1p" osc = "0" plotname="FakeData2g1p" />
+    <subchannel name="2g0p" osc = "0" plotname="FakeData2g0p" />
+</channel>
+
+
+<channel name="cosmics" unit="Reco #pi^{0} Momentum [GeV]">
+<bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9"
+        />
+    <subchannel name="2g1p" osc = "0" plotname="Cosmics2g1p" />
+    <subchannel name="2g0p" osc = "0" plotname="Cosmics2g0p" />
+</channel>
+
+<channel name="dirt" unit="Reco #pi^{0} Momentum [GeV]">
+<bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9"
+        />
+    <subchannel name="2g1p" osc = "0" plotname="Dirt2g1p" />
+    <subchannel name="2g0p" osc = "0" plotname="Dirt2g0p" />
+</channel>
+
+
+
+<channel name="truth" unit="True #pi^{0} Momentum [GeV]">
+    <bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9"
+        />
+    <subchannel name="2g1p" osc = "0" plotname="Truthg1p" />
+    <subchannel name="2g0p" osc = "0" plotname="Truthg0p" />
+</channel>
+
+<channel name="breakdown" unit="Reco #pi^{0} Momentum [GeV]">
+    <bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9"
+        />
+    <subchannel name="2g1psig" osc = "0" plotname="2g1psig" />
+    <subchannel name="2g1pbkg" osc = "0" plotname="2g1pbkg" />
+    <subchannel name="2g0psig" osc = "0" plotname="2g0psig" />
+    <subchannel name="2g0pbkg" osc = "0" plotname="2g0pbkg" />
+</channel>
+
+
+<channel name="denom" unit="True #pi^{0} Momentum [GeV]">
+    <bins
+        edges = "0 0.075 0.15 0.225 0.3 0.375 0.45 0.525 0.6 0.675  0.9"
+        />
+    <subchannel name="2g1p" osc = "0" plotname="Denom1p" />
+    <subchannel name="2g0p" osc = "0" plotname="Denom0p" />
+</channel>
+
+
+<!--
+     ((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==1)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))
+-->
+
+
+
+<!--   #################################### Dat Fake Data (i.e MC)    ##################################### -->
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g1p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_nuwromc_2g1p"
+        additional_weight="(simple_2g1p_NextGen_v4COSMIC_mva > 0.894 &amp;&amp; simple_2g1p_NextGen_v4BNB_mva > 0.737)*((m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20))" 
+        />
+</MultisimFile>
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g0p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_nuwromc_2g0p"
+        additional_weight="(simple_2g0p_NextGen_v4COSMIC_mva > 0.944 &amp;&amp; simple_2g0p_NextGen_v4BNB_mva > 0.731)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)" 
+        />
+</MultisimFile>
+
+<!--   #################################### TRUTH   ##################################### -->
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g0p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(pow(Max$((mctruth_daughters_pdg==111)*(mctruth_daughters_E)),2) - pow(0.13497,2))"
+        type="double"
+        associated_subchannel="nu_uBooNE_truth_2g0p"
+        additional_weight="(simple_2g0p_NextGen_v4COSMIC_mva > 0.944 &amp;&amp; simple_2g0p_NextGen_v4BNB_mva > 0.731)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)*((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==1)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g1p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(pow(Max$((mctruth_daughters_pdg==111)*(mctruth_daughters_E)),2) - pow(0.13497,2))"
+        type="double"
+        associated_subchannel="nu_uBooNE_truth_2g1p"
+        additional_weight="(simple_2g1p_NextGen_v4COSMIC_mva > 0.894 &amp;&amp; simple_2g1p_NextGen_v4BNB_mva > 0.737)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)*((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==0)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+
+        />
+</MultisimFile>
+
+<!--############################# true denominator for 2g1p (i.e all events generated) ####################### -->
+<MultisimFile treename="singlephotonana/vertex_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/vertex_NuWro_Overlays_Run1_v50.0.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <branch 
+        name="sqrt(pow(Max$((mctruth_daughters_pdg==111)*(mctruth_daughters_E)),2) - pow(0.13497,2))"
+        type="double"
+        associated_subchannel="nu_uBooNE_denom_2g1p"
+        additional_weight="((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==1)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+
+<!--############################# true denominator for 2g0p (i.e all events generated) ####################### -->
+<MultisimFile treename="singlephotonana/vertex_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/vertex_NuWro_Overlays_Run1_v50.0.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <branch 
+        name="sqrt(pow(Max$((mctruth_daughters_pdg==111)*(mctruth_daughters_E)),2) - pow(0.13497,2))"
+        type="double"
+        associated_subchannel="nu_uBooNE_denom_2g0p"
+        additional_weight="((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==0)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+<!-- ################################3 breakdown ######################-->
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g1p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_breakdown_2g1psig"
+        additional_weight="(simple_2g1p_NextGen_v4COSMIC_mva > 0.894 &amp;&amp; simple_2g1p_NextGen_v4BNB_mva > 0.737)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)*((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==1)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g1p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_breakdown_2g1pbkg"
+        additional_weight="(simple_2g1p_NextGen_v4COSMIC_mva > 0.894 &amp;&amp; simple_2g1p_NextGen_v4BNB_mva > 0.737)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)*!((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==1)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g0p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_breakdown_2g0psig"
+        additional_weight="(simple_2g0p_NextGen_v4COSMIC_mva > 0.944 &amp;&amp; simple_2g0p_NextGen_v4BNB_mva > 0.731)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)*((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==1)>0.05)==0)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NuWro_Studies/sbnfit_2g0p_NextGen_v4_stage_3_ext_NuWro_FakeData_Run1_Oct2022_v50.5.root" scale = "1.0" maxevents="5000000" pot="1.0"> 
+    <friend treename="singlephoton/vertex_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_breakdown_2g0pbkg"
+        additional_weight="(simple_2g0p_NextGen_v4COSMIC_mva > 0.944 &amp;&amp; simple_2g0p_NextGen_v4BNB_mva > 0.731)*(m_flash_optfltr_pe_beam &gt;20 &amp;&amp; m_flash_optfltr_pe_veto &lt; 20)*!((mctruth_cc_or_nc==1)*(Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==111)==1)*(Sum$(fabs(mctruth_daughters_pdg*(mctruth_daughters_status_code==1))==211)==0)*((Sum$(mctruth_daughters_pdg*(mctruth_daughters_status_code==1)==22)==0))*(Sum$((mctruth_daughters_pdg==2212)*(mctruth_daughters_E-0.93827)*(mctruth_daughters_status_code==2)>0.05)==0)*(mctruth_nu_vertex_x &gt; (0.0-1.55) &amp;&amp; mctruth_nu_vertex_x &lt; (256.35-1.55) &amp;&amp; mctruth_nu_vertex_y &gt; (-116.5+0.97) &amp;&amp; mctruth_nu_vertex_y &lt; (116.5+0.97) &amp;&amp; mctruth_nu_vertex_z &gt; 0.0+0.1 &amp;&amp; mctruth_nu_vertex_z &lt; 1036.8+0.1))"
+        />
+</MultisimFile>
+
+<!-- #######################33 cosmics ##########################3-->
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_BNBext.root" scale = "1.0" maxevents="5000000" pot="1.0" > 
+    <friend treename="singlephoton/vertex_tree"/> 
+    <friend treename="singlephoton/true_eventweight_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_cosmics_2g0p"
+        additional_weight="simple_pot_weight*3.0041393/6.868" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_3_BNBext.root" scale = "1.0" maxevents="5000000" pot="1.0" > 
+    <friend treename="singlephoton/vertex_tree"/> 
+    <friend treename="singlephoton/true_eventweight_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_cosmics_2g1p"
+        additional_weight="simple_pot_weight*3.0041393/6.686" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
+<!-- #######################33 dirt ##########################3-->
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g0p_v4/sbnfit_2g0p_NextGen_v4_stage_3_Dirt.root" scale = "1.0" maxevents="5000000" pot="1.0" > 
+    <friend treename="singlephoton/vertex_tree"/> 
+    <friend treename="singlephoton/true_eventweight_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_dirt_2g0p"
+        additional_weight="simple_pot_weight*3.0041393/6.868" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
+
+<MultisimFile treename="singlephoton/simple_tree" filename="/pnfs/uboone/persistent/users/markross/Jan2022_gLEE_files/NCPi0CrossSection/UpdatedPOT/2g1p_v4/sbnfit_2g1p_NextGen_v4_stage_3_Dirt.root" scale = "1.0" maxevents="5000000" pot="1.0" > 
+    <friend treename="singlephoton/vertex_tree"/> 
+    <friend treename="singlephoton/true_eventweight_tree"/>
+    <branch 
+        name="sqrt(((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirx[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirx[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_diry[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_diry[(i_shr[1])]) + ((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])])*((1.21989*reco_shower_energy_max[i_shr[0]] + 8.50486)*reco_shower_implied_dirz[i_shr[0]] + (1.21989*reco_shower_energy_max[i_shr[1]] + 8.50486)*reco_shower_implied_dirz[(i_shr[1])]))/1000"
+        type="double"
+        associated_subchannel="nu_uBooNE_dirt_2g1p"
+        additional_weight="simple_pot_weight*3.0041393/6.868" 
+        eventweight_branch_name = "mcweight"
+        />
+</MultisimFile>
+
+
