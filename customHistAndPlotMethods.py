@@ -32,6 +32,7 @@ def localDrawErrorSummary(plotter, hist, title, xaxis_label, plotName):
     #mc_stat_error = hist.GetStatError()
     mc_stat_error_matrix = hist.GetStatErrorMatrix()
     hist.FillSysErrorMatrix("mc_statistical", mc_stat_error_matrix)
+    print(np.array([0]*(hist.GetNbinsX() + 2)))
     hist.SetError(np.array([0]*(hist.GetNbinsX() + 2)))
     #hist.AddVertErrorBandAndFillWithCV("mc_statistical", 2)
     #hist.GetVertErrorBand("mc_statistical").GetHist(1).Add(mc_stat_error)
