@@ -58,13 +58,14 @@ for sigDefnp in ["2g1p","2g0p"]:
       
       ## Get xsec ingredients that are unique to this sigDef/sigDefexcl
       tHist_unfolded_cov_evtRate = outFile.Get("unfolded_cov_evtRate_" + sigDef)
-      tHist_evtRate_unfolded = outFile.Get("unfolded_evtRate_" + sigDef)
+      mHist_evtRate_unfolded = outFile.Get("unfolded_evtRate_" + sigDef)
       mHist_xSection_mc = outFile.Get("xSection_mc_" + sigDef)
       tHist2D_add_smear_matrix = outFile.Get("add_smear_matrix_" + sigDef)
-      nBins = tHist_evtRate_unfolded.GetNbinsX()
+      nBins = mHist_evtRate_unfolded.GetNbinsX()
       for i in range(0, nBins+2):## Loop over bins
         cov_binContent = tHist_unfolded_cov_evtRate.GetBinContent(i,i)
-        tHist_evtRate_unfolded.SetBinError(i,math.sqrt(cov_binContent))
+        mHist_evtRate_unfolded.SetBinError(i,math.sqrt(cov_binContent))
+      tHist_evtRate_unfolded = mHist_evtRate_unfolded.GetCVHistoWithStatError()
 
       ## Calculate cross section
       tHist_xSection_data = tHist_evtRate_unfolded.Clone("unfolded_xSection_" + sigDef)

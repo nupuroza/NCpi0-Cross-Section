@@ -304,8 +304,7 @@ for data_type in ["mc","data", "scaling"]:
 #############################################################################################################
 
 ## MCC9 (official files)
-fluxFileDir = "/mnt/morrigan/NCPi0_XS_data"
-fluxFilePath = "{0}/MCC9_FluxHist_volTPCActive.root".format(fluxFileDir)
+fluxFilePath = "{0}/MCC9_FluxHist_volTPCActive.root".format(inDir)
 fluxFile = ROOT.TFile(fluxFilePath)
 
 ## Loop over neutrino species
