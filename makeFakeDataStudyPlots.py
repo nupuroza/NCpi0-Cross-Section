@@ -783,5 +783,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
     ### Plot of error breakdown for Folded Fake Data
     ######################################################
     exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+
+    ### Plot of error breakdown for Unfolded Fake Data
+    ######################################################
     exec("localDrawErrorSummary(plotter, mHist_unfolded_evtRate_{1}, \"{0} Exclusive Unfolded Events Error Summary\", \"True #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_{1}.png\")".format(sigDefnp, sigDef, plotDir))
 
