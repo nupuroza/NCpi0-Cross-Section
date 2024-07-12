@@ -25,8 +25,6 @@ def calculateChi2(mc_hist, data_hist, cov_matrix, cov_matrix_includes_stats):
     if not cov_matrix_includes_stats:
         for i in range(nbins + 1):
             cov_matrix_with_stat[i][i] += 3/(1/data_hist.GetBinContent(i+1) + 2/mc_hist.GetBinContent(i+1))
-            print(data_hist.GetBinContent(i+1))
-            print(mc_hist.GetBinContent(i+1))
     inv_cov_matrix_with_stat = ROOT.TMatrixD(ROOT.TMatrixD.kInverted, cov_matrix_with_stat)
     diff_mat = ROOT.TMatrixD(nbins + 1, 1)
     for i in range(nbins + 1):
@@ -34,4 +32,6 @@ def calculateChi2(mc_hist, data_hist, cov_matrix, cov_matrix_includes_stats):
     # Calculate chi2 using Eq. 18 of paper.
     chi2_temp = ROOT.TMatrixD(diff_mat, ROOT.TMatrixD.kTransposeMult, inv_cov_matrix_with_stat)
     chi2 = ROOT.TMatrixD(chi2_temp, ROOT.TMatrixD.kMult, diff_mat)
+    #cov_matrix_with_stat.Print()
+    #cov_matrix.Print()
     return chi2(0, 0), cov_matrix_with_stat

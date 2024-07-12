@@ -106,16 +106,41 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     TMatrixD tMat_prior_reco_signal_initial = TMatrixD(nBins_reco + 2, 1, tHist_prior_reco_signal.GetArray());
     TMatrixD tMat_prior_reco_signal = tMat_prior_reco_signal_initial.GetSub(lowerBound, upperBound, 0, 0);
 
+    // --------------------------------------------------------
+    // Extract covariance matrix for each vertical error band
+    // to be unfolded and used for plotting error breakdown.
+    // --------------------------------------------------------
+    std::vector<std::string> error_bands = mHist_fakedata_mc -> GetVertErrorBandNames();
+    std::vector<TMatrixD> folded_covariance_matrices;
+    TMatrixD tMat_folded_data_stat_covariance_matrix = TMatrixD(nBins_reco + 2, nBins_reco + 2);
+    TMatrixD tMat_folded_mc_stat_covariance_matrix = TMatrixD(nBins_reco + 2, nBins_reco + 2);
+    for(std::string error_band : error_bands)
+        folded_covariance_matrices.push_back(mHist_fakedata_mc -> GetVertErrorBand(error_band) -> CalcCovMx());
+
     // If this is a closure test, data_signal should be generator prediction in reco space
+    // Extract data statistical uncertainty using Neyman-Pearson method (see calculateChi2.py).
     if(closureTest){
         tMat_data_signal = tMat_prior_reco_signal;
-        for(int i = 0; i < upperBound - lowerBound + 1; i++)    
-            tMat_data_covmat_final[i][i] += mHist_fakedata_mc -> GetBinContent(i + lowerBound);
-    }
+        for(int i = 0; i < upperBound + include_underflow_reco; i++){
+            double data_stat_error = mHist_fakedata_mc -> GetBinContent(i + lowerBound);
+            double mc_stat_error = mHist_fakedata_mc -> GetBinError(i + lowerBound);
+            tMat_data_covmat_final[i][i] += data_stat_error;
+            tMat_folded_data_stat_covariance_matrix[i+lowerBound][i+lowerBound] = data_stat_error;
+            tMat_folded_mc_stat_covariance_matrix[i+lowerBound][i+lowerBound] = mc_stat_error;
+    }}
     else{
-        for(int i = 0; i < upperBound - lowerBound + 1; i++)
-            tMat_data_covmat_final[i][i] += 3/(1/mHist_data_selected -> GetBinContent(i + lowerBound) + 2/mHist_fakedata_mc -> GetBinContent(i + lowerBound));
-    }
+        for(int i = 0; i < upperBound + include_underflow_reco; i++){
+            double data_stat_error = 3/(1/mHist_data_selected -> GetBinContent(i + lowerBound) + 2/mHist_fakedata_mc -> GetBinContent(i + lowerBound));
+            double mc_stat_error = mHist_fakedata_mc -> GetBinError(i + lowerBound);
+            tMat_data_covmat_final[i][i] += data_stat_error;
+            tMat_folded_data_stat_covariance_matrix[i+lowerBound][i+lowerBound] = data_stat_error;
+            tMat_folded_mc_stat_covariance_matrix[i+lowerBound][i+lowerBound] = mc_stat_error;
+    }}
+    // Add data and MC statistical uncertainties to vector of folded covariance matrices.
+    error_bands.push_back("data_statistical");
+    folded_covariance_matrices.push_back(tMat_folded_data_stat_covariance_matrix);
+    error_bands.push_back("mc_statistical");
+    folded_covariance_matrices.push_back(tMat_folded_mc_stat_covariance_matrix);
 
     // ----------------------------------------------------------
     // Print out number of rows and columns in each input matrix
@@ -189,6 +214,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     //Pull out unfolded signal and covariance from results
     auto tMat_data_signal_unfolded = result.unfolded_signal_.get();
     auto tMat_unfolded_covariance = result.cov_matrix_.get();
+    auto tMat_unfolding_matrix = result.unfolding_matrix_.get();
     auto tMat_errprop_matrix = result.err_prop_matrix_.get();
     auto tMat_add_smear_matrix = result.add_smear_matrix_.get();
 
@@ -242,14 +268,25 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
     // Construct MnvH1D
     PlotUtils::MnvH1D mHist_data_signal_unfolded = PlotUtils::MnvH1D(tHist_data_signal_unfolded);
     mHist_data_signal_unfolded.AddMissingErrorBandsAndFillWithCV(*mHist_data_signal_folded);
+    TMatrixD *tMat_unfolding_matrix_final = new TMatrixD(nBins_reco + 2, nBins_true + 2);
+    for(int i = 0; i < tMat_unfolding_matrix -> GetNrows(); i++)
+        for(int j = 0; j< tMat_unfolding_matrix -> GetNcols(); j++)
+            tMat_unfolding_matrix_final -> operator()(i + lowerBound, j + lowerBoundTrue) = tMat_unfolding_matrix -> operator()(i, j);
+    int matrix_number = 0;
+    for(const auto& error_band : error_bands){
+        TMatrixD folded_covariance_matrix = folded_covariance_matrices.at(matrix_number);
+        TMatrixD unfolded_covariance_matrix_intermediate = TMatrixD(*tMat_unfolding_matrix_final, TMatrixD::EMatrixCreatorsOp2::kMult, folded_covariance_matrix);
+        TMatrixD unfolded_covariance_matrix = TMatrixD(unfolded_covariance_matrix_intermediate, TMatrixD::EMatrixCreatorsOp2::kMultTranspose, *tMat_unfolding_matrix_final);
+        mHist_data_signal_unfolded.FillSysErrorMatrix(error_band.c_str(), unfolded_covariance_matrix);
+        matrix_number++;
+    }
 
     // -----------------------------------------------------
     // Write unfolded results to output file
     // -----------------------------------------------------
 
-    tHist_data_signal_unfolded = mHist_data_signal_unfolded.GetCVHistoWithError();
-    tHist_data_signal_unfolded.SetName(("unfolded_evtRate_"+sigDef).c_str());
-    tHist_data_signal_unfolded.Write();   
+    mHist_data_signal_unfolded.SetName(("unfolded_evtRate_"+sigDef).c_str());
+    mHist_data_signal_unfolded.Write();   
     tHist2D_unfolded_covariance.SetName(("unfolded_cov_evtRate_"+sigDef).c_str());
     tHist2D_unfolded_covariance.Write();
     tHist2D_covariance.SetName(("cov_evtRate_"+sigDef).c_str());
