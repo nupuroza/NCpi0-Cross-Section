@@ -87,7 +87,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
 
     ### Get THnDs
     ################
-    for histCat in ["cov_evtRate","unfolded_cov_evtRate","unfolded_evtRate","unfolded_xSection","add_smear_matrix", "smeared_xSection_mc", "smeared_nuwro_signal"]:
+    for histCat in ["cov_evtRate","unfolded_cov_evtRate","unfolded_xSection","add_smear_matrix", "smeared_xSection_mc", "smeared_nuwro_signal"]:
     
       exec("tHist_{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
     
@@ -108,7 +108,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
 
     ### Get MnvHnDs
     ################
-    for histCat in ["xSection_mc", "background"]:
+    for histCat in ["unfolded_evtRate","xSection_mc", "background"]:
     
       exec("mHist_{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
       exec("tHist_{0}_{1} = mHist_{0}_{1}.GetCVHistoWithStatError()".format(histCat,sigDef))
@@ -315,8 +315,13 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       #local_tHist_smeared_nuwro_truth.Scale(1e-3)
            
       ## Calculate yrange
-      minycontent_local_tHist_unfolded_evtRate = local_tHist_unfolded_evtRate.GetMinimum()
-      miny_local_tHist_unfolded_evtRate = minycontent_local_tHist_unfolded_evtRate - (local_tHist_unfolded_evtRate.GetBinError(local_tHist_unfolded_evtRate.GetMinimumBin()) if minycontent_local_tHist_unfolded_evtRate < 0 else 0)
+      minybin_local_tHist_unfolded_evtRate = 0
+      minycontent_local_tHist_unfolded_evtRate = 100000
+      for i in range(1, nBins + 2):
+        if local_tHist_unfolded_evtRate.GetBinContent(i) < minycontent_local_tHist_unfolded_evtRate:
+          minybin_local_tHist_unfolded_evtRate = i
+          minycontent_local_tHist_unfolded_evtRate = local_tHist_unfolded_evtRate.GetBinContent(i)
+      miny_local_tHist_unfolded_evtRate = minycontent_local_tHist_unfolded_evtRate - (local_tHist_unfolded_evtRate.GetBinError(minybin_local_tHist_unfolded_evtRate) if minycontent_local_tHist_unfolded_evtRate < 0 else 0)
       maxy_local_tHist_unfolded_evtRate = local_tHist_unfolded_evtRate.GetMaximum() + local_tHist_unfolded_evtRate.GetBinError(local_tHist_unfolded_evtRate.GetMaximumBin())
       miny_local_tHist_genie_evtRate = local_tHist_genie_evtRate.GetMinimum()
       maxy_local_tHist_genie_evtRate = local_tHist_genie_evtRate.GetMaximum()
@@ -578,6 +583,27 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tMat_cov_effNum_reco = local_tMat_cov_effNum_reco.GetSub(lowerBound, upperBound, lowerBound, upperBound)
       local_tMat_cov_reco_evtRate = ROOT.TMatrixD(upperBound + include_underflow_reco, upperBound + include_underflow_reco)
       local_tMat_cov_reco_evtRate.Minus(local_tMat_cov_evtRate, local_tMat_cov_effNum_reco)
+
+      exec("local_mHist_background = mHist_background_{0}.Clone(\"local_mHist_background\")".format(sigDef))
+      # Transfer all uncertainties onto the folded fake data (local_mHist_evtRate_reco) so that fractional uncertainties are calculated relative to its bin content.
+      # Folded fake data is fake data minus MC background. The only systematic uncertainties should come from MC background.
+      local_mHist_background.TransferErrorBands(local_mHist_evtRate_reco, False)
+      # Calculate data statistical uncertainty using prescription in calculateChi2.py
+      local_mHist_data_selected = histFile.Get("data_selected_" + sigDefnp)
+      local_mHist_fakedata_mc = histFile.Get("fakedata_mc_" + sigDef)
+      exec("local_tMat_folded_covariance = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
+      local_tMat_folded_covariance_sub = local_tMat_folded_covariance.GetSub(1, nBins + 1, 1, nBins + 1)
+      local_tMat_folded_covariance_with_stat_sub = calculateChi2(local_mHist_data_selected, local_mHist_fakedata_mc, local_tMat_folded_covariance_sub, False)[1] 
+      local_tMat_folded_covariance_with_stat = local_tMat_folded_covariance.Clone()
+      for i in range(nBins + 1):
+        for j in range(nBins + 1):
+          local_tMat_folded_covariance_with_stat[i + 1][j + 1] = local_tMat_folded_covariance_with_stat_sub[i][j]
+        local_mHist_evtRate_reco.SetBinError(i, local_mHist_background.GetBinError(i))
+      local_tMat_stat_error = ROOT.TMatrixD(nBins+2, nBins + 2)
+      local_tMat_stat_error.Minus(local_tMat_folded_covariance_with_stat, local_tMat_folded_covariance)
+      local_mHist_evtRate_reco.FillSysErrorMatrix("data_statistical", local_tMat_stat_error)
+      local_tMat_cov_reco_evtRate = local_mHist_evtRate_reco.GetTotalErrorMatrix(False)
+      local_tMat_cov_reco_evtRate = local_tMat_cov_reco_evtRate.GetSub(1, nBins + 1, 1, nBins + 1)
       
       # Set errors to square root of diagonal of folded covariance matrix.
       for i in range(upperBound + include_underflow_reco):
@@ -693,7 +719,6 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       # The only difference between NuWro fake data and NuWro reco signal is the background, so we extract and only use the background uncertainty.
       local_tHist_nuwro_signal = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "sig")
       local_tHist_nuwro_background = histFile.Get("nu_uBooNE_breakdown_" + sigDefnp + "bkg")
-      exec("local_mHist_background = mHist_background_{0}.Clone(\"local_mHist_background\")".format(sigDef))
       local_tHist_evtRate_reco = local_mHist_evtRate_reco.GetCVHistoWithError()
       local_tHist_background = local_mHist_background.GetCVHistoWithError()
       local_tMat_background_covMat = local_mHist_background.GetTotalErrorMatrix(True) 
@@ -750,25 +775,16 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       ptall.Draw()
       canvas.canvas.cd(0)
   
-  ### Plot of error breakdown for Monte Carlo Background
-  ######################################################
-  # exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
-  # local_mHist_background.TransferErrorBands(local_mHist_evtRate_reco, False)
-  # local_mHist_data_selected = histFile.Get("data_selected_" + sigDefnp)
-  # local_mHist_fakedata_mc = histFile.Get("fakedata_mc_" + sigDef)
-  # exec("local_tMat_folded_covariance = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
-  # local_tMat_folded_covariance_sub = local_tMat_folded_covariance.GetSub(lowerBound, upperBound, lowerBound, upperBound)
-  # local_tMat_folded_covariance_with_stat_sub = calculateChi2(local_mHist_data_selected, local_mHist_fakedata_mc, local_tMat_folded_covariance_sub, False)[1] 
-  # local_tMat_folded_covariance_with_stat = local_tMat_folded_covariance
-  # for i in range(upperBound):
-  #   for j in range(upperBound):
-  #     local_tMat_folded_covariance_with_stat[i + 1][j + 1] = local_tMat_folded_covariance_with_stat_sub[i][j]
-  # local_tMat_stat_error = ROOT.TMatrixD(upperBound + 1, upperBound + 1)
-  # local_tMat_stat_error.Minus(local_tMat_folded_covariance_with_stat, local_tMat_folded_covariance)
-  # print(local_mHist_data_selected.GetBinContent(1))
-  # print(local_mHist_fakedata_mc.GetBinContent(1))
-  # print(local_tMat_folded_covariance_with_stat_sub[1][1])
-  # print(local_tMat_folded_covariance[2][2])
-  # local_mHist_evtRate_reco.FillSysErrorMatrix("data_statistical", local_tMat_stat_error)
-  # exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+
+    ### Plot of error breakdown for Monte Carlo Background
+    ######################################################
+    exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+
+    ### Plot of error breakdown for Folded Fake Data
+    ######################################################
+    exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+
+    ### Plot of error breakdown for Unfolded Fake Data
+    ######################################################
+    exec("localDrawErrorSummary(plotter, mHist_unfolded_evtRate_{1}, \"{0} Exclusive Unfolded Events Error Summary\", \"True #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_{1}.png\")".format(sigDefnp, sigDef, plotDir))
 

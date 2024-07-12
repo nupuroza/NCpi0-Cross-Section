@@ -23,26 +23,23 @@ class makeEnv_TCanvas(object):
     del self.canvas
 
 def localDrawErrorSummary(plotter, hist, title, xaxis_label, plotName):
+  hist = hist.Clone()
   
   with makeEnv_TCanvas(plotName) as canvas:
   
     hist.GetXaxis().SetTitle(xaxis_label)
     hist.GetXaxis().SetTitleSize(0.05)
     
-    #mc_stat_error = hist.GetStatError()
     mc_stat_error_matrix = hist.GetStatErrorMatrix()
-    hist.FillSysErrorMatrix("mc_statistical", mc_stat_error_matrix)
-    print(np.array([0]*(hist.GetNbinsX() + 2)))
+    if not hist.HasErrorMatrix("mc_statistical"):
+      hist.FillSysErrorMatrix("mc_statistical", mc_stat_error_matrix)
     hist.SetError(np.array([0]*(hist.GetNbinsX() + 2)))
-    #hist.AddVertErrorBandAndFillWithCV("mc_statistical", 2)
-    #hist.GetVertErrorBand("mc_statistical").GetHist(1).Add(mc_stat_error)
-    #hist.GetVertErrorBand("mc_statistical").SetUseSpreadError(True)
     if hist.HasErrorMatrix("data_statistical"):
       data_stat_error_matrix = hist.GetSysErrorMatrix("data_statistical", False, False)
       for i in range(hist.GetNbinsX() + 2):
-        #print(data_stat_error_matrix[i][i])
-        hist.SetBinError(i, data_stat_error_matrix[i][i])
-
+        hist.SetBinError(i, np.sqrt(data_stat_error_matrix[i][i]))
+      hist.PopSysErrorMatrix("data_statistical")
+  
     plotObjs = plotter.DrawErrorSummary(hist,"TL",True,True,0.00001,False,"",True,"",True)
     error_plots = plotObjs.first
     names = plotObjs.second
