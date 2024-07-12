@@ -69,15 +69,21 @@ is_test = True if p.test > 0 else False
 ### Pull out relevant objects from input file ###############################################################
 #############################################################################################################
 
-#for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDefnp in ["2g1p","2g0p"]:
+#for sigDef in ["2g1p","2g0p","2gXp"]:
+for sigDefnp in ["2g1p","2g0p","2gXp"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["exclusive"]:
+  for sigDefexcl in ["exclusive","inclusive"]:
 
-    if sigDefnp == "2gnp" and sigDefexcl == "exclusive":
+    sigDef = sigDefnp + "_" + sigDefexcl
+
+    if sigDefnp == "2gXp" and sigDefexcl == "exclusive":
       continue
-  
-    sigDef = sigDefnp+"_"+sigDefexcl
+
+    if sigDefnp == "2g1p" and sigDefexcl == "inclusive":
+      continue
+
+    if sigDefnp == "2g0p" and sigDefexcl == "inclusive":
+      continue
 
     ### Get THnDs
     ################
@@ -85,6 +91,21 @@ for sigDefnp in ["2g1p","2g0p"]:
     
       exec("tHist_{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
     
+    #overflow and underflow for unfolded_evtRate
+    threshold = 10e-6
+    exec("local_tHist_unfolded_evtRate = tHist_unfolded_evtRate_{0}".format(sigDef))
+    nBins = local_tHist_unfolded_evtRate.GetNbinsX()
+
+    binVal_overflow_reco = local_tHist_unfolded_evtRate.GetBinContent(nBins + 1)
+    include_overflow_reco = 1 if binVal_overflow_reco > threshold else 0
+
+    binVal_underflow_reco = local_tHist_unfolded_evtRate.GetBinContent(0)
+    include_underflow_reco = 1 if binVal_underflow_reco > threshold else 0
+
+    #upper and lower bounds for later use
+    lowerBound = 0 if binVal_underflow_reco else 1
+    upperBound = nBins + 1 if binVal_overflow_reco else nBins
+
     ### Get MnvHnDs
     ################
     for histCat in ["unfolded_evtRate","xSection_mc", "background"]:
@@ -131,14 +152,20 @@ ptall.SetFillColorAlpha(0, 0)
 ptall.AddText("MicroBooNE Simulation In Progress")
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDefnp in ["2g1p", "2g0p"]:
+for sigDefnp in ["2g1p","2g0p","2gXp"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["exclusive"]:
+  for sigDefexcl in ["exclusive","inclusive"]:
 
-    if sigDefnp == "2gnp" and sigDefexcl == "exclusive":
+    sigDef = sigDefnp + "_" + sigDefexcl
+
+    if sigDefnp == "2gXp" and sigDefexcl == "exclusive":
       continue
-  
-    sigDef = sigDefnp+"_"+sigDefexcl
+
+    if sigDefnp == "2g1p" and sigDefexcl == "inclusive":
+      continue
+
+    if sigDefnp == "2g0p" and sigDefexcl == "inclusive":
+      continue
 
     plotter.SetROOT6Palette(54)
     
@@ -233,14 +260,20 @@ ptall.SetX2NDC(0.925)
 ptall.SetY2NDC(0.5)
 
 #for sigDef in ["2g1p","2g0p","2gnp"]:
-for sigDefnp in ["2g1p","2g0p"]:
+for sigDefnp in ["2g1p","2g0p","2gXp"]:
   #for sigDefexcl in ["inclusive","exclusive"]:
-  for sigDefexcl in ["exclusive"]:
+  for sigDefexcl in ["exclusive","inclusive"]:
 
-    if sigDefnp == "2gnp" and sigDefexcl == "exclusive":
+    sigDef = sigDefnp + "_" + sigDefexcl
+
+    if sigDefnp == "2gXp" and sigDefexcl == "exclusive":
       continue
 
-    sigDef = sigDefnp+"_"+sigDefexcl
+    if sigDefnp == "2g1p" and sigDefexcl == "inclusive":
+      continue
+
+    if sigDefnp == "2g0p" and sigDefexcl == "inclusive":
+      continue
 
         
     ### Plot of NuWro fake data unfolded events vs. GENIE generator prediction
@@ -264,9 +297,9 @@ for sigDefnp in ["2g1p","2g0p"]:
       
       
       ## Calculate chi2 before scaling.
-      local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(nBins + 1, nBins + 1)
-      for i in range(1, nBins+2):
-        for j in range(1, nBins+2):
+      local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(upperBound + include_underflow_reco, upperBound + include_underflow_reco)
+      for i in range(lowerBound, upperBound+1):
+        for j in range(lowerBound, upperBound+1):
           exec("local_tMat_unfolded_cov_evtRate[i-1][j-1] = tHist_unfolded_cov_evtRate_{0}.GetBinContent(j, i)".format(sigDef))
       chi2_NuWro = calculateChi2(local_tHist_nuwro_truth, local_tHist_unfolded_evtRate, local_tMat_unfolded_cov_evtRate, True)[0]
       chi2_NuWro_smeared = calculateChi2(local_tHist_smeared_nuwro_truth, local_tHist_unfolded_evtRate, local_tMat_unfolded_cov_evtRate, True)[0]
@@ -435,7 +468,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       # Draw the legend
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
-      legend.SetBorderSize(0);
+      legend.SetBorderSize(0)
       legend.AddEntry(local_tHist_unfolded_xSection_scaled,"NuWro Fake Data","lep")
       if is_test:
         legend.AddEntry(local_tHist_xSection_mc_scaled,"GENIE Prediction","f")
@@ -497,7 +530,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       overflow3 = DrawWithOverflow(local_tHist_unfolded_evtRate, canvas.canvas, "SAME")
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
-      legend.SetBorderSize(0);
+      legend.SetBorderSize(0)
       legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
       if is_test:
         legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
@@ -546,9 +579,9 @@ for sigDefnp in ["2g1p","2g0p"]:
       # On the other hand, do we want the covariance matrix we're unfolding to be different from the one we use for our reco distributions?
       # Currently subtracting signal systematic component of the folded covariance matrix.
       exec("local_tMat_cov_evtRate = ROOT.TMatrixD(nBins + 2, nBins + 2, tHist_cov_evtRate_{0}.GetArray())".format(sigDef))
-      local_tMat_cov_evtRate = local_tMat_cov_evtRate.GetSub(1, nBins + 1, 1, nBins + 1)
-      local_tMat_cov_effNum_reco = local_tMat_cov_effNum_reco.GetSub(1, nBins + 1, 1, nBins + 1)
-      local_tMat_cov_reco_evtRate = ROOT.TMatrixD(nBins + 1, nBins + 1)
+      local_tMat_cov_evtRate = local_tMat_cov_evtRate.GetSub(lowerBound, upperBound, lowerBound, upperBound)
+      local_tMat_cov_effNum_reco = local_tMat_cov_effNum_reco.GetSub(lowerBound, upperBound, lowerBound, upperBound)
+      local_tMat_cov_reco_evtRate = ROOT.TMatrixD(upperBound + include_underflow_reco, upperBound + include_underflow_reco)
       local_tMat_cov_reco_evtRate.Minus(local_tMat_cov_evtRate, local_tMat_cov_effNum_reco)
 
       exec("local_mHist_background = mHist_background_{0}.Clone(\"local_mHist_background\")".format(sigDef))
@@ -573,9 +606,9 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tMat_cov_reco_evtRate = local_tMat_cov_reco_evtRate.GetSub(1, nBins + 1, 1, nBins + 1)
       
       # Set errors to square root of diagonal of folded covariance matrix.
-      for i in range(nBins + 1):
-        local_tHist_effNum_reco.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
-        local_tHist_evtRate_reco.SetBinError(i + 1, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
+      for i in range(upperBound + include_underflow_reco):
+        local_tHist_effNum_reco.SetBinError(i + lowerBound, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
+        local_tHist_evtRate_reco.SetBinError(i + lowerBound, math.sqrt(local_tMat_cov_reco_evtRate[i][i]))
 
       # Calculate chi2 before scaling.
       chi2_effNum_hreco = calculateChi2(local_tHist_hreco, local_tHist_effNum_reco, local_tMat_cov_reco_evtRate, True)[0]
@@ -689,11 +722,11 @@ for sigDefnp in ["2g1p","2g0p"]:
       local_tHist_evtRate_reco = local_mHist_evtRate_reco.GetCVHistoWithError()
       local_tHist_background = local_mHist_background.GetCVHistoWithError()
       local_tMat_background_covMat = local_mHist_background.GetTotalErrorMatrix(True) 
-      local_tMat_background_covMat = local_tMat_background_covMat.GetSub(1, nBins + 1, 1, nBins + 1)
+      local_tMat_background_covMat = local_tMat_background_covMat.GetSub(lowerBound, upperBound, lowerBound, upperBound)
 
       # Update covariance with data statistical uncertainties and set error bars to the diagonal.
       chi2_evtRate_reco_nuwro_signal, local_tMat_background_covMat = calculateChi2(local_tHist_nuwro_background, local_tHist_background, local_tMat_background_covMat, False)
-      for i in range(nBins + 1):
+      for i in range(upperBound):
         local_tHist_evtRate_reco.SetBinError(i + 1, math.sqrt(local_tMat_background_covMat[i][i]))
       
       # Scale and set max y.
@@ -742,6 +775,7 @@ for sigDefnp in ["2g1p","2g0p"]:
       ptall.Draw()
       canvas.canvas.cd(0)
   
+
     ### Plot of error breakdown for Monte Carlo Background
     ######################################################
     exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
@@ -750,5 +784,4 @@ for sigDefnp in ["2g1p","2g0p"]:
     ######################################################
     exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
     exec("localDrawErrorSummary(plotter, mHist_unfolded_evtRate_{1}, \"{0} Exclusive Unfolded Events Error Summary\", \"True #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_{1}.png\")".format(sigDefnp, sigDef, plotDir))
-
 

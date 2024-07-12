@@ -205,7 +205,7 @@ void ResponseMaker(std::string outDir){
    PlotUtils::MnvH2D * resp_2g0p = new PlotUtils::MnvH2D("Response_2g0p","Response_2g0p",nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
 
     PlotUtils::MnvH1D * hreco_2gXp = new PlotUtils::MnvH1D("hreco_2gXp", "hreco_2gXp", nbins_reco, &reco_bins[0]);
-    PlotUtils::MnvH2D * resp_2gXp = new PlotUtils::MnvH2D("resp_2gXp", "resp_2gXp", nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
+    PlotUtils::MnvH2D * resp_2gXp = new PlotUtils::MnvH2D("Response_2gXp", "Response_2gXp", nbins_reco, &reco_bins[0], nbins_true, &true_bins[0]);
     PlotUtils::MnvH1D * htrue_2gXp = new PlotUtils::MnvH1D("htrue_2gXp","htrue_2gXp",nbins_true, &true_bins[0]);
 
     // Create vertical error bands for cross section systematic universes that need to be updated.
@@ -232,7 +232,7 @@ void ResponseMaker(std::string outDir){
     TMatrixD mat_2g0p(nbins_reco + 2, nbins_true + 2);
     mat_2g0p.Zero();
 
-    TMatrix mat_2gXp(nbins_reco + 2, nbins_true + 2);
+    TMatrixD mat_2gXp(nbins_reco + 2, nbins_true + 2);
     mat_2gXp.Zero();
 
     // Loop through event tree; fill htrue, hreco, and response hists
@@ -358,9 +358,6 @@ void ResponseMaker(std::string outDir){
     TH1D *htrue_resp_2g0p = (TH1D*) spectraout_2g0p -> Get("exclusive_2g0p_CV_Dir/Sys2g0p_denominator_truth_Signal");
 
     TH1D *htrue_resp_2gXp = (TH1D*) spectraout_2gXp -> Get("inclusive_2gXp_CV_Dir/Sys2gXp_denominator_truth_Signal");
-
-
-    //comment out all edits below!!!!!!!!!!!!!!!!
 
     // Loop through vertical error band
     for(std::string vert_error_band_name : resp_2g1p -> GetVertErrorBandNames()){

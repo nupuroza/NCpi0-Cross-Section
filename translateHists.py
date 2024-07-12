@@ -49,8 +49,12 @@ dataFile_2g0p = ROOT.TFile(dataFilePath_2g0p)
 dataFilePath_NuWroFakeData =  inDir + "NuWro_Aug2023_v7_CV.SBNspec.root"
 dataFile_NuWroFakeData = ROOT.TFile(dataFilePath_NuWroFakeData)
 
+## NuWro fake data but inclusive this time
+dataFilePath_NuWroFakeData_inclusive =  inDir + "NuWro_Jun2024_v9_Inclusive_CV.SBNspec.root"
+dataFile_NuWroFakeData_inclusive = ROOT.TFile(dataFilePath_NuWroFakeData_inclusive)
+
 ## Load input file with efficiency denominator, efficiency numerator and background
-inFilePath_2gXp_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2gXp.root" ## placeholder
+inFilePath_2gXp_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2gXp.root"
 inFile_2gXp_inclusive = ROOT.TFile(inFilePath_2gXp_inclusive)
 
 inFilePath_2g1p_inclusive = inDir + "SBNfit_variation_spectra_inclusive_2g1p.root" ## placeholder
@@ -418,6 +422,19 @@ for sigDef in ["2g1p","2g0p"]:
     exec("tHist_data_signal_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
     exec("tHist_data_background_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
     exec("tHist_data_truth_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
+    outFile.cd()
+    for datatype in ["selected", "signal", "background", "truth"]:
+      exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
+  else:
+    exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
+
+## Pull out CV hists but inclusive this time
+for sigDef in ["2gXp"]:
+  if is_fake_data:
+    exec("tHist_data_selected_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
+    exec("tHist_data_signal_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
+    exec("tHist_data_background_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
+    exec("tHist_data_truth_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
     outFile.cd()
     for datatype in ["selected", "signal", "background", "truth"]:
       exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
