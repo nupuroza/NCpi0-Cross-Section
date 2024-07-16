@@ -91,6 +91,13 @@ def Rebin(hist_to_rebin, referenceHist, newname = ""):
 def DrawWithOverflow(hist, canvas, draw_options):
     # Get number of bins
     nbins = hist.GetNbinsX()
+    threshold = 1e-6
+    binVal_overflow = abs(hist.GetBinContent(nbins + 1))
+    include_overflow = 1 if binVal_overflow > threshold else 0
+    if !include_overflow:
+      hist.Draw(draw_options)
+      ROOT.gPad.SetRightMargin(0.02)
+      return 0
 
     # Divide canvas if it has not already been divided.
     pads = canvas.GetListOfPrimitives()
