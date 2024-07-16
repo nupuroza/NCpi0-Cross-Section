@@ -20,6 +20,9 @@ if p.in_dir < 0:
 
 inFileDir = p.in_dir
 
+if inFileDir[-1] == '/':
+  inFileDir = inFileDir[:-1]
+
 is_closure_test = "true" if p.closureTest>0 else "false"
 
 ## Pull date out of in_dir

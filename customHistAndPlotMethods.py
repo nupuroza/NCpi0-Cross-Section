@@ -94,7 +94,7 @@ def DrawWithOverflow(hist, canvas, draw_options):
     threshold = 1e-6
     binVal_overflow = abs(hist.GetBinContent(nbins + 1))
     include_overflow = 1 if binVal_overflow > threshold else 0
-    if !include_overflow:
+    if not include_overflow:
       hist.Draw(draw_options)
       ROOT.gPad.SetRightMargin(0.02)
       return 0
