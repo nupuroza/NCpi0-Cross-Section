@@ -93,13 +93,13 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
     
     #overflow and underflow for unfolded_evtRate
     threshold = 10e-6
-    exec("local_tHist_unfolded_evtRate = tHist_unfolded_evtRate_{0}".format(sigDef))
-    nBins = local_tHist_unfolded_evtRate.GetNbinsX()
+    exec("local_tHist_unfolded_xSection = tHist_unfolded_xSection_{0}".format(sigDef))
+    nBins = local_tHist_unfolded_xSection.GetNbinsX()
 
-    binVal_overflow_reco = local_tHist_unfolded_evtRate.GetBinContent(nBins + 1)
+    binVal_overflow_reco = abs(local_tHist_unfolded_xSection.GetBinContent(nBins + 1))
     include_overflow_reco = 1 if binVal_overflow_reco > threshold else 0
 
-    binVal_underflow_reco = local_tHist_unfolded_evtRate.GetBinContent(0)
+    binVal_underflow_reco = abs(local_tHist_unfolded_xSection.GetBinContent(0))
     include_underflow_reco = 1 if binVal_underflow_reco > threshold else 0
 
     #upper and lower bounds for later use
