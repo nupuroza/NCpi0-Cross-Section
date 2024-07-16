@@ -30,27 +30,20 @@
 
 <WeightMaps>
     <variation pattern="_UBGenie" weight_formula="1.0/((1.0*(tan(atan(genie_CV_tune_weight))>=30.0)   +    tan(atan(genie_CV_tune_weight))*(tan(atan(genie_CV_tune_weight))<30.0)))"/>
-
     <!-- These are N=1 min/max variations -->
+    <variation pattern="NormNCCOH_UBGenie" weight_formula="1.0" mode="minmax"/>
+    <variation pattern="NormCCCOH_UBGenie" weight_formula="1.0" mode="minmax"/> 
     <variation pattern="Theta_Delta2Npi_UBGenie" weight_formula="1.0" mode="minmax" />
     <variation pattern="VecFFCCQEshape_UBGenie"  weight_formula="1.0" mode="minmax" />
-    <variation pattern="AxFFCCQEshape_UBGenie"   weight_formula="1.0"  mode="minmax" />
-    <variation pattern="DecayAngMEC_UBGenie"     weight_formula="1.0"  mode="minmax" />
-    <variation pattern="NormNCCOH_UBGenie"       weight_formula="1.0" mode="minmax"/>
-    <variation pattern="NormCCCOH_UBGenie"       weight_formula="1.0" mode="minmax"/> 
-
-    <!-- This one is bugged under old CV -->
-    <!--    <variation pattern="XSecShape_CCMEC_UBGenie" weight_formula="1.0/((1.0*(tan(atan(genie_CV_tune_weight))>=30.0)   +    tan(atan(genie_CV_tune_weight))*(tan(atan(genie_CV_tune_weight))<30.0)))" mode="minmax" />-->
-
-    <!-- These are N=2 varaitions, so should be treated as normal -->
-    <!--
-       <variation pattern="RPA_CCQE_UBGenie" weight_formula="1.0/((1.0*(tan(atan(genie_CV_tune_weight))>=30.0)   +    tan(atan(genie_CV_tune_weight))*(tan(atan(genie_CV_tune_weight))<30.0)))" mode="minmax" />
-    -->
+    <variation pattern="AxFFCCQEshape_UBGenie" weight_formula="1.0"  mode="minmax" />
+    <variation pattern="DecayAngMEC_UBGenie" weight_formula="1.0" mode="minmax"/> 
+    <variation pattern="RDecBR1gamma_UBGenie" weight_formula="1.0" mode="minmax"/> 
+    <variation pattern="ThetaDelta2NRad_UBGenie" weight_formula="1.0" mode="minmax"/> 
+    <!--<variation pattern="RPA_CCQE_UBGenie" weight_formula="1.0"  mode="minmax" /> This one is a N=2 so treated as a normal COV --> 
 </WeightMaps>
 
-
 <variation_list>
-    <whitelist>All_UBGenie</whitelist>
+    <!--Flux -->
     <whitelist>expskin_FluxUnisim</whitelist>
     <whitelist>horncurrent_FluxUnisim</whitelist>
     <whitelist>kminus_PrimaryHadronNormalization</whitelist>
@@ -60,19 +53,30 @@
     <whitelist>nucleonqexsec_FluxUnisim</whitelist>
     <whitelist>nucleontotxsec_FluxUnisim</whitelist>
     <whitelist>piminus_PrimaryHadronSWCentralSplineVariation</whitelist>
+    <whitelist>piplus_PrimaryHadronSWCentralSplineVariation</whitelist>
     <whitelist>pioninexsec_FluxUnisim</whitelist>
     <whitelist>pionqexsec_FluxUnisim</whitelist>
     <whitelist>piontotxsec_FluxUnisim</whitelist>
-    <whitelist>piplus_PrimaryHadronSWCentralSplineVariation</whitelist>
+    <!-- Genie -->
+    <whitelist>All_UBGenie</whitelist>
+    <!-- GENIE minmax -->
     <whitelist>NormNCCOH_UBGenie</whitelist>
     <whitelist>NormCCCOH_UBGenie</whitelist>
     <whitelist>Theta_Delta2Npi_UBGenie</whitelist>
-    <whitelist>RPA_CCQE_UBGenie</whitelist>
     <whitelist>VecFFCCQEshape_UBGenie</whitelist>
     <whitelist>AxFFCCQEshape_UBGenie</whitelist>
+    <whitelist>RPA_CCQE_UBGenie</whitelist>
     <whitelist>DecayAngMEC_UBGenie</whitelist>
-    <!--<whitelist>XSecShape_CCMEC_UBGenie</whitelist>-->
- </variation_list>
+    <whitelist>RDecBR1gamma_UBGenie</whitelist>
+    <whitelist>ThetaDelta2NRad_UBGenie</whitelist>
+    <!--Second Class Currents -->
+    <whitelist>xsr_scc_Fa3_SCC</whitelist>
+    <whitelist>xsr_scc_Fv3_SCC</whitelist>
+    <!-- G4-->
+    <whitelist>reinteractions_piminus_Geant4</whitelist>
+    <whitelist>reinteractions_piplus_Geant4</whitelist>
+    <whitelist>reinteractions_proton_Geant4</whitelist>
+</variation_list>
 
 
 <!--   #################################### 2g0p    ##################################### -->
