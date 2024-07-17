@@ -65,6 +65,10 @@ is_closure_test = True if p.closureTest>0 else False
 ## Running in the test configuration adds unsmeared distributions to the plots and chi2 values to closure tests.
 is_test = True if p.test > 0 else False
 
+## Check whether this run is for fake data.
+is_fake_data = histFile.Get("is_fake_data")
+data_string = "NuWro Fake Data" if is_fake_data else "Data"
+
 #############################################################################################################
 ### Pull out relevant objects from input file ###############################################################
 #############################################################################################################
@@ -405,7 +409,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
         legend.AddEntry(local_tHist_unfolded_evtRate,"GENIE Reconstruction Unfolded","lep")
         legend.AddEntry(local_tHist_genie_evtRate_smeared,"GENIE Truth, Smeared","f")
       else:
-        legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
+        legend.AddEntry(local_tHist_unfolded_evtRate,"Unfolded " + data_string,"lep")
         #legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
         #legend.AddEntry(local_tHist_effDenom,"effDenom","lep")
         if is_test:
@@ -469,7 +473,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_unfolded_xSection_scaled,"NuWro Fake Data","lep")
+      legend.AddEntry(local_tHist_unfolded_xSection_scaled,data_string,"lep")
       if is_test:
         legend.AddEntry(local_tHist_xSection_mc_scaled,"GENIE Prediction","f")
       legend.AddEntry(local_tHist_smeared_xSection_mc_scaled, "GENIE Prediction, Smeared", "f")
@@ -531,7 +535,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
+      legend.AddEntry(local_tHist_unfolded_evtRate,"Unfolded " + data_string,"lep")
       if is_test:
         legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
       legend.AddEntry(local_tHist_smeared_nuwro_truth, "NuWro Truth, Smeared", "f")
@@ -700,7 +704,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
         pt.Draw()
       else:
         overflow4 = DrawWithOverflow(local_tHist_evtRate_reco, canvas.canvas, "")
-        legend.AddEntry(local_tHist_evtRate_reco,"NuWro Fake Data","lep")
+        legend.AddEntry(local_tHist_evtRate_reco,data_string,"lep")
         legend.AddEntry(local_tHist_effNum_reco,"GENIE Reco Signal","f")
         overflow5 = DrawWithOverflow(local_tHist_effNum_reco, canvas.canvas, "HIST SAME") 
         canvas.canvas.cd(1)
@@ -763,7 +767,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.57,0.7,0.965,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_evtRate_reco, "NuWro Fake Data - GENIE Bkgd.", "lep")
+      legend.AddEntry(local_tHist_evtRate_reco, data_string + " - GENIE Bkgd.", "lep")
       legend.AddEntry(local_tHist_nuwro_signal, "NuWro Reco Signal", "f")
       legend.Draw()
 

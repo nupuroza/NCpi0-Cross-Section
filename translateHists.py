@@ -100,6 +100,7 @@ if not os.path.isdir(p.output_dir):
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 ## @Leon -- this is the place where you can customize the output file name, maybe using a new arg like "tag"
 outFile = ROOT.TFile(outputFilePath,"recreate")
+outFile.cd()
 
 #############################################################################################################
 ### Is this fake data? ######################################################################################
@@ -107,6 +108,8 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 
 ## Prescription is slightly different for fake data
 is_fake_data = True if p.fakedata>0 else False
+is_fake_data_par = ROOT.TParameter("bool")("is_fake_data", is_fake_data)
+is_fake_data_par.Write()
 
 #############################################################################################################
 ### Create Reference Hists ##################################################################################
@@ -417,28 +420,24 @@ writeHist(mHist_flux_integral,outFile)
 
 ## Pull out CV hists
 for sigDef in ["2g1p","2g0p"]:
-  if is_fake_data:
-    exec("tHist_data_selected_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
-    exec("tHist_data_signal_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
-    exec("tHist_data_background_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
-    exec("tHist_data_truth_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
-    outFile.cd()
-    for datatype in ["selected", "signal", "background", "truth"]:
-      exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
-  else:
+  exec("tHist_data_selected_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
+  exec("tHist_data_signal_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
+  exec("tHist_data_background_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
+  exec("tHist_data_truth_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
+  for datatype in ["selected", "signal", "background", "truth"]:
+    exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
+  if not is_fake_data:
     exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
 
 ## Pull out CV hists but inclusive this time
 for sigDef in ["2gXp"]:
-  if is_fake_data:
-    exec("tHist_data_selected_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
-    exec("tHist_data_signal_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
-    exec("tHist_data_background_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
-    exec("tHist_data_truth_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
-    outFile.cd()
-    for datatype in ["selected", "signal", "background", "truth"]:
-      exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
-  else:
+  exec("tHist_data_selected_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
+  exec("tHist_data_signal_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
+  exec("tHist_data_background_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
+  exec("tHist_data_truth_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
+  for datatype in ["selected", "signal", "background", "truth"]:
+    exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
+  if not is_fake_data:
     exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
 
 ## Add together 2g1p and 2g0p hists to form 2gXpdata hist
