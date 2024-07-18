@@ -11,27 +11,30 @@ import numpy as np
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
 
+## Parse User Args 
+parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
+parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
+parser.add_argument('server', help='Either gpvm or manannan', type=str,nargs='?')
+parser.add_argument('user', help = 'The name of your user directory', type = str, nargs = '?')
+parser.add_argument('--test',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
+parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
+p = parser.parse_args()
+
 # added 07/03/24 to eliminate the hard-coded file paths (Cricket construction)
 ans = None
 inDir = ""
 inDi2 = ""
 
-print("\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
-ans = int(input())
-
-# input validation
-while ans < 1 or ans > 2:
-    print("Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
-    ans = int(input())
-
-if ans == 1:
-    # manannan
-    inDir = "/mnt/morrigan/NCPi0_XS_data/"
-    inDir2 = "/app/users/crbergner/data/variation_spectra/"
-elif ans == 2:
-    # fermilab gpvm
-    inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/"
-    inDir2 = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/"
+if p.server == "manannan":
+  # manannan
+  inDir = "/mnt/morrigan/NCPi0_XS_data/"
+  inDir2 = "/app/users/" + p.user + "/data/variation_spectra/"
+elif p.server == "gpvm":
+  # fermilab gpvm
+  inDir = "/exp/uboone/data/users/" + p.user + "/gLEE/NCPi0/sbnfit/"
+  inDir2 = "/exp/uboone/data/users/" + p.user + "/gLEE/NCPi0/variation_spectra/"
+else:
+  print("Invalid server name. Enter \"manannan\" or \"gpvm\".")
 
 
 #############################################################################################################
@@ -79,13 +82,6 @@ inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 #############################################################################################################
 ### User Args and Output File Location ######################################################################
 #############################################################################################################
-
-## Parse User Args 
-parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
-parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
-parser.add_argument('--test',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
-parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
-p = parser.parse_args()
 
 ## If output_dir is not provided, exit
 if not p.output_dir:
@@ -261,7 +257,6 @@ for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS
 ## Steven Gardiner told us to use a 1% variation
 if not is_fake_data: ## this won't work for fake data
   for i in range(0,nBins_true+2):
-    mHist_nTargets.GetVertErrorBand("target_variation").GetHist(0).SetBinContent(i,n_targets*0.99)
     mHist_nTargets.GetVertErrorBand("target_variation").GetHist(1).SetBinContent(i,n_targets*1.01)
 
 writeHist(mHist_nTargets,outFile)
@@ -298,7 +293,6 @@ for data_type in ["mc","data", "scaling"]:
   ## Steven Gardiner told us to use a 2% variation
   if not is_fake_data and data_type != "mc": ## this won't work for fake data
     for i in range(0,nBins_true+2):
-      exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(0).SetBinContent(i,POT_{0}*0.98)".format(data_type))
       exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(1).SetBinContent(i,POT_{0}*1.02)".format(data_type))
 
   ## This mHist_POT_{0} object is only used in the xsec calculation, where we need the correct units
@@ -515,7 +509,6 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
     # Scale to data POT
     exec("mHist_effDenom_{0}_{1}.Multiply(mHist_effDenom_{0}_{1}, mHist_POT_scaling)".format(sigDef, sigDefexcl))
     if not is_fake_data:
-      exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(\"target_variation\").GetHist(0).Scale(0.99)")
       exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(\"target_variation\").GetHist(1).Scale(1.01)")
 
     exec("writeHist(mHist_effDenom_{0}_{1},outFile)".format(sigDef,sigDefexcl))
@@ -603,7 +596,6 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
       # Scale to data POT
       exec("mHist_{0}_{1}_{2}.Multiply(mHist_{0}_{1}_{2}, mHist_POT_scaling)".format(histCat, sigDef, sigDefexcl))
       if not is_fake_data:
-        exec("mHist_{0}_{1}_{2}.GetVertErrorBand(\"target_variation\").GetHist(0).Scale(0.99)")
         exec("mHist_{0}_{1}_{2}.GetVertErrorBand(\"target_variation\").GetHist(1).Scale(1.01)")
   
       exec("writeHist(mHist_{0}_{1}_{2},outFile)".format(histCat,sigDef,sigDefexcl))
