@@ -15,28 +15,33 @@ TTree* loadgLEE(std::string filename, std::string int_dir){
 }
 
 // Method that creates response matrix and updated cross section systematic universes to be used in 1D NCpi0 xsec extraction
-void ResponseMaker(std::string outDir){
+void ResponseMaker(std::string outDir, std::string server, std::string username){
 
-    //added 07/03/24 to elimate the hard-coded file paths (Cricket construction)
-    int ans;
-    std::string inDir, outputDir;
-    std::cout << "\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t";
-    std::cin >> ans;
-        //input validation
-        while(ans < 1 || ans > 2){
-            std::cout << "Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t";
-            std::cin >> ans;
-        }
-    switch(ans){
-        case 1: //manannan
-            inDir = "/mnt/morrigan/NCPi0_XS_data/";
-            outputDir = "/app/users/crbergner/data/variation_spectra/";
-            break;
-        case 2: //fermilab gpvm
-            inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/";
-            outputDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/";
-            break;
+    //added 07/03/24 to eliminate the hard-coded file paths (manual input option using a switch statement)
+    //updated 07/16/24 to partially eliminate the need to input an argument
+    //  I was instructed only to abort the code if input didn't match expected outcome for the server.
+    //  I suspect there will arise issues with the usernames having typos, but my suggestion to eliminate
+    //  this process entirely by only giving an input directory was shot down. If the username typos are 
+    //  creating issues, I would suggest to the person coming after me to either eliminate the need to 
+    //  enter them entirely, or create an input validation loop that confirms the username directory
+    //  exists before running it through the code. 
+
+    std::string inDir, variationDir;
+
+    if(server == "manannan"){
+        inDir = "/mnt/morrigan/NCPi0_XS_data/";
+        variationDir = "/app/users/" + username + "/data/variation_spectra/";
     }
+    else if(server == "gpvm"){
+        inDir = "/exp/uboone/data/users/" + username + "/gLEE/NCPi0/sbnfit/";
+        variationDir = "/exp/uboone/data/users/" + username + "/gLEE/NCPi0/variation_spectra/";
+    }
+    else{
+        std::cout << "\n\nError! Your server name did not match the ones in the code. You need to ";
+        std::cout << "type either 'manannan' or 'gpvm'. Aborting code; please rerun.\n\n";
+        return 0;
+    }
+
     //////////////////////////////////////////////////////////////////////////////
 
 
@@ -53,10 +58,10 @@ void ResponseMaker(std::string outDir){
 
     TFile *spectrain_2gXp = new TFile((inDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str(), "read");
 
-    std::string spectraout_2g1p_path = (outputDir + "SBNfit_variation_spectra_exclusive_2g1p.root").c_str();
-    std::string spectraout_2g0p_path = (outputDir + "SBNfit_variation_spectra_exclusive_2g0p.root").c_str();
+    std::string spectraout_2g1p_path = (variationDir + "SBNfit_variation_spectra_exclusive_2g1p.root").c_str();
+    std::string spectraout_2g0p_path = (variationDir + "SBNfit_variation_spectra_exclusive_2g0p.root").c_str();
 
-    std::string spectraout_2gXp_path = (outputDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str();
+    std::string spectraout_2gXp_path = (variationDir + "SBNfit_variation_spectra_inclusive_2gXp.root").c_str();
 
     spectrain_2g1p -> Cp(spectraout_2g1p_path.c_str());
     spectrain_2g0p -> Cp(spectraout_2g0p_path.c_str());

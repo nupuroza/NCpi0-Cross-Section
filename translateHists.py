@@ -11,27 +11,30 @@ import numpy as np
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
 
+## Parse User Args 
+parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
+parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
+parser.add_argument('server', help='Either gpvm or manannan', type=str,nargs='?')
+parser.add_argument('user', help = 'The name of your user directory', type = str, nargs = '?')
+parser.add_argument('--test',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
+parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
+p = parser.parse_args()
+
 # added 07/03/24 to eliminate the hard-coded file paths (Cricket construction)
 ans = None
 inDir = ""
 inDi2 = ""
 
-print("\n\nWhich server are you on? Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
-ans = int(input())
-
-# input validation
-while ans < 1 or ans > 2:
-    print("Answer 1 for manannan or 2 for the Fermilab GPVM.\nAnswer:\t")
-    ans = int(input())
-
-if ans == 1:
-    # manannan
-    inDir = "/mnt/morrigan/NCPi0_XS_data/"
-    inDir2 = "/app/users/crbergner/data/variation_spectra/"
-elif ans == 2:
-    # fermilab gpvm
-    inDir = "/exp/uboone/data/users/ltong/gLEE/NCPi0/sbnfit/"
-    inDir2 = "/exp/uboone/data/users/ltong/gLEE/NCPi0/variation_spectra/"
+if p.server == "manannan":
+  # manannan
+  inDir = "/mnt/morrigan/NCPi0_XS_data/"
+  inDir2 = "/app/users/" + p.user + "/data/variation_spectra/"
+elif p.server == "gpvm":
+  # fermilab gpvm
+  inDir = "/exp/uboone/data/users/" + p.user + "/gLEE/NCPi0/sbnfit/"
+  inDir2 = "/exp/uboone/data/users/" + p.user + "/gLEE/NCPi0/variation_spectra/"
+else:
+  print("Invalid server name. Enter \"manannan\" or \"gpvm\".")
 
 
 #############################################################################################################
@@ -80,13 +83,6 @@ inFile_2g0p_exclusive = ROOT.TFile(inFilePath_2g0p_exclusive)
 ### User Args and Output File Location ######################################################################
 #############################################################################################################
 
-## Parse User Args 
-parser = argparse.ArgumentParser(description='Script to take TH1Ds evaluated in various systematic universes and package them into MnvH1Ds using the MINERvA Analysis Toolkit')
-parser.add_argument('output_dir', help='Path to ouput directory', type=str,nargs='?')
-parser.add_argument('--test',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
-parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
-p = parser.parse_args()
-
 ## If output_dir is not provided, exit
 if not p.output_dir:
   parser.print_help()
@@ -100,6 +96,7 @@ if not os.path.isdir(p.output_dir):
 outputFilePath = p.output_dir+"/{0}_out.root".format(dt.date.today())
 ## @Leon -- this is the place where you can customize the output file name, maybe using a new arg like "tag"
 outFile = ROOT.TFile(outputFilePath,"recreate")
+outFile.cd()
 
 #############################################################################################################
 ### Is this fake data? ######################################################################################
@@ -107,6 +104,8 @@ outFile = ROOT.TFile(outputFilePath,"recreate")
 
 ## Prescription is slightly different for fake data
 is_fake_data = True if p.fakedata>0 else False
+is_fake_data_par = ROOT.TParameter("bool")("is_fake_data", is_fake_data)
+is_fake_data_par.Write()
 
 #############################################################################################################
 ### Create Reference Hists ##################################################################################
@@ -258,7 +257,6 @@ for systName,universePrefix,nUniverses in XS_SYSTS + FLUX_SYSTS + DETECTOR_SYSTS
 ## Steven Gardiner told us to use a 1% variation
 if not is_fake_data: ## this won't work for fake data
   for i in range(0,nBins_true+2):
-    mHist_nTargets.GetVertErrorBand("target_variation").GetHist(0).SetBinContent(i,n_targets*0.99)
     mHist_nTargets.GetVertErrorBand("target_variation").GetHist(1).SetBinContent(i,n_targets*1.01)
 
 writeHist(mHist_nTargets,outFile)
@@ -295,7 +293,6 @@ for data_type in ["mc","data", "scaling"]:
   ## Steven Gardiner told us to use a 2% variation
   if not is_fake_data and data_type != "mc": ## this won't work for fake data
     for i in range(0,nBins_true+2):
-      exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(0).SetBinContent(i,POT_{0}*0.98)".format(data_type))
       exec("mHist_POT_{0}.GetVertErrorBand(\"POT_variation\").GetHist(1).SetBinContent(i,POT_{0}*1.02)".format(data_type))
 
   ## This mHist_POT_{0} object is only used in the xsec calculation, where we need the correct units
@@ -417,28 +414,24 @@ writeHist(mHist_flux_integral,outFile)
 
 ## Pull out CV hists
 for sigDef in ["2g1p","2g0p"]:
-  if is_fake_data:
-    exec("tHist_data_selected_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
-    exec("tHist_data_signal_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
-    exec("tHist_data_background_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
-    exec("tHist_data_truth_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
-    outFile.cd()
-    for datatype in ["selected", "signal", "background", "truth"]:
-      exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
-  else:
+  exec("tHist_data_selected_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
+  exec("tHist_data_signal_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
+  exec("tHist_data_background_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
+  exec("tHist_data_truth_{0} = dataFile_NuWroFakeData.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
+  for datatype in ["selected", "signal", "background", "truth"]:
+    exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
+  if not is_fake_data:
     exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
 
 ## Pull out CV hists but inclusive this time
 for sigDef in ["2gXp"]:
-  if is_fake_data:
-    exec("tHist_data_selected_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
-    exec("tHist_data_signal_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
-    exec("tHist_data_background_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
-    exec("tHist_data_truth_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
-    outFile.cd()
-    for datatype in ["selected", "signal", "background", "truth"]:
-      exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
-  else:
+  exec("tHist_data_selected_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_fakedata_{0}\")".format(sigDef))
+  exec("tHist_data_signal_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}sig\")".format(sigDef))
+  exec("tHist_data_background_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_breakdown_{0}bkg\")".format(sigDef))
+  exec("tHist_data_truth_{0} = dataFile_NuWroFakeData_inclusive.Get(\"nu_uBooNE_denom_{0}\")".format(sigDef))
+  for datatype in ["selected", "signal", "background", "truth"]:
+    exec("tHist_data_{0}_{1}.Write()".format(datatype, sigDef))
+  if not is_fake_data:
     exec("tHist_data_selected_{0} = dataFile_{0}.Get(\"nu_uBooNE_{0}_data\")".format(sigDef))
 
 ## Add together 2g1p and 2g0p hists to form 2gXpdata hist
@@ -516,7 +509,6 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
     # Scale to data POT
     exec("mHist_effDenom_{0}_{1}.Multiply(mHist_effDenom_{0}_{1}, mHist_POT_scaling)".format(sigDef, sigDefexcl))
     if not is_fake_data:
-      exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(\"target_variation\").GetHist(0).Scale(0.99)")
       exec("mHist_effDenom_{0}_{1}.GetVertErrorBand(\"target_variation\").GetHist(1).Scale(1.01)")
 
     exec("writeHist(mHist_effDenom_{0}_{1},outFile)".format(sigDef,sigDefexcl))
@@ -604,31 +596,17 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
       # Scale to data POT
       exec("mHist_{0}_{1}_{2}.Multiply(mHist_{0}_{1}_{2}, mHist_POT_scaling)".format(histCat, sigDef, sigDefexcl))
       if not is_fake_data:
-        exec("mHist_{0}_{1}_{2}.GetVertErrorBand(\"target_variation\").GetHist(0).Scale(0.99)")
         exec("mHist_{0}_{1}_{2}.GetVertErrorBand(\"target_variation\").GetHist(1).Scale(1.01)")
-  
+      
+      if histCat == "background":
+        exec("mHist_background_{0}_{1}.GetXaxis().SetTitle(\"Reco #pi^{{0}} Momentum [GeV]\")".format(sigDef, sigDefexcl))
       exec("writeHist(mHist_{0}_{1}_{2},outFile)".format(histCat,sigDef,sigDefexcl))
 
+    # Add MC reco signal and background to get total MC selection prediction. Used to calculate covariance.
     exec("mHist_fakedata_mc_{0}_{1} = mHist_effNum_reco_{0}_{1}.Clone(\"fakedata_mc_{0}_{1}\")".format(sigDef, sigDefexcl))
     exec("mHist_fakedata_mc_{0}_{1}.Add(mHist_background_{0}_{1})".format(sigDef, sigDefexcl))
     exec("writeHist(mHist_fakedata_mc_{0}_{1}, outFile)".format(sigDef, sigDefexcl))
      
-#############################################################################################################
-### Derive xsec component MnvHnDs for 2gXp##################################################################
-#############################################################################################################
-
-for histCat in ["effNum","background"]:
-
-  exec("mHist_{0}_2gXp_inclusive = mHist_{0}_2g0p_inclusive.Clone(\"{0}_2gXp_inclusive\")".format(histCat))
-  exec("mHist_{0}_2gXp_inclusive.Add(mHist_{0}_2g1p_inclusive)".format(histCat))
-
-  exec("writeHist(mHist_{0}_2gXp_inclusive,outFile)".format(histCat))
-
-## The 2gXpeffDenom is just the 2g1p effDenom because the 2g0p sample has been scaled to have equivalent POT to 2g1p
-mHist_effDenom_2gXp_inclusive = mHist_effDenom_2g1p_inclusive.Clone("effDenom_2gXp_inclusive")
-
-writeHist(mHist_effDenom_2gXp_inclusive,outFile)
-
 #############################################################################################################
 ### Loop over 2g1p, 2g0p, 2gXp##############################################################################
 #############################################################################################################
@@ -671,6 +649,7 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
       for systName,universePrefix,nUniverses in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
         exec("mHist_xSection_mc_{0}_{1}.PopVertErrorBand(\"{2}\")".format(sigDef,sigDefexcl,systName))
 
+      exec("mHist_xSection_mc_{0}_{1}.GetXaxis().SetTitle(\"True #pi^{{0}} Momentum [GeV]\")".format(sigDef, sigDefexcl))
       exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
       
 #############################################################################################################

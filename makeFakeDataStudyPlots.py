@@ -65,6 +65,10 @@ is_closure_test = True if p.closureTest>0 else False
 ## Running in the test configuration adds unsmeared distributions to the plots and chi2 values to closure tests.
 is_test = True if p.test > 0 else False
 
+## Check whether this run is for fake data.
+is_fake_data = histFile.Get("is_fake_data")
+data_string = "NuWro Fake Data" if is_fake_data else "Data"
+
 #############################################################################################################
 ### Pull out relevant objects from input file ###############################################################
 #############################################################################################################
@@ -112,7 +116,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
     
       exec("mHist_{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
       exec("tHist_{0}_{1} = mHist_{0}_{1}.GetCVHistoWithStatError()".format(histCat,sigDef))
-    
+
     ### Construct correlation matrices
     ##################################
     exec("tHist_corr_evtRate_{0} = tHist_cov_evtRate_{0}.Clone(\"tHist_corr_evtRate_{0}\")".format(sigDef))
@@ -137,6 +141,11 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
               
               # Set the correlation coefficient in the correlation matrix
               exec("tHist_{0}corr_evtRate_{1}.SetBinContent(i, j, corr_ij)".format(histCat,sigDef))
+
+### Get x-axis titles
+######################
+reco_xlabel = mHist_background_2g1p_exclusive.GetXaxis().GetTitle()
+true_xlabel = mHist_xSection_mc_2g1p_exclusive.GetXaxis().GetTitle()
 
 mHist_POT_scaling = histFile.Get("POT_scaling")
 tHist_POT_scaling = mHist_POT_scaling.GetCVHistoWithStatError()
@@ -174,8 +183,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_Response = histFile.Get("Response_{0}".format(sigDefnp))
       ROOT.gStyle.SetOptTitle(1)
       local_tHist_Response.SetTitle(sigDefnp + " Exclusive Response Matrix")
-      local_tHist_Response.GetXaxis().SetTitle("True #pi^{0} Momentum")
-      local_tHist_Response.GetYaxis().SetTitle("Reco #pi^{0} Momentum")
+      local_tHist_Response.GetXaxis().SetTitle(true_xlabel)
+      local_tHist_Response.GetYaxis().SetTitle(reco_xlabel)
       #canvas.canvas.SetLogz()
       local_tHist_Response.Draw("colz")
       ptall.Draw()
@@ -186,7 +195,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       for i in range(nBins + 2):
         local_mHist_eff.SetBinError(i, math.sqrt(local_covMat_eff(i, i)))
       local_mHist_eff.SetTitle(sigDefnp + " Exclusive Efficiency")
-      local_mHist_eff.GetXaxis().SetTitle("True #pi^{0} Momentum")
+      local_mHist_eff.GetXaxis().SetTitle(true_xlabel)
       local_mHist_eff.GetYaxis().SetTitle("Efficiency")
       local_mHist_eff.SetFillStyle(3545)
       local_mHist_eff.SetFillColor(local_mHist_eff.GetLineColor())
@@ -198,8 +207,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_add_smear_matrix = histFile.Get("add_smear_matrix_{0}".format(sigDef))
       local_tHist_add_smear_matrix.Draw("colz")
       local_tHist_add_smear_matrix.SetTitle(sigDefnp + " Exclusive Additional Smearing Matrix")
-      local_tHist_add_smear_matrix.GetXaxis().SetTitle("True #pi^{0} Momentum")
-      local_tHist_add_smear_matrix.GetYaxis().SetTitle("Smeared True #pi^{0} Momentum")
+      local_tHist_add_smear_matrix.GetXaxis().SetTitle(true_xlabel)
+      local_tHist_add_smear_matrix.GetYaxis().SetTitle("Smeared " + true_xlabel)
       ptall.SetTextColor(ROOT.kWhite)
       ptall.Draw()
       #canvas.canvas.SetLogz()
@@ -209,8 +218,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       exec("local_tHist_cov_evtRate_{0} = tHist_cov_evtRate_{0}.Clone(\"local_tHist_cov_evtRate_{0}\")".format(sigDef))
       exec("local_tHist_cov_evtRate_{0}.Draw(\"colz\")".format(sigDef))
       exec("local_tHist_cov_evtRate_{0}.SetTitle(\"{1} Exclusive Folded Covariance Matrix\")".format(sigDef, sigDefnp))
-      exec("local_tHist_cov_evtRate_{0}.GetXaxis().SetTitle(\"Reco #pi^{{0}} Momentum\")".format(sigDef))
-      exec("local_tHist_cov_evtRate_{0}.GetYaxis().SetTitle(\"Reco #pi^{{0}} Momentum\")".format(sigDef))
+      exec("local_tHist_cov_evtRate_{0}.GetXaxis().SetTitle(reco_xlabel)".format(sigDef))
+      exec("local_tHist_cov_evtRate_{0}.GetYaxis().SetTitle(reco_xlabel)".format(sigDef))
       ptall.Draw()
       canvas.canvas.SetLogz()
     
@@ -219,8 +228,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       exec("local_tHist_unfolded_cov_evtRate_{0} = tHist_unfolded_cov_evtRate_{0}.Clone(\"local_tHist_unfolded_cov_evtRate_{0}\")".format(sigDef))
       exec("local_tHist_unfolded_cov_evtRate_{0}.Draw(\"colz\")".format(sigDef))
       exec("local_tHist_unfolded_cov_evtRate_{0}.SetTitle(\"{1} Exclusive Unfolded Covariance Matrix\")".format(sigDef, sigDefnp))
-      exec("local_tHist_unfolded_cov_evtRate_{0}.GetXaxis().SetTitle(\"True #pi^{{0}} Momentum\")".format(sigDef))
-      exec("local_tHist_unfolded_cov_evtRate_{0}.GetYaxis().SetTitle(\"True #pi^{{0}} Momentum\")".format(sigDef))
+      exec("local_tHist_unfolded_cov_evtRate_{0}.GetXaxis().SetTitle(true_xlabel)".format(sigDef))
+      exec("local_tHist_unfolded_cov_evtRate_{0}.GetYaxis().SetTitle(true_xlabel)".format(sigDef))
       ptall.Draw()
       #canvas.canvas.SetLogz()
     
@@ -234,8 +243,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       exec("local_tHist_corr_evtRate_{0}.GetZaxis().SetRangeUser(-1,1)".format(sigDef))
       exec("local_tHist_corr_evtRate_{0}.Draw(\"colz\")".format(sigDef))
       exec("local_tHist_corr_evtRate_{0}.SetTitle(\"{1} Exclusive Folded Correlation Matrix\")".format(sigDef, sigDefnp))
-      exec("local_tHist_corr_evtRate_{0}.GetXaxis().SetTitle(\"Reco #pi^{{0}} Momentum\")".format(sigDef))
-      exec("local_tHist_corr_evtRate_{0}.GetYaxis().SetTitle(\"Reco #pi^{{0}} Momentum\")".format(sigDef))
+      exec("local_tHist_corr_evtRate_{0}.GetXaxis().SetTitle(reco_xlabel)".format(sigDef))
+      exec("local_tHist_corr_evtRate_{0}.GetYaxis().SetTitle(reco_xlabel)".format(sigDef))
       ptall.SetTextColor(ROOT.kBlack)
       ptall.Draw()
     
@@ -245,8 +254,8 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       exec("local_tHist_unfolded_corr_evtRate_{0}.GetZaxis().SetRangeUser(-1,1)".format(sigDef))
       exec("local_tHist_unfolded_corr_evtRate_{0}.Draw(\"colz\")".format(sigDef))
       exec("local_tHist_unfolded_corr_evtRate_{0}.SetTitle(\"{1} Unfolded Correlation Matrix\")".format(sigDef, sigDefnp))
-      exec("local_tHist_unfolded_corr_evtRate_{0}.GetXaxis().SetTitle(\"True #pi^{{0}} Momentum\")".format(sigDef))
-      exec("local_tHist_unfolded_corr_evtRate_{0}.GetYaxis().SetTitle(\"True #pi^{{0}} Momentum\")".format(sigDef))
+      exec("local_tHist_unfolded_corr_evtRate_{0}.GetXaxis().SetTitle(true_xlabel)".format(sigDef))
+      exec("local_tHist_unfolded_corr_evtRate_{0}.GetYaxis().SetTitle(true_xlabel)".format(sigDef))
       ptall.Draw()
     
 #############################################################################################################
@@ -352,7 +361,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_genie_evtRate_smeared.GetYaxis().SetTitleSize(0.05)
       local_tHist_genie_evtRate_smeared.GetXaxis().SetTitleSize(0.05)
       local_tHist_genie_evtRate_smeared.GetYaxis().SetTitle("Events")
-      local_tHist_genie_evtRate_smeared.GetXaxis().SetTitle("True #pi^{0} Momentum [GeV]")
+      local_tHist_genie_evtRate_smeared.GetXaxis().SetTitle(true_xlabel)
 
       overflow1 = DrawWithOverflow(local_tHist_genie_evtRate_smeared, canvas.canvas, "HIST")
       if not is_test:
@@ -405,7 +414,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
         legend.AddEntry(local_tHist_unfolded_evtRate,"GENIE Reconstruction Unfolded","lep")
         legend.AddEntry(local_tHist_genie_evtRate_smeared,"GENIE Truth, Smeared","f")
       else:
-        legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
+        legend.AddEntry(local_tHist_unfolded_evtRate,"Unfolded " + data_string,"lep")
         #legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
         #legend.AddEntry(local_tHist_effDenom,"effDenom","lep")
         if is_test:
@@ -447,7 +456,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_smeared_xSection_mc_scaled.GetYaxis().SetTitleSize(0.05)
       local_tHist_smeared_xSection_mc_scaled.GetXaxis().SetTitleSize(0.05)
       local_tHist_smeared_xSection_mc_scaled.GetYaxis().SetTitle("#sigma_{NC 1 #pi^{0}}[10^{-40} cm^{2}/Atom]")
-      local_tHist_smeared_xSection_mc_scaled.GetXaxis().SetTitle("True #pi^{0} momentum [GeV]")
+      local_tHist_smeared_xSection_mc_scaled.GetXaxis().SetTitle(true_xlabel)
      
       local_tHist_xSection_mc_scaled.SetLineColor(ROOT.kCyan - 3)
       local_tHist_xSection_mc_scaled.SetMarkerColor(ROOT.kCyan - 3)
@@ -469,7 +478,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_unfolded_xSection_scaled,"NuWro Fake Data","lep")
+      legend.AddEntry(local_tHist_unfolded_xSection_scaled,data_string,"lep")
       if is_test:
         legend.AddEntry(local_tHist_xSection_mc_scaled,"GENIE Prediction","f")
       legend.AddEntry(local_tHist_smeared_xSection_mc_scaled, "GENIE Prediction, Smeared", "f")
@@ -515,7 +524,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_smeared_nuwro_truth.GetXaxis().SetTitleSize(0.05)
       local_tHist_smeared_nuwro_truth.SetTitle(sigDefnp + " Exclusive Unfolded Events")
       local_tHist_smeared_nuwro_truth.GetYaxis().SetTitle("Events")
-      local_tHist_smeared_nuwro_truth.GetXaxis().SetTitle("True #pi^{0} momentum [GeV]")
+      local_tHist_smeared_nuwro_truth.GetXaxis().SetTitle(true_xlabel)
       overflow1 = DrawWithOverflow(local_tHist_smeared_nuwro_truth, canvas.canvas, "HIST")
 
       local_tHist_nuwro_truth.SetMarkerColor(ROOT.kGreen -3)
@@ -531,7 +540,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.52,0.7,0.945,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_unfolded_evtRate,"NuWro Fake Data Unfolded","lep")
+      legend.AddEntry(local_tHist_unfolded_evtRate,"Unfolded " + data_string,"lep")
       if is_test:
         legend.AddEntry(local_tHist_nuwro_truth,"NuWro Truth","f")
       legend.AddEntry(local_tHist_smeared_nuwro_truth, "NuWro Truth, Smeared", "f")
@@ -645,7 +654,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_evtRate_reco.GetXaxis().SetTitleSize(0.05)
       local_tHist_evtRate_reco.SetTitle(sigDefnp + " Exclusive Folded Events") 
       local_tHist_evtRate_reco.GetYaxis().SetTitle("Events")
-      local_tHist_evtRate_reco.GetXaxis().SetTitle("Reco #pi^{{0}} momentum [GeV]".format(sigDef))
+      local_tHist_evtRate_reco.GetXaxis().SetTitle(reco_xlabel)
       if is_closure_test:
         local_tHist_evtRate_reco.SetLineColor(ROOT.kCyan-3)
       else:
@@ -656,7 +665,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_hreco.GetXaxis().SetTitleSize(0.05)
       local_tHist_hreco.SetTitle(sigDefnp + " Exclusive Folded Closure Test") 
       local_tHist_hreco.GetYaxis().SetTitle("Events")
-      local_tHist_hreco.GetXaxis().SetTitle("Reco #pi^{{0}} momentum [GeV]".format(sigDef))
+      local_tHist_hreco.GetXaxis().SetTitle(reco_xlabel)
 
       if is_closure_test:
         local_tHist_effNum_reco.SetLineColor(ROOT.kGreen+2)
@@ -700,7 +709,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
         pt.Draw()
       else:
         overflow4 = DrawWithOverflow(local_tHist_evtRate_reco, canvas.canvas, "")
-        legend.AddEntry(local_tHist_evtRate_reco,"NuWro Fake Data","lep")
+        legend.AddEntry(local_tHist_evtRate_reco,data_string,"lep")
         legend.AddEntry(local_tHist_effNum_reco,"GENIE Reco Signal","f")
         overflow5 = DrawWithOverflow(local_tHist_effNum_reco, canvas.canvas, "HIST SAME") 
         canvas.canvas.cd(1)
@@ -742,7 +751,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       local_tHist_nuwro_signal.GetXaxis().SetTitleSize(0.05)
       local_tHist_nuwro_signal.SetTitle(sigDefnp + " Exclusive Folded Events")
       local_tHist_nuwro_signal.GetYaxis().SetTitle("Events")
-      local_tHist_nuwro_signal.GetXaxis().SetTitle("Reco #pi^{0} momentum [GeV]")
+      local_tHist_nuwro_signal.GetXaxis().SetTitle(reco_xlabel)
       local_tHist_nuwro_signal.SetMarkerColor(ROOT.kViolet)
       local_tHist_nuwro_signal.SetLineColor(ROOT.kViolet)
       local_tHist_nuwro_signal.SetFillColor(ROOT.kViolet)
@@ -763,7 +772,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       canvas.canvas.cd(1)
       legend = ROOT.TLegend(0.57,0.7,0.965,0.9, "")
       legend.SetBorderSize(0)
-      legend.AddEntry(local_tHist_evtRate_reco, "NuWro Fake Data - GENIE Bkgd.", "lep")
+      legend.AddEntry(local_tHist_evtRate_reco, data_string + " - GENIE Bkgd.", "lep")
       legend.AddEntry(local_tHist_nuwro_signal, "NuWro Reco Signal", "f")
       legend.Draw()
 
@@ -778,13 +787,13 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
 
     ### Plot of error breakdown for Monte Carlo Background
     ######################################################
-    exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+    exec("localDrawErrorSummary(plotter, local_mHist_background, \"{0} Exclusive Background Error Summary\", reco_xlabel, \"{2}/errorSummary_background_{1}.png\")".format(sigDefnp, sigDef, plotDir))
 
     ### Plot of error breakdown for Folded Fake Data
     ######################################################
-    exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", \"Reco #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+    exec("localDrawErrorSummary(plotter, local_mHist_evtRate_reco, \"{0} Exclusive Folded Events Error Summary\", reco_xlabel, \"{2}/errorSummary_evtRate_folded_{1}.png\")".format(sigDefnp, sigDef, plotDir))
 
     ### Plot of error breakdown for Unfolded Fake Data
     ######################################################
-    exec("localDrawErrorSummary(plotter, mHist_unfolded_evtRate_{1}, \"{0} Exclusive Unfolded Events Error Summary\", \"True #pi^{{0}} momentum [GeV]\", \"{2}/errorSummary_evtRate_{1}.png\")".format(sigDefnp, sigDef, plotDir))
+    exec("localDrawErrorSummary(plotter, mHist_unfolded_evtRate_{1}, \"{0} Exclusive Unfolded Events Error Summary\", true_xlabel, \"{2}/errorSummary_evtRate_{1}.png\")".format(sigDefnp, sigDef, plotDir))
 
