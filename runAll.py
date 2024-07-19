@@ -28,10 +28,13 @@ if p.out_dir < 0:
 outFileDir = p.out_dir
 if len(outFileDir) - 1 == outFileDir.rfind("/"):
   outFileDir = outFileDir[:-1] # Remove trailing forward slash.
-server = " " + p.server
-user = " " + p.user
+server = p.server
+user = p.user
 translateHiststest = ""
 fakedata = ""
+reco_var_2g1p_input = ""
+reco_var_2g0p_input = ""
+true_var_input = ""
 closureTest = ""
 plotstest = ""
 if p.translateHiststest > 0:
@@ -47,7 +50,7 @@ if p.plotstest > 0:
 ### Run translateHists.py ###################################################################################
 #############################################################################################################
 
-command_string = "python translateHists.py " + outFileDir + server + user + translateHiststest + fakedata
+command_string = "python translateHists.py " + outFileDir + " " + server + " " + user + translateHiststest + fakedata
 print( "Running the following command: \"{0}\"".format(command_string))
 output = subprocess.check_output(command_string, shell = True, bufsize = 0)
 print(output)
@@ -58,7 +61,7 @@ print(output)
 
 responseFileDir = outFileDir[:outFileDir.rfind("/") + 1] + "response_matrices"
 if p.makeresponse > 0:
-  command_string  = "root -l -q \"ResponseMaker.c(\\\"{0}\\\", \\\"{1}\\\", \\\{2}\\\")\"".format(responseFileDir, server, user)
+  command_string  = "root -l -q \"ResponseMaker.c(\\\"{0}\\\", \\\"{1}\\\", \\\"{2}\\\", \\\"{3}\\\", \\\"{4}\\\", \\\"{5}\\\")\"".format(responseFileDir, server, user, reco_var_2g1p_input, reco_var_2g0p_input, true_var_input)
   print("Running the following command: \"{0}\"".format(command_string))
   output = subprocess.check_output(command_string, shell = True, bufsize = 0)
   print(output)

@@ -15,7 +15,7 @@ TTree* loadgLEE(std::string filename, std::string int_dir){
 }
 
 // Method that creates response matrix and updated cross section systematic universes to be used in 1D NCpi0 xsec extraction
-void ResponseMaker(std::string outDir, std::string server, std::string username){
+void ResponseMaker(std::string outDir, std::string server, std::string username, std::string reco_var_2g1p_input = "", std::string reco_var_2g0p_input = "", std::string true_var_input = ""){
 
     //added 07/03/24 to eliminate the hard-coded file paths (manual input option using a switch statement)
     //updated 07/16/24 to partially eliminate the need to input an argument
@@ -119,6 +119,14 @@ void ResponseMaker(std::string outDir, std::string server, std::string username)
 
     // Prescription for calculating truth pion momentum (this is already stored in a branch)
     std::string true_var = "mctruth_exiting_pi0_mom";
+
+    // Set variables to those specified by input arguments if provided.
+    if(reco_var_2g1p_input != "")
+        reco_var_2g1p = reco_var_2g1p_input;
+    if(reco_var_2g0p_input != "")
+        reco_var_2g0p = reco_var_2g0p_input;
+    if(true_var_input != "")
+        true_var = true_var_input;
 
     // Implement kinematic variable definitions as TTreeFormula for each TTree.
     TTreeFormula * reco_form_2g1p = new TTreeFormula("recof",reco_var_2g1p.c_str(), v_2g1p);
