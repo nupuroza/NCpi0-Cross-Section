@@ -597,29 +597,16 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
       exec("mHist_{0}_{1}_{2}.Multiply(mHist_{0}_{1}_{2}, mHist_POT_scaling)".format(histCat, sigDef, sigDefexcl))
       if not is_fake_data:
         exec("mHist_{0}_{1}_{2}.GetVertErrorBand(\"target_variation\").GetHist(1).Scale(1.01)")
-  
+      
+      if histCat == "background":
+        exec("mHist_background_{0}_{1}.GetXaxis().SetTitle(\"Reco #pi^{{0}} Momentum [GeV]\")".format(sigDef, sigDefexcl))
       exec("writeHist(mHist_{0}_{1}_{2},outFile)".format(histCat,sigDef,sigDefexcl))
 
+    # Add MC reco signal and background to get total MC selection prediction. Used to calculate covariance.
     exec("mHist_fakedata_mc_{0}_{1} = mHist_effNum_reco_{0}_{1}.Clone(\"fakedata_mc_{0}_{1}\")".format(sigDef, sigDefexcl))
     exec("mHist_fakedata_mc_{0}_{1}.Add(mHist_background_{0}_{1})".format(sigDef, sigDefexcl))
     exec("writeHist(mHist_fakedata_mc_{0}_{1}, outFile)".format(sigDef, sigDefexcl))
      
-#############################################################################################################
-### Derive xsec component MnvHnDs for 2gXp##################################################################
-#############################################################################################################
-
-for histCat in ["effNum","background"]:
-
-  exec("mHist_{0}_2gXp_inclusive = mHist_{0}_2g0p_inclusive.Clone(\"{0}_2gXp_inclusive\")".format(histCat))
-  exec("mHist_{0}_2gXp_inclusive.Add(mHist_{0}_2g1p_inclusive)".format(histCat))
-
-  exec("writeHist(mHist_{0}_2gXp_inclusive,outFile)".format(histCat))
-
-## The 2gXpeffDenom is just the 2g1p effDenom because the 2g0p sample has been scaled to have equivalent POT to 2g1p
-mHist_effDenom_2gXp_inclusive = mHist_effDenom_2g1p_inclusive.Clone("effDenom_2gXp_inclusive")
-
-writeHist(mHist_effDenom_2gXp_inclusive,outFile)
-
 #############################################################################################################
 ### Loop over 2g1p, 2g0p, 2gXp##############################################################################
 #############################################################################################################
@@ -662,6 +649,7 @@ for sigDef in ["2g1p","2g0p","2gXp"]:
       for systName,universePrefix,nUniverses in FLUX_SYSTS + DETECTOR_SYSTS + G4_SYSTS + OTHER_SYSTS:
         exec("mHist_xSection_mc_{0}_{1}.PopVertErrorBand(\"{2}\")".format(sigDef,sigDefexcl,systName))
 
+      exec("mHist_xSection_mc_{0}_{1}.GetXaxis().SetTitle(\"True #pi^{{0}} Momentum [GeV]\")".format(sigDef, sigDefexcl))
       exec("writeHist(mHist_xSection_mc_{0}_{1},outFile)".format(sigDef,sigDefexcl))
       
 #############################################################################################################
