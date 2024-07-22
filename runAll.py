@@ -12,6 +12,9 @@ parser = argparse.ArgumentParser(description='Script to run all steps of unfoldi
 parser.add_argument('out_dir', help='Path to output directory', type=str,nargs='?')
 parser.add_argument('server', help='Either gpvm or manannan', type=str,nargs='?')
 parser.add_argument('user', help = 'The name of your user directory', type = str, nargs = '?')
+parser.add_argument('reco_var_2g1p_input', help = '2g1p reco variable definition', type = str, nargs = '?')
+parser.add_argument('reco_var_2g0p_input', help = '2g0p reco variable definition', type = str, nargs = '?')
+parser.add_argument('true_var_input', help = 'True variable definition', type = str, nargs = '?')
 parser.add_argument('--translateHiststest',help='Run in test mode using smaller number of syst universes (faster)',action='store_true')
 parser.add_argument('--fakedata',help='Run with fake data',action='store_true')
 parser.add_argument('--closureTest',help='Run as closure test',action='store_true')
@@ -35,6 +38,12 @@ fakedata = ""
 reco_var_2g1p_input = ""
 reco_var_2g0p_input = ""
 true_var_input = ""
+if p.reco_var_2g1p_input > 0:
+  reco_var_2g1p_input = p.reco_var_2g1p_input
+if p.reco_var_2g0p_input > 0:
+  reco_var_2g0p_input = p.reco_var_2g0p_input
+if p.true_var_input > 0:
+  true_var_input = p.true_var_input
 closureTest = ""
 plotstest = ""
 if p.translateHiststest > 0:
