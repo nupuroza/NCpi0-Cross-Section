@@ -315,7 +315,7 @@ void execute_unfolding(TFile* file_out, std::string sigDef, bool useWienerSVD, b
 // -----------------------------------------------------
 // Main method
 // -----------------------------------------------------
-void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest, bool writeCumStats = false, bool calculateTrueBias = false)
+void unfold(std::string filePath_in, bool useWienerSVD, std::string unfoldingConfig, bool closureTest)
 {
 
     gROOT -> SetBatch(kTRUE);

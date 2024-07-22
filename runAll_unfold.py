@@ -54,7 +54,7 @@ for i in range(5):
 for config,WSVD_switch,unfolder_option in configs_to_run:
 
   file_to_process = "{0}/{1}_out.root".format(inFileDir,date_string)
-  command_string = "root -l -q \"unfold.C(\\\"{0}\\\",{1},\\\"{2}\\\", {3}, false, false)\"".format(file_to_process,WSVD_switch,unfolder_option, is_closure_test)
+  command_string = "root -l -q \"unfold.C(\\\"{0}\\\",{1},\\\"{2}\\\", {3})\"".format(file_to_process,WSVD_switch,unfolder_option, is_closure_test)
   print "Running the following command: \"{0}\"".format(command_string)
 
   ## Run the command and capture the output
