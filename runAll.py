@@ -56,15 +56,6 @@ if p.plotstest > 0:
   plotstest = " --test"
 
 #############################################################################################################
-### Run translateHists.py ###################################################################################
-#############################################################################################################
-
-command_string = "python translateHists.py " + outFileDir + " " + server + " " + user + translateHiststest + fakedata
-print( "Running the following command: \"{0}\"".format(command_string))
-output = subprocess.check_output(command_string, shell = True, bufsize = 0)
-print(output)
-
-#############################################################################################################
 ### Run ResponseMaker.c if requested and get response matrix. ###############################################
 #############################################################################################################
 
@@ -80,6 +71,15 @@ if not os.path.isfile(responseFileDir + "/response_matrices_exclusive.root"):
   print("responseFileDir is " + responseFileDir)
   parser.print_help()
   exit(1)
+
+#############################################################################################################
+### Run translateHists.py ###################################################################################
+#############################################################################################################
+
+command_string = "python translateHists.py " + outFileDir + " " + server + " " + user + translateHiststest + fakedata
+print( "Running the following command: \"{0}\"".format(command_string))
+output = subprocess.check_output(command_string, shell = True, bufsize = 0)
+print(output)
 
 #############################################################################################################
 ### Run runAll_unfold.py ####################################################################################
