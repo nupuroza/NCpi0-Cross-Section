@@ -94,22 +94,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
     for histCat in ["cov_evtRate","unfolded_cov_evtRate","unfolded_xSection","add_smear_matrix", "smeared_xSection_mc", "smeared_nuwro_signal"]:
     
       exec("tHist_{0}_{1} = histFile.Get(\"{0}_{1}\")".format(histCat,sigDef))
-    
-    #overflow and underflow for unfolded_evtRate
-    threshold = 10e-6
-    exec("local_tHist_unfolded_xSection = tHist_unfolded_xSection_{0}".format(sigDef))
-    nBins = local_tHist_unfolded_xSection.GetNbinsX()
-
-    binVal_overflow_reco = abs(local_tHist_unfolded_xSection.GetBinContent(nBins + 1))
-    include_overflow_reco = 1 if binVal_overflow_reco > threshold else 0
-
-    binVal_underflow_reco = abs(local_tHist_unfolded_xSection.GetBinContent(0))
-    include_underflow_reco = 1 if binVal_underflow_reco > threshold else 0
-
-    #upper and lower bounds for later use
-    lowerBound = 0 if binVal_underflow_reco else 1
-    upperBound = nBins + 1 if binVal_overflow_reco else nBins
-
+     
     ### Get MnvHnDs
     ################
     for histCat in ["unfolded_evtRate","xSection_mc", "background"]:
@@ -175,6 +160,21 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
 
     if sigDefnp == "2g0p" and sigDefexcl == "inclusive":
       continue
+
+    #overflow and underflow for unfolded_evtRate
+    threshold = 10e-6
+    exec("local_tHist_unfolded_xSection = tHist_unfolded_xSection_{0}".format(sigDef))
+    nBins = local_tHist_unfolded_xSection.GetNbinsX()
+
+    binVal_overflow_true = abs(local_tHist_unfolded_xSection.GetBinContent(nBins + 1))
+    include_overflow_true = 1 if binVal_overflow_true > threshold else 0
+
+    binVal_underflow_true = abs(local_tHist_unfolded_xSection.GetBinContent(0))
+    include_underflow_true = 1 if binVal_underflow_true > threshold else 0
+
+    #upper and lower bounds for later use
+    lowerBound = 0 if binVal_underflow_true else 1
+    upperBound = nBins + 1 if binVal_overflow_true else nBins
 
     plotter.SetROOT6Palette(54)
     
@@ -284,7 +284,23 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
     if sigDefnp == "2g0p" and sigDefexcl == "inclusive":
       continue
 
-        
+    #overflow and underflow for unfolded_evtRate
+    threshold = 10e-6
+    exec("local_tHist_unfolded_xSection = tHist_unfolded_xSection_{0}".format(sigDef))
+    nBins = local_tHist_unfolded_xSection.GetNbinsX()
+
+    binVal_overflow_true = abs(local_tHist_unfolded_xSection.GetBinContent(nBins + 1))
+    include_overflow_true = 1 if binVal_overflow_true > threshold else 0
+    include_overflow_reco = include_overflow_true # Change if this changes, although it seems unlikely.
+
+    binVal_underflow_true = abs(local_tHist_unfolded_xSection.GetBinContent(0))
+    include_underflow_true = 1 if binVal_underflow_true > threshold else 0
+    include_underflow_reco = include_underflow_true
+
+    #upper and lower bounds for later use
+    lowerBound = 0 if binVal_underflow_true else 1
+    upperBound = nBins + 1 if binVal_overflow_true else nBins
+
     ### Plot of NuWro fake data unfolded events vs. GENIE generator prediction
     ##########################################################################
     with makeEnv_TCanvas('{0}/fakedatavsgenie_evtRate_{1}.png'.format(plotDir,sigDef)) as canvas:
@@ -306,7 +322,7 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       
       
       ## Calculate chi2 before scaling.
-      local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(upperBound + include_underflow_reco, upperBound + include_underflow_reco)
+      local_tMat_unfolded_cov_evtRate = ROOT.TMatrixD(upperBound + include_underflow_true, upperBound + include_underflow_true)
       for i in range(lowerBound, upperBound+1):
         for j in range(lowerBound, upperBound+1):
           exec("local_tMat_unfolded_cov_evtRate[i-1][j-1] = tHist_unfolded_cov_evtRate_{0}.GetBinContent(j, i)".format(sigDef))
@@ -503,16 +519,18 @@ for sigDefnp in ["2g1p","2g0p","2gXp"]:
       # Prescription for determining minimum and maximum y values from individual histograms.
       truth_max = local_tHist_nuwro_truth.GetMaximum()
       truth_smeared_max = local_tHist_smeared_nuwro_truth.GetMaximum()
-      reco_maxbin = local_tHist_unfolded_evtRate.GetMaximumBin()
-      local_tHist_unfolded_evtRate.GetBinContent(reco_maxbin)
-      reco_max = local_tHist_unfolded_evtRate.GetBinContent(reco_maxbin)
-      reco_max += local_tHist_unfolded_evtRate.GetBinError(reco_maxbin)
+      data_maxbin = local_tHist_unfolded_evtRate.GetMaximumBin()
+      local_tHist_unfolded_evtRate.GetBinContent(data_maxbin)
+      data_max = local_tHist_unfolded_evtRate.GetBinContent(data_maxbin)
+      data_max += local_tHist_unfolded_evtRate.GetBinError(data_maxbin)
       truth_smeared_min = local_tHist_smeared_nuwro_truth.GetMinimum()
-      reco_minbin = local_tHist_unfolded_evtRate.GetMinimumBin()
-      reco_min = local_tHist_unfolded_evtRate.GetBinContent(reco_minbin)
-      reco_min -= local_tHist_unfolded_evtRate.GetBinError(reco_minbin) if reco_min < 0 else 0
-      maxy = max(truth_max, truth_smeared_max, reco_max)*1.1
-      miny = min(0, truth_smeared_min, reco_min)*1.1
+      data_minbin = local_tHist_unfolded_evtRate.GetMinimumBin()
+      if local_tHist_unfolded_evtRate.GetBinContent(upperBound) < local_tHist_unfolded_evtRate.GetMinimum():
+        data_minbin = upperBound;
+      data_min = local_tHist_unfolded_evtRate.GetBinContent(data_minbin)
+      data_min -= local_tHist_unfolded_evtRate.GetBinError(data_minbin) if data_min < 0 else 0
+      maxy = max(truth_max, truth_smeared_max, data_max)*1.1
+      miny = min(0, truth_smeared_min, data_min)*1.1
 
       # Set plot styles.
       local_tHist_smeared_nuwro_truth.SetLineColor(ROOT.kViolet)
